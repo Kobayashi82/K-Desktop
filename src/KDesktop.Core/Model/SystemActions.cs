@@ -472,6 +472,9 @@ public partial class ScreenshotAction : CommandAction
 
     /// <summary>Open the picture afterwards (to draw on it, crop it…).</summary>
     [ObservableProperty] private bool _open;
+
+    /// <summary>«Anotar antes» (F1): the editor first (arrows, boxes, text…); its «Copiar» / «Guardar» say what is done that time.</summary>
+    [ObservableProperty] private bool _annotate;
     [ObservableProperty] private bool _showOsd = true;
 
     /// <summary>The file it saved.</summary>
@@ -485,6 +488,7 @@ public partial class ScreenshotAction : CommandAction
         get
         {
             var parts = new List<string> { Loc.T($"enum.captureArea.{Area}") };
+            if (Annotate) parts.Add(Loc.T("summary.capture.annotate"));
             if (Copy) parts.Add(Loc.T("summary.capture.copy"));
             if (Save) parts.Add(Loc.T("summary.capture.save"));
             if (Open) parts.Add(Loc.T("summary.capture.open"));

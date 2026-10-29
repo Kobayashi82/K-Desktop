@@ -46,7 +46,7 @@ orden.
 
 | Acción | Qué hace |
 |---|---|
-| **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia, la guarda y, si quieres, la abre. |
+| **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia, la guarda y, si quieres, la abre. Con *Anotar antes* sale primero un editor: flecha, recuadro, texto, resaltador, difuminar (lo tapado no se puede leer) y recortar, con siete colores, tres grosores y Deshacer / Rehacer (Ctrl+Z / Ctrl+Y; las teclas 1–6 eligen la herramienta). Desde ahí **Copiar** o **Guardar** (lo que pulses vale esa vez), o **Copiar texto**, que lee el texto de la imagen con el OCR de Windows sin cerrar el editor. Esc cancela y el comando no sigue. |
 | **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). Si cancelas la zona (Esc) o no encuentra texto, el resto del comando no se ejecuta. |
 | **Cuentagotas** | Congela la pantalla con una lupa junto al ratón; un clic copia el color del píxel como `#1E90FF`, `rgb(30, 144, 255)` o `hsl(210, 100%, 56%)` (a elegir). Las flechas mueven el ratón un píxel y la rueda cambia el zoom; Esc cancela y el resto del comando no se ejecuta. |
 | **Regla** | Congela la pantalla y mide en píxeles: al mover el ratón, la distancia entre los bordes que tiene alrededor (hasta donde cambia el color); arrastrando, una caja. Un clic copia «ancho × alto»; Esc cancela. |

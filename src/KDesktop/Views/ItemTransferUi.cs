@@ -108,6 +108,8 @@ internal static class ItemTransferUi
                 case TransferKind.KBoard: w.OpenKBoard(result.RootId); break;
                 case TransferKind.Event: w.OpenEvent(result.RootId); break;
                 case TransferKind.QuickMenu: w.OpenQuickMenu(result.RootId); break;
+                case TransferKind.Arrangement: w.OpenArrangement(result.RootId); break;
+                case TransferKind.Snippet: w.OpenSnippet(result.RootId); break;
             }
         });
     }

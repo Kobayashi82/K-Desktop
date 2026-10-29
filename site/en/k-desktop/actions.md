@@ -45,7 +45,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 
 | Action | What it does |
 |---|---|
-| **Screenshot** | Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it, saves it and, if you want, opens it. |
+| **Screenshot** | Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it, saves it and, if you want, opens it. With *Annotate first* an editor comes first: arrow, box, text, highlighter, blur (what is covered cannot be read) and crop, with seven colours, three thicknesses and Undo / Redo (Ctrl+Z / Ctrl+Y; keys 1–6 pick the tool). From there **Copy** or **Save** (what you press counts that time), or **Copy text**, which reads the picture's text with the Windows OCR without closing the editor. Esc cancels and the command does not go on. |
 | **Copy text from the screen** | Reads the text of a region you pick with the mouse, the active window or a monitor and copies it. No AI: Windows' text recognition (OCR). If you cancel the region (Esc) or it finds no text, the rest of the command is not run. |
 | **Colour picker** | Freezes the screen with a magnifier by the mouse; a click copies the pixel's colour as `#1E90FF`, `rgb(30, 144, 255)` or `hsl(210, 100%, 56%)` (your choice). The arrows move the mouse one pixel and the wheel changes the zoom; Esc cancels and the rest of the command is not run. |
 | **Ruler** | Freezes the screen and measures in pixels: moving the mouse, the distance between the edges around it (up to where the colour changes); dragging, a box. A click copies «width × height»; Esc cancels. |

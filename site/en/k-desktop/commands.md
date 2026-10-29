@@ -91,7 +91,8 @@ event, assistant, MCP server, command line…) and whether it went well.
 
 ### Export and import
 
-A command, a macro, a K-Board profile, an event or a QuickMenu can be taken on its own to another PC (or kept apart) with
+A command, a macro, a K-Board profile, an event, a QuickMenu, a layout or a text can be taken on its own to another PC (or
+kept apart) with
 **Export…**, from the list's right-click menu or with the disk button in the editor's header. It saves a `.kdx` file
 with everything it needs: the commands an event runs, the macros, QuickMenus, K-Board profiles, layouts and events a
 command uses, the commands of a menu or of a profile… and your own icons, sounds and gestures.

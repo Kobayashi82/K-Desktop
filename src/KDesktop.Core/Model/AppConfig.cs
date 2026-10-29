@@ -1062,6 +1062,10 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where «Exportar…» / «Importar…» of a command, macro, profile, event or menu looked last (null: Documents).</summary>
     [ObservableProperty] private string? _transferFolder;
 
+    /// <summary>The capture editor (F1): the colour last used (a key of the icon palette) and the thickness (0 fine, 1 medium, 2 thick).</summary>
+    [ObservableProperty] private string? _annotateColor = "red";
+    [ObservableProperty] private int _annotateSize = 1;
+
     /// <summary>
     /// The assistants' tools for other programs, as an MCP server (phase 12, <c>KDesktop.exe --mcp</c>). Off by default:
     /// the user turns it on and gives the program the key.

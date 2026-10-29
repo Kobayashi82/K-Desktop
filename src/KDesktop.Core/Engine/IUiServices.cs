@@ -43,6 +43,9 @@ internal sealed class NoProgressOsd : IProgressOsd
 }
 
 /// <summary>Services the engine needs from the UI layer. Implementations must be thread-safe.</summary>
+/// <summary>What the capture editor (F1) gives back: the picture as it was left, and whether to copy it, save it or both.</summary>
+public sealed record AnnotatedCapture(Platform.BgraImage Image, bool Copy, bool Save);
+
 public interface IUiServices
 {
     /// <summary>Shows a notification card; completes when it is gone (or was dropped: full screen and «No mostrarlas»).</summary>
@@ -144,6 +147,14 @@ public interface IUiServices
 
     /// <summary>«Regla»: <paramref name="desktop"/> frozen; the size measured in pixels (between edges or a box dragged), null when cancelled.</summary>
     Task<(int Width, int Height)?> MeasureAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => Task.FromResult<(int Width, int Height)?>(null);
+
+    /// <summary>
+    /// «Captura de pantalla › Anotar antes» (F1): the editor with <paramref name="image"/> (arrows, boxes, text,
+    /// highlighter, blur, crop) on the monitor of <paramref name="area"/>; what to do with it is chosen there (it starts as
+    /// <paramref name="copy"/> / <paramref name="save"/>). Null when cancelled.
+    /// </summary>
+    Task<AnnotatedCapture?> AnnotateAsync(Platform.BgraImage image, Platform.ScreenRect area, bool copy, bool save) =>
+        Task.FromResult<AnnotatedCapture?>(new(image, copy, save));
 
     /// <summary>A quick white flash over <paramref name="area"/> (screen pixels): a screenshot was taken.</summary>
     void FlashArea(Platform.ScreenRect area) { }

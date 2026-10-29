@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Storage;
 using Wpf.Ui.Controls;
 
 namespace KDesktop.Views.Pages;
@@ -45,6 +46,14 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
         // Inside K-Desktop the texts are written only in the box to try them, never while editing them.
         TryBox.GotKeyboardFocus += (_, _) => _app.Router.SnippetsInKDesktop = true;
         TryBox.LostKeyboardFocus += (_, _) => _app.Router.SnippetsInKDesktop = false;
+    }
+
+    public void Select(string id)
+    {
+        if (Config.Snippets.FirstOrDefault(s => s.Id == id) is not { } snippet) return;
+        if (!_view.Contains(snippet)) SearchBox.Text = string.Empty;
+        SnippetList.SelectedItem = snippet;
+        SnippetList.ScrollIntoView(snippet);
     }
 
     /// <summary>«Texto», «Pruébalo», «Opciones» and «Notas» stay as they were left, from one text to the next.</summary>
@@ -184,11 +193,16 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
 
     private void OnRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(SnippetList, e) is not { DataContext: TextSnippet } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(SnippetList, e) is not { DataContext: TextSnippet snippet } row)
+        {
+            ListContextMenu.OpenImport(SnippetList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
             new Separator(),
-            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
+            .. ListContextMenu.Transfer(row, TransferKind.Snippet, snippet.Id, snippet.Abbreviation),
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs()))]);
     }
 
     // ── abbreviation ─────────────────────────────────────────────────────
@@ -269,6 +283,11 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
         var name = TextSnippet.Clean(baseName, Prefix);
         for (var i = 2; Config.Snippets.Any(s => s.Abbreviation.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = baseName + i.ToString(Loc.Instance.Culture);
         return name;
+    }
+
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Snippet, item.Id, item.Abbreviation);
     }
 
     private void OnDuplicate(object sender, RoutedEventArgs e)

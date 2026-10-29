@@ -1511,6 +1511,7 @@
             <WrapPanel>
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureCopy}" IsChecked="{Binding Copy}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{Binding Converter={StaticResource SettingsText}, ConverterParameter=captureSave}" IsChecked="{Binding Save}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureAnnotate}" IsChecked="{Binding Annotate}" ToolTip="{l:Tr editor.captureAnnotateHint}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureOpen}" IsChecked="{Binding Open}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
             </WrapPanel>

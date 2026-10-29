@@ -51,7 +51,7 @@ The **assistant module** has its own group: see [Assistants](../assistant/index.
 - **Automatic backups**: the same full backup every N days, keeping the last ones, in the folder you choose (safer on
   another disk, OneDrive or a NAS). Besides, the settings are copied every day.
 - **Import** restores a backup. The current configuration is saved to the Backups folder first.
-- To take **a single thing** (a command, a macro, a profile, an event or a QuickMenu) with what it uses, without touching
+- To take **a single thing** (a command, a macro, a profile, an event, a QuickMenu, a layout or a text) with what it uses, without touching
   the rest: [export and import one at a time](commands.md#export-and-import).
 
 ## Languages

@@ -4,8 +4,8 @@ using KDesktop.Core.Platform;
 
 namespace KDesktop.Core.Storage;
 
-/// <summary>What can be exported on its own (E6); layouts only travel with the commands that put them.</summary>
-public enum TransferKind { Command, Macro, KBoard, Event, QuickMenu, Arrangement }
+/// <summary>What can be exported on its own (E6): also layouts (which travel too with the commands that put them) and texts.</summary>
+public enum TransferKind { Command, Macro, KBoard, Event, QuickMenu, Arrangement, Snippet }
 
 /// <summary>
 /// One item and everything it needs, as it travels in a .kdx: the commands an event runs, the macros, menus, K-Board
@@ -28,6 +28,7 @@ public sealed class TransferBundle
     public List<EventRule> Events { get; set; } = [];
     public List<QuickMenu> QuickMenus { get; set; } = [];
     public List<WindowArrangement> Arrangements { get; set; } = [];
+    public List<TextSnippet> Snippets { get; set; } = [];
 
     /// <summary>The gestures drawn by the user that the commands use as hotkeys.</summary>
     public List<CustomGesture> Gestures { get; set; } = [];
@@ -99,6 +100,7 @@ public static class ItemTransfer
                 case EventRule rule: bundle.Events.Add(rule); break;
                 case QuickMenu menu: bundle.QuickMenus.Add(menu); break;
                 case WindowArrangement arrangement: bundle.Arrangements.Add(arrangement); break;
+                case TextSnippet snippet: bundle.Snippets.Add(snippet); break;
             }
             foreach (var reference in References(copy)) pending.Enqueue(reference);
         }
@@ -198,7 +200,9 @@ public static class ItemTransfer
         foreach (var (_, item) in added) Settle(item, files);
 
         // Free names, kind by kind.
-        foreach (var (kind, item) in added) SetName(item, UniqueName(Names(config, kind).Concat(added.Where(a => a.Kind == kind && a.Item != item).Select(a => NameOf(a.Item))), NameOf(item)));
+        foreach (var (kind, item) in added)
+            SetName(item, UniqueName(Names(config, kind).Concat(added.Where(a => a.Kind == kind && a.Item != item).Select(a => NameOf(a.Item))), NameOf(item),
+                kind == TransferKind.Snippet ? string.Empty : " "));
 
         var dropped = 0;
         foreach (var (_, item) in added)
@@ -218,6 +222,7 @@ public static class ItemTransfer
                 case EventRule rule: config.Events.Add(rule); break;
                 case QuickMenu menu: config.QuickMenus.Add(menu); break;
                 case WindowArrangement arrangement: config.Arrangements.Add(arrangement); break;
+                case TextSnippet snippet: config.Snippets.Add(snippet); break;
             }
         }
         foreach (var gesture in bundle.Gestures)
@@ -239,6 +244,8 @@ public static class ItemTransfer
         TransferKind.KBoard => bundle.KBoards.FirstOrDefault(k => k.Id == bundle.RootId),
         TransferKind.Event => bundle.Events.FirstOrDefault(e => e.Id == bundle.RootId),
         TransferKind.QuickMenu => bundle.QuickMenus.FirstOrDefault(q => q.Id == bundle.RootId),
+        TransferKind.Arrangement => bundle.Arrangements.FirstOrDefault(a => a.Id == bundle.RootId),
+        TransferKind.Snippet => bundle.Snippets.FirstOrDefault(s => s.Id == bundle.RootId),
         _ => null,
     };
 
@@ -249,7 +256,8 @@ public static class ItemTransfer
             .Concat(bundle.KBoards.Select(k => (TransferKind.KBoard, (object)k)))
             .Concat(bundle.Events.Select(e => (TransferKind.Event, (object)e)))
             .Concat(bundle.QuickMenus.Select(q => (TransferKind.QuickMenu, (object)q)))
-            .Concat(bundle.Arrangements.Select(a => (TransferKind.Arrangement, (object)a)));
+            .Concat(bundle.Arrangements.Select(a => (TransferKind.Arrangement, (object)a)))
+            .Concat(bundle.Snippets.Select(s => (TransferKind.Snippet, (object)s)));
 
     private static object? Existing(AppConfig config, TransferKind kind, string itemId) => (kind, itemId) switch
     {
@@ -259,6 +267,7 @@ public static class ItemTransfer
         (TransferKind.Event, var id) => config.Events.FirstOrDefault(e => e.Id == id),
         (TransferKind.QuickMenu, var id) => config.QuickMenus.FirstOrDefault(q => q.Id == id),
         (TransferKind.Arrangement, var id) => config.Arrangements.FirstOrDefault(a => a.Id == id),
+        (TransferKind.Snippet, var id) => config.Snippets.FirstOrDefault(s => s.Id == id),
         _ => null,
     };
 
@@ -269,6 +278,7 @@ public static class ItemTransfer
         TransferKind.KBoard => config.KBoards.Select(k => k.Name),
         TransferKind.Event => config.Events.Select(e => e.Name),
         TransferKind.QuickMenu => config.QuickMenus.Select(q => q.Name),
+        TransferKind.Snippet => config.Snippets.Select(s => s.Abbreviation),
         _ => config.Arrangements.Select(a => a.Name),
     };
 
@@ -282,12 +292,12 @@ public static class ItemTransfer
         return node.ToJsonString();
     }
 
-    /// <summary><paramref name="name"/>, or with a number after it if another one has it already (as «Duplicar»).</summary>
-    public static string UniqueName(IEnumerable<string> taken, string name)
+    /// <summary><paramref name="name"/>, or with a number after it if another one has it already (as «Duplicar»; an abbreviation, with no space).</summary>
+    public static string UniqueName(IEnumerable<string> taken, string name, string separator = " ")
     {
         var names = taken.Select(n => n.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var free = name;
-        for (var i = 2; names.Contains(free); i++) free = $"{name} {i}";
+        for (var i = 2; names.Contains(free); i++) free = name + separator + i.ToString(System.Globalization.CultureInfo.InvariantCulture);
         return free;
     }
 
@@ -299,6 +309,7 @@ public static class ItemTransfer
         EventRule e => e.Id,
         QuickMenu q => q.Id,
         WindowArrangement a => a.Id,
+        TextSnippet s => s.Id,
         _ => string.Empty,
     };
 
@@ -312,6 +323,7 @@ public static class ItemTransfer
             case EventRule e: e.Id = id; break;
             case QuickMenu q: q.Id = id; break;
             case WindowArrangement a: a.Id = id; break;
+            case TextSnippet s: s.Id = id; break;
         }
     }
 
@@ -323,6 +335,7 @@ public static class ItemTransfer
         EventRule e => e.Name,
         QuickMenu q => q.Name,
         WindowArrangement a => a.Name,
+        TextSnippet s => s.Abbreviation,
         _ => string.Empty,
     };
 
@@ -336,6 +349,7 @@ public static class ItemTransfer
             case EventRule e: e.Name = name; break;
             case QuickMenu q: q.Name = name; break;
             case WindowArrangement a: a.Name = name; break;
+            case TextSnippet s: s.Abbreviation = name; break;
         }
     }
 

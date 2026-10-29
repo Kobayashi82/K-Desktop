@@ -10,6 +10,7 @@ using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
+using KDesktop.Core.Storage;
 using Wpf.Ui.Controls;
 using TextBlock = System.Windows.Controls.TextBlock;
 
@@ -149,8 +150,12 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
 
     private void OnRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(ArrangementList, e) is not { DataContext: WindowArrangement } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(ArrangementList, e) is not { DataContext: WindowArrangement arrangement } row)
+        {
+            ListContextMenu.OpenImport(ArrangementList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             ListContextMenu.Entry(Loc.T("macro.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
@@ -159,7 +164,8 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
                 NameBox.SelectAll();
             }),
             new Separator(),
-            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
+            .. ListContextMenu.Transfer(row, TransferKind.Arrangement, arrangement.Id, arrangement.Name),
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs()))]);
     }
 
     // ── name ─────────────────────────────────────────────────────────────
@@ -497,6 +503,11 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
             NameBox.Focus();
             NameBox.SelectAll();
         }, System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Arrangement, item.Id, item.Name);
     }
 
     private void OnDuplicate(object sender, RoutedEventArgs e)

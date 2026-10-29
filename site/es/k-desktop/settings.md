@@ -51,7 +51,7 @@ El **módulo Asistente** tiene su propio grupo: ver [Asistentes](../assistant/in
 - **Copias automáticas**: la misma copia completa cada N días, guardando las últimas, en la carpeta que elijas (mejor en
   otro disco, OneDrive o un NAS). Además, las opciones se copian cada día.
 - **Importar** restaura una copia. Antes se guarda la configuración actual en la carpeta de copias.
-- Para pasar **una sola cosa** (un comando, una macro, un perfil, un evento o un QuickMenu) con lo que usa, sin tocar lo
+- Para pasar **una sola cosa** (un comando, una macro, un perfil, un evento, un QuickMenu, una disposición o un texto) con lo que usa, sin tocar lo
   demás: [exportar e importar sueltos](commands.md#exportar-e-importar).
 
 ## Idiomas

@@ -127,6 +127,8 @@
                             </StackPanel>
                             <StackPanel Grid.Column="2" Margin="16,22,0,0" Orientation="Horizontal" VerticalAlignment="Top">
                                 <ui:ToggleSwitch IsChecked="{Binding Enabled}" Content="{l:Tr snippets.on}" Margin="0,0,16,0" VerticalAlignment="Center" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr transfer.export}" AutomationProperties.Name="{l:Tr transfer.export}"
+                                           Click="OnExport" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr common.duplicate}"
                                            AutomationProperties.Name="{l:Tr common.duplicate}" Click="OnDuplicate" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr snippets.delete}"

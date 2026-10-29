@@ -91,7 +91,8 @@ evento, asistente, servidor MCP, línea de comandos…) y si fue bien.
 
 ### Exportar e importar
 
-Un comando, una macro, un perfil de K-Board, un evento o un QuickMenu se pueden pasar sueltos a otro PC (o guardar aparte)
+Un comando, una macro, un perfil de K-Board, un evento, un QuickMenu, una disposición o un texto se pueden pasar sueltos a
+otro PC (o guardar aparte)
 con **Exportar…**, desde el clic derecho de la lista o con el botón del disco en la cabecera del editor. Se guarda un
 archivo `.kdx` con todo lo que necesita: los comandos que ejecuta un evento, las macros, QuickMenus, perfiles de K-Board,
 disposiciones y eventos que usa un comando, los comandos de un menú o de un perfil… y tus propios iconos, sonidos y gestos.

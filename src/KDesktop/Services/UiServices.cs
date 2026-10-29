@@ -319,6 +319,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public Task<(int Width, int Height)?> MeasureAsync(Core.Platform.BgraImage desktop, Core.Platform.ScreenRect bounds) =>
         dispatcher.Invoke(() => ScreenPicker.MeasureAsync(desktop, bounds));
 
+    public Task<Core.Engine.AnnotatedCapture?> AnnotateAsync(Core.Platform.BgraImage image, Core.Platform.ScreenRect area, bool copy, bool save) =>
+        dispatcher.Invoke(() => Views.Dialogs.AnnotateWindow.EditAsync(image, area, copy, save));
+
     public void FlashArea(Core.Platform.ScreenRect area) => dispatcher.BeginInvoke(() => CaptureFlash.Show(area));
 
     public bool SetClipboardText(string text) => dispatcher.Invoke(() =>

@@ -192,6 +192,31 @@ public class ItemTransferTests
     }
 
     [Fact]
+    public void ATextAndALayoutTravelOnTheirOwnAndAnAbbreviationTakenGetsANumberWithNoSpace()
+    {
+        var config = new AppConfig();
+        var snippet = new TextSnippet { Abbreviation = ";sal", Text = "Hola" };
+        var arrangement = new WindowArrangement { Name = "Trabajo" };
+        config.Snippets.Add(snippet);
+        config.Arrangements.Add(arrangement);
+        var text = TempFile();
+        var layout = TempFile();
+        ItemTransfer.Export(config, TransferKind.Snippet, snippet.Id, text);
+        ItemTransfer.Export(config, TransferKind.Arrangement, arrangement.Id, layout);
+        snippet.Text = "Hola, ¿qué tal?";
+        arrangement.Name = "Mi trabajo";
+
+        var result = ItemTransfer.Apply(config, ItemTransfer.Read(text), ItemTransfer.ClashChoice.Copy);
+        Assert.Equal(TransferKind.Snippet, result.Kind);
+        Assert.Equal(";sal2", result.RootName);
+        Assert.Equal("Hola", config.Snippets.Single(s => s.Id == result.RootId).Text);
+
+        var target = new AppConfig();
+        Assert.Equal("Trabajo", ItemTransfer.Apply(target, ItemTransfer.Read(layout), ItemTransfer.ClashChoice.Copy).RootName);
+        Assert.Single(target.Arrangements);
+    }
+
+    [Fact]
     public void AFileThatIsNotAnExportIsTurnedDown()
     {
         var file = TempFile();

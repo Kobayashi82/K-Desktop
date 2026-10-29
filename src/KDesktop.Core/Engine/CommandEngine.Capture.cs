@@ -91,9 +91,17 @@ public sealed partial class CommandEngine
         if (s.CaptureSound) Sounds.Play("Camera");
         if (s.CaptureFlash) _ui.FlashArea(area);
 
-        var copied = (a.Copy || s.CaptureAlwaysCopy) && _ui.SetClipboardImage(image);
+        var (copy, save) = (a.Copy, a.Save);
+        if (a.Annotate)
+        {
+            // Cancelled (Esc, Cancelar): nothing is copied or saved, and the rest of the command is not run.
+            if (await _ui.AnnotateAsync(image, area, copy, save).ConfigureAwait(false) is not { } edited) throw new OperationCanceledException();
+            (image, copy, save) = (edited.Image, edited.Copy, edited.Save);
+        }
+
+        var copied = (copy || s.CaptureAlwaysCopy) && _ui.SetClipboardImage(image);
         string? path = null;
-        if (a.Save || a.Open)
+        if (save || (a.Open && !a.Annotate))
         {
             var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
             path = NewFileNamed(FolderFor(a.Folder, s.CaptureFolder, Environment.SpecialFolder.MyPictures),
@@ -106,7 +114,7 @@ public sealed partial class CommandEngine
         if (a.Open && path is not null) ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false);
         if (!a.ShowOsd) return;
         var size = string.Create(CultureInfo.InvariantCulture, $"{image.Width}×{image.Height}");
-        var text = path is not null && a.Save
+        var text = path is not null && save
             ? Loc.T(copied ? "osd.captureSavedCopied" : "osd.captureSaved", Path.GetFileName(path), size)
             : copied ? Loc.T("osd.captureCopied", size) : null;
         if (text is not null) _ui.ShowOsd(text, OsdKind.Success, look: OsdLook.Of("Screenshot24"));
@@ -221,7 +229,8 @@ public sealed partial class CommandEngine
     }
 
     /// <summary>The beginning of what was read, on one line, for the OSD.</summary>
-    private static string Preview(string text)
+    /// <summary>A text on one line and at most 90 letters, for the OSD.</summary>
+    public static string Preview(string text)
     {
         var flat = string.Join(" ", text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         return flat.Length <= 90 ? flat : flat[..90].TrimEnd() + "…";

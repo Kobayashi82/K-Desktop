@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -403,7 +404,39 @@ public partial class App : Application
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
         if (Program.ValueOf(args, PackageAssociation.Argument) is { } package) OpenAssistantPackage(package);
         if (Program.ValueOf(args, "--import") is { } exported) _ = Views.ItemTransferUi.ImportAsync(exported);
+        if (Program.ValueOf(args, "--annotate-test") is { } picture) _ = AnnotateTestAsync(picture, args.Contains("demo", StringComparer.OrdinalIgnoreCase));
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
+    }
+
+    /// <summary>
+    /// <c>--annotate-test picture.png</c>: the capture editor (F1) with that picture instead of the screen; what it gives
+    /// back is saved next to it as «… anotada.png» (and logged). With <c>demo</c>, one mark of each kind is already there.
+    /// </summary>
+    private static async Task AnnotateTestAsync(string path, bool demo)
+    {
+        try
+        {
+            var frame = System.Windows.Media.Imaging.BitmapFrame.Create(new Uri(Path.GetFullPath(path)), System.Windows.Media.Imaging.BitmapCreateOptions.None,
+                System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+            var bgra = new System.Windows.Media.Imaging.FormatConvertedBitmap(frame, System.Windows.Media.PixelFormats.Bgra32, null, 0);
+            var pixels = new byte[bgra.PixelWidth * bgra.PixelHeight * 4];
+            bgra.CopyPixels(pixels, bgra.PixelWidth * 4, 0);
+            var image = new BgraImage(bgra.PixelWidth, bgra.PixelHeight, pixels);
+            var cursor = ScreenCapture.MonitorAtCursor();
+            var result = await Views.Dialogs.AnnotateWindow.EditAsync(image, cursor, copy: true, save: true, demo);
+            if (result is null)
+            {
+                Log.Info("--annotate-test: cancelado");
+                return;
+            }
+            var output = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path))!, Path.GetFileNameWithoutExtension(path) + " anotada.png");
+            await File.WriteAllBytesAsync(output, await Core.Imaging.ImageFiles.EncodeAsync(result.Image, ImageFileFormat.Png, 90, CancellationToken.None));
+            Log.Info($"--annotate-test: {result.Image.Width}×{result.Image.Height}, copiar {result.Copy}, guardar {result.Save} → {output}");
+        }
+        catch (Exception ex) when (ex is IOException or UriFormatException or NotSupportedException or ArgumentException)
+        {
+            Log.Error("--annotate-test", ex);
+        }
     }
 
     /// <summary>The welcome (language, theme, the basics, voice, assistants) over the main window.</summary>

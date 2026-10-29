@@ -15,7 +15,8 @@ namespace KDesktop;
 /// (forwarded to the running instance when there is one; <c>--exit</c> does nothing when none is running)</item>
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c> · <c>--no-web</c></item>
 /// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page ·
-/// <c>--import "file.kdx"</c> import an exported command, macro, profile, event or menu</item>
+/// <c>--import "file.kdx"</c> import an exported command, macro, profile, event, menu, layout or text ·
+/// <c>--annotate-test picture.png</c> the capture editor with that picture (the result saved next to it)</item>
 /// <item><c>--voice-test a.wav folder "phrase"…</c> voice diagnostics without microphone or UI (report in Logs)</item>
 /// <item><c>--wake-test "name" folder</c> wake word set-up and verification from word*/speech*/test*.wav (report in Logs)</item>
 /// <item><c>--aec-test mic.wav speakers.wav</c> the echo canceller on recordings (cleaned audio next to mic.wav, report in Logs)</item>

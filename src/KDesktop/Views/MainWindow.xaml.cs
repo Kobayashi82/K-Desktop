@@ -250,6 +250,12 @@ public partial class MainWindow : FluentWindow
         if (arrangementId is not null && _pages.GetValueOrDefault("arrangements") is Pages.ArrangementsPage page) page.Select(arrangementId);
     }
 
+    public void OpenSnippet(string? snippetId)
+    {
+        Navigate("snippets");
+        if (snippetId is not null && _pages.GetValueOrDefault("snippets") is Pages.SnippetsPage page) page.Select(snippetId);
+    }
+
     public void OpenKBoard(string? profileId)
     {
         Navigate("kboard");
