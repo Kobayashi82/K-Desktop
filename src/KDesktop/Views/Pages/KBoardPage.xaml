@@ -218,7 +218,9 @@
                                                    Click="OnCreateCommand" Margin="0,0,8,0" />
                                         <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr kboard.duplicate}" AutomationProperties.Name="{l:Tr kboard.duplicate}"
                                                    Click="OnDuplicate" Margin="0,0,8,0" />
-                                        <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr kboard.delete}" AutomationProperties.Name="{l:Tr kboard.delete}" Click="OnDelete" />
+                                        <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr kboard.delete}" AutomationProperties.Name="{l:Tr kboard.delete}" Click="OnDelete">
+                                            <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                        </ui:Button>
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
                                         <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr kboard.nameRequired}"

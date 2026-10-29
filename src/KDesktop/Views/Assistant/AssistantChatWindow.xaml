@@ -41,8 +41,10 @@
                            ToolTip="{l:Tr assistantChatWindow.pin}" AutomationProperties.Name="{l:Tr assistantChatWindow.pin}">
                     <ui:SymbolIcon x:Name="PinIcon" Symbol="Pin24" FontSize="18" />
                 </ui:Button>
-                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" Click="OnClear"
-                           ToolTip="{l:Tr assistantChat.clear}" AutomationProperties.Name="{l:Tr assistantChat.clear}" />
+                <ui:Button Style="{StaticResource SquareButton}" Click="OnClear"
+                           ToolTip="{l:Tr assistantChat.clear}" AutomationProperties.Name="{l:Tr assistantChat.clear}">
+                    <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                </ui:Button>
             </StackPanel>
         </Grid>
         <a:AssistantChatView x:Name="Chat" Grid.Row="2" />

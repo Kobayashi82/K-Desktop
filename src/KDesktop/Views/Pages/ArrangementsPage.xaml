@@ -100,8 +100,10 @@
                                                AutomationProperties.Name="{l:Tr arrangement.createCommand}" Click="OnCreateCommand" Margin="0,0,8,0" />
                                     <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr common.duplicate}"
                                                AutomationProperties.Name="{l:Tr common.duplicate}" Click="OnDuplicate" Margin="0,0,8,0" />
-                                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr arrangement.delete}"
-                                               AutomationProperties.Name="{l:Tr arrangement.delete}" Click="OnDelete" />
+                                    <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr arrangement.delete}"
+                                               AutomationProperties.Name="{l:Tr arrangement.delete}" Click="OnDelete">
+                                        <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                    </ui:Button>
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
                                     <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr arrangement.nameRequired}"
@@ -137,7 +139,7 @@
                                     <TextBlock x:Name="ZoneTitle" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0" />
                                     <ui:Button Grid.Column="1" Style="{StaticResource IconButton}" Click="OnRemoveZone"
                                                ToolTip="{l:Tr arrangement.removeZone}" AutomationProperties.Name="{l:Tr arrangement.removeZone}">
-                                        <ui:SymbolIcon Symbol="Delete24" FontSize="14" />
+                                        <ui:SymbolIcon Symbol="Delete24" FontSize="14" Foreground="{DynamicResource Kd.Danger}" />
                                     </ui:Button>
                                 </Grid>
                                 <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" Text="{l:Tr arrangement.zoneProgramsHint}" TextWrapping="Wrap" />

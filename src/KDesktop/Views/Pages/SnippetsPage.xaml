@@ -129,8 +129,10 @@
                                 <ui:ToggleSwitch IsChecked="{Binding Enabled}" Content="{l:Tr snippets.on}" Margin="0,0,16,0" VerticalAlignment="Center" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr common.duplicate}"
                                            AutomationProperties.Name="{l:Tr common.duplicate}" Click="OnDuplicate" Margin="0,0,8,0" />
-                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr snippets.delete}"
-                                           AutomationProperties.Name="{l:Tr snippets.delete}" Click="OnDelete" />
+                                <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr snippets.delete}"
+                                           AutomationProperties.Name="{l:Tr snippets.delete}" Click="OnDelete">
+                                    <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                </ui:Button>
                             </StackPanel>
                         </Grid>
                     </Border>

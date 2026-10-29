@@ -595,7 +595,7 @@ public partial class AssistantBrainSection : UserControl
     {
         var button = new Button
         {
-            Icon = new SymbolIcon { Symbol = symbol },
+            Icon = ButtonIcons.For(symbol),
             Appearance = ControlAppearance.Transparent,
             Padding = new Thickness(8, 6, 8, 6),
             Margin = new Thickness(4, 0, 0, 0),

@@ -45,7 +45,7 @@ internal static class ListContextMenu
     public static MenuItem Danger(MenuItem item)
     {
         item.SetResourceReference(Control.ForegroundProperty, "Kd.Danger");
-        if (item.Icon is SymbolIcon icon) icon.SetResourceReference(Control.ForegroundProperty, "Kd.Danger");
+        if (item.Icon is SymbolIcon icon) icon.SetResourceReference(SymbolIcon.ForegroundProperty, "Kd.Danger");
         return item;
     }
 

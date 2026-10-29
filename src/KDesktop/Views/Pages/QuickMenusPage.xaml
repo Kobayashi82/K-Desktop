@@ -235,7 +235,9 @@
                                 <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr qm.redo}" Click="OnRedo" Margin="0,0,8,0" IsEnabled="False" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr qm.duplicateMenu}" AutomationProperties.Name="{l:Tr qm.duplicateMenu}"
                                            Click="OnDuplicateMenu" Margin="0,0,8,0" />
-                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr qm.deleteMenu}" AutomationProperties.Name="{l:Tr qm.deleteMenu}" Click="OnDeleteMenu" />
+                                <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr qm.deleteMenu}" AutomationProperties.Name="{l:Tr qm.deleteMenu}" Click="OnDeleteMenu">
+                                    <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                </ui:Button>
                             </StackPanel>
                             <TextBlock x:Name="NameError" Grid.Row="1" Grid.ColumnSpan="2" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr qm.nameRequired}"
                                        Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />

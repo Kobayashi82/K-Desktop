@@ -380,7 +380,9 @@
                                         </ui:Button.Style>
                                     </ui:Button>
                                     <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
-                                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
+                                    <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand">
+                                        <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                    </ui:Button>
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.ColumnSpan="4">
                                     <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr commands.nameRequired}"

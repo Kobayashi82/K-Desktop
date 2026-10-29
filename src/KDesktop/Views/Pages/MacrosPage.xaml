@@ -219,7 +219,9 @@
                                            Click="OnCreateCommand" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr macro.duplicate}" AutomationProperties.Name="{l:Tr macro.duplicate}"
                                            Click="OnDuplicate" Margin="0,0,8,0" />
-                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete" />
+                                <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete">
+                                    <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                </ui:Button>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
                                 <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr macro.nameRequired}"
@@ -268,7 +270,9 @@
                                            AutomationProperties.Name="{l:Tr macro.simplify}" Click="OnSimplify" Margin="0,0,6,0" IsEnabled="False" />
                                 <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
                                 <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr macro.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,6,0" />
-                                <ui:Button x:Name="DeleteStepsButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" IsEnabled="False" />
+                                <ui:Button x:Name="DeleteStepsButton" Style="{StaticResource SquareButton}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" IsEnabled="False">
+                                    <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />
+                                </ui:Button>
                             </StackPanel>
                         </Grid>
                         <TextBlock x:Name="NoSteps" DockPanel.Dock="Top" Style="{StaticResource Caption}" Text="{l:Tr macro.noSteps}" Margin="4,8" />

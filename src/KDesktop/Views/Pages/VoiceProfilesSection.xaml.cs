@@ -837,7 +837,7 @@ public partial class VoiceProfilesSection : UserControl
     {
         var button = new Button
         {
-            Icon = new SymbolIcon { Symbol = symbol },
+            Icon = ButtonIcons.For(symbol),
             Appearance = ControlAppearance.Transparent,
             Padding = new Thickness(8, 6, 8, 6),
             Margin = new Thickness(2, 0, 0, 0),

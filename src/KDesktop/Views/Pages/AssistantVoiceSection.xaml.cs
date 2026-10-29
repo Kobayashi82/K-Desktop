@@ -270,7 +270,7 @@ public partial class AssistantVoiceSection : UserControl
             row.Children.Add(text);
             var remove = new Wpf.Ui.Controls.Button
             {
-                Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.Delete24 },
+                Icon = ButtonIcons.For(Wpf.Ui.Controls.SymbolRegular.Delete24),
                 Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
                 ToolTip = Loc.T("brainModels.remove"),
                 VerticalAlignment = VerticalAlignment.Center,

@@ -122,7 +122,7 @@ public partial class McpServerWindow : FluentWindow
         };
         var remove = new Button
         {
-            Icon = new SymbolIcon { Symbol = SymbolRegular.Delete24 },
+            Icon = ButtonIcons.For(SymbolRegular.Delete24),
             Appearance = ControlAppearance.Transparent,
             Margin = new Thickness(4, 0, 0, 0),
             ToolTip = Loc.T("mcpServer.removeValue"),
