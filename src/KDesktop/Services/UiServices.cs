@@ -143,6 +143,20 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         return new Callback(() => dispatcher.BeginInvoke(() => Osd.HideMessage(generation)));
     }
 
+    /// <summary>«Grabar vídeo»: the bar of the macros' recorder (time, pause, stop), left out of the video.</summary>
+    public IDisposable? ShowRecordingBar(Func<string> detail, Action stop, Action<bool> pause)
+    {
+        var bar = dispatcher.Invoke(() =>
+        {
+            var created = new RecorderBar();
+            created.StopClicked += stop;
+            created.PauseToggled += pause;
+            created.StartVideo(detail);
+            return created;
+        });
+        return new Callback(() => dispatcher.BeginInvoke(bar.CloseAnimated));
+    }
+
     /// <summary>Options › «Probar» of the ring: a countdown of a few seconds.</summary>
     public void PreviewRing(string text) => dispatcher.BeginInvoke(() =>
     {

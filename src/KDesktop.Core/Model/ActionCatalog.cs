@@ -42,6 +42,7 @@ public static class ActionCatalog
         new(ActionKind.AudioRecord, "sound", "MicPulse24", () => new AudioRecordAction()),
 
         new(ActionKind.Screenshot, "screen", "Screenshot24", () => new ScreenshotAction()),
+        new(ActionKind.VideoRecord, "screen", "Video24", () => new VideoRecordAction()),
         new(ActionKind.ScreenText, "screen", "ScanText24", () => new ScreenTextAction()),
         new(ActionKind.ColorPicker, "screen", "Eyedropper24", () => new ColorPickerAction()),
         new(ActionKind.Ruler, "screen", "Ruler24", () => new RulerAction()),

@@ -46,6 +46,7 @@ orden.
 
 | Acción | Qué hace |
 |---|---|
+| **Grabar vídeo** | Graba en MP4 una zona que eliges con el ratón, la ventana activa o el monitor del ratón, con lo que suena en el PC, el micrófono, los dos o sin sonido. Arriba sale una pastilla con el tiempo, **Pausar** y **Detener**, que no aparece en el vídeo; también se para con el mismo atajo (*Empezar / parar*) o desde la bandeja. Al parar deja el archivo en `{resultado}`. Fotogramas, calidad, puntero y carpeta en *Opciones → Grabación*. |
 | **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia y la guarda. Con *Anotar antes* sale primero un editor: flecha, recuadro, texto, resaltador, difuminar (lo tapado no se puede leer), recortar y **copiar texto** (arrastra sobre un texto, o un clic para toda la imagen: lo lee el OCR de Windows y lo copia sin cerrar el editor), con siete colores, el grosor a elegir y Deshacer / Rehacer (Ctrl+Z / Ctrl+Y; las teclas 1–7 eligen la herramienta). Desde ahí **Copiar** o **Guardar** (lo que pulses vale esa vez). Esc cancela y el comando no sigue. |
 | **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). Si cancelas la zona (Esc) o no encuentra texto, el resto del comando no se ejecuta. |
 | **Cuentagotas** | Congela la pantalla con una lupa junto al ratón; un clic copia el color del píxel como `#1E90FF`, `rgb(30, 144, 255)` o `hsl(210, 100%, 56%)` (a elegir). Las flechas mueven el ratón un píxel y la rueda cambia el zoom; Esc cancela y el resto del comando no se ejecuta. |
@@ -113,7 +114,7 @@ Escribe `{` en el campo y salen las que hay; con las flechas eliges una y con En
 
 Dan algo: **Copiar texto de la pantalla** (el texto leído), **Cuentagotas** (el color), **Regla** (la medida), **Petición web** (la respuesta), **Asistente: preguntar** (la
 respuesta, salvo con *Decirla*), **Grabar audio** (lo que se dice, con *Al terminar, transcribir*), **Portapapeles** (el texto que
-deja copiado), **Captura de pantalla** (el archivo guardado) y **Ejecutar script** (lo que escribe, si se marca *Esperar a
+deja copiado), **Captura de pantalla** (el archivo guardado), **Grabar vídeo** (el vídeo, al parar) y **Ejecutar script** (lo que escribe, si se marca *Esperar a
 que termine* y la ventana es *Oculta*; no en VBScript). Estas acciones tienen el campo **Guardar en variable**: con un
 nombre (letras, números y `_`), lo que dan sigue disponible hasta que acaba el comando, aunque después otra acción cambie
 `{resultado}`.

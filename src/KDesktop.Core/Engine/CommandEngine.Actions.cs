@@ -49,6 +49,7 @@ public sealed partial class CommandEngine
         ColorPickerAction a => ColorPickerAsync(a, ctx),
         RulerAction a => RulerAsync(a, ctx),
         AudioRecordAction a => AudioRecordAsync(a, ctx),
+        VideoRecordAction a => VideoRecordAsync(a, ctx),
         MagnifierAction a => Run(() => Magnify(a)),
         DictateAction a => Run(() => _ui.Dictate(a.Mode)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra, a.BringOut)),

@@ -144,6 +144,7 @@ public partial class App : Application
         // A word just recorded with an assistant's name is given to it.
         Voice.WakeWords.Changed += () => Dispatcher.BeginInvoke(UpdateSleepingWakeWords);
         Engine.Recording.Changed += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
+        Engine.VideoChanged += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
         Engine.Awake.Changed += () => Dispatcher.BeginInvoke(UpdateAwakeTray);
         Engine.Magnifier.Changed += () => Ui.ShowOsd(Engine.Magnifier.IsOn
             ? Loc.T("osd.zoomOn", Engine.Magnifier.Zoom.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture))
@@ -404,6 +405,7 @@ public partial class App : Application
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
         if (Program.ValueOf(args, PackageAssociation.Argument) is { } package) OpenAssistantPackage(package);
         if (Program.ValueOf(args, "--import") is { } exported) _ = Views.ItemTransferUi.ImportAsync(exported);
+        if (Program.ValueOf(args, "--video-test") is { } seconds) _ = VideoTestAsync(args, seconds);
         if (Program.ValueOf(args, "--annotate-test") is { } picture) _ = AnnotateTestAsync(picture, args.Contains("demo", StringComparer.OrdinalIgnoreCase));
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
@@ -436,6 +438,37 @@ public partial class App : Application
         catch (Exception ex) when (ex is IOException or UriFormatException or NotSupportedException or ArgumentException)
         {
             Log.Error("--annotate-test", ex);
+        }
+    }
+
+    /// <summary>
+    /// <c>--video-test seconds out.mp4 [monitor|region|window] [audio] [60]</c>: «Grabar vídeo» (F2) without the UI: the monitor of the
+    /// mouse, or a 640×360 region in its middle, for that long (logged).
+    /// </summary>
+    private static async Task VideoTestAsync(IReadOnlyList<string> args, string seconds)
+    {
+        try
+        {
+            var index = args.ToList().FindIndex(a => a.Equals("--video-test", StringComparison.OrdinalIgnoreCase));
+            var output = Path.GetFullPath(args[index + 2]);
+            var monitor = ScreenCapture.MonitorAtCursor();
+            var region = args.Contains("region", StringComparer.OrdinalIgnoreCase);
+            var front = ForegroundWindow.Capture();
+            var target = args.Contains("window", StringComparer.OrdinalIgnoreCase) && front.RootHandle != IntPtr.Zero
+                ? new VideoTarget(CaptureArea.ActiveWindow, WindowLayout.VisibleBounds(front.RootHandle), front.RootHandle)
+                : region
+                ? new VideoTarget(CaptureArea.Region, new ScreenRect(monitor.CenterX - 320, monitor.Top + monitor.Height / 2 - 180, 641, 361))
+                : new VideoTarget(CaptureArea.Monitor, monitor);
+            var options = new VideoOptions(args.Contains("60") ? 60 : 30, VideoQuality.Normal, true,
+                args.Contains("audio", StringComparer.OrdinalIgnoreCase) ? AudioSource.Output : null);
+            var recorder = ScreenRecorder.Start(target, output, options);
+            await Task.Delay(TimeSpan.FromSeconds(double.Parse(seconds, System.Globalization.CultureInfo.InvariantCulture)));
+            var length = await recorder.StopAsync();
+            Log.Info($"--video-test: {length} → {output} ({(File.Exists(output) ? new FileInfo(output).Length / 1024 : 0)} KB)");
+        }
+        catch (Exception ex) when (ex is IOException or ArgumentException or FormatException or System.Runtime.InteropServices.COMException or SharpGen.Runtime.SharpGenException or InvalidOperationException)
+        {
+            Log.Error("--video-test", ex);
         }
     }
 
@@ -592,6 +625,9 @@ public partial class App : Application
             else ShowMainWindow();
         });
         menu.Items.Add(window);
+        // «Grabar vídeo»: stop it from here too (only while it records).
+        var stopVideo = TrayItem(Loc.T("tray.videoStop"), (_, _) => _ = Engine.StopVideoAsync());
+        menu.Items.Add(stopVideo);
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
         var clipboard = TrayItem(Loc.T("tray.clipboard"), (_, _) => ClipboardUi.Show(ForegroundWindow.Capture()));
@@ -614,6 +650,7 @@ public partial class App : Application
         menu.Opened += (_, _) =>
         {
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
+            stopVideo.Visibility = Engine.IsRecordingVideo ? Visibility.Visible : Visibility.Collapsed;
             pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
             clipboard.Visibility = clipboardPause.Visibility = Config.Settings.ClipboardHistory ? Visibility.Visible : Visibility.Collapsed;
             clipboardPause.IsChecked = Config.Settings.ClipboardPaused;
@@ -665,7 +702,7 @@ public partial class App : Application
         if (_tray is null) return;
         var wanted = Config.Settings.TrayIcon ?? string.Empty;
         // While the voice listens, the icon shows a red dot.
-        var listening = Voice?.IsListening == true || Engine?.Recording.IsRecording == true;
+        var listening = Voice?.IsListening == true || Engine?.Recording.IsRecording == true || Engine?.IsRecordingVideo == true;
         var key = wanted + (listening ? "|voice" : "");
         if (_appliedTrayIcon == key) return;
         _appliedTrayIcon = key;
@@ -718,6 +755,9 @@ public partial class App : Application
         // Leaving is not «the program closed»: the events stop before the exit ones run (no «Al terminar» now).
         Events.Dispose();
         try { await Engine.RunExitCommandsAsync(); } catch (Exception ex) { Log.Error("Error en los comandos de salida", ex); }
+        // A video being recorded is closed so it can be played.
+        try { await Engine.StopVideoAsync(showOsd: false).WaitAsync(TimeSpan.FromSeconds(5)); }
+        catch (TimeoutException) { Log.Warn("Grabación de vídeo: no se cerró a tiempo al salir"); }
         try { await playing; } catch (Exception ex) { Log.Warn("No se pudo reproducir el sonido de salida: " + ex.Message); }
         Shutdown();
     }
@@ -758,6 +798,8 @@ public partial class App : Application
         Engine.History.Save();
         Engine.Magnifier.Off();
         Engine.Recording.Stop();
+        // A video being recorded is closed so it can be played.
+        try { Engine.StopVideoAsync(showOsd: false).Wait(TimeSpan.FromSeconds(5)); } catch (AggregateException) { /* it is closing anyway */ }
     }
 
     protected override void OnExit(ExitEventArgs e)

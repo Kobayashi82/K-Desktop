@@ -123,6 +123,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => inner.SelectRegionAsync(desktop, bounds);
     public Task<Platform.PixelColor?> PickColorAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds, Model.ColorFormat format) => inner.PickColorAsync(desktop, bounds, format);
     public Task<(int Width, int Height)?> MeasureAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => inner.MeasureAsync(desktop, bounds);
+    public IDisposable? ShowRecordingBar(Func<string> detail, Action stop, Action<bool> pause) => inner.ShowRecordingBar(detail, stop, pause);
     public Task<AnnotatedCapture?> AnnotateAsync(Platform.BgraImage image, Platform.ScreenRect area, bool copy, bool save) => inner.AnnotateAsync(image, area, copy, save);
     public void FlashArea(Platform.ScreenRect area) => inner.FlashArea(area);
 }

@@ -19,6 +19,7 @@ public partial class RecorderBar : Window
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromMilliseconds(200) };
     private readonly Stopwatch _elapsed = new();
     private Func<int>? _count;
+    private Func<string>? _detail;
     private bool _paused;
 
     public event Action? StopClicked;
@@ -29,6 +30,8 @@ public partial class RecorderBar : Window
         InitializeComponent();
         StopText.Text = Loc.T("macro.stop");
         PauseButton.ToolTip = Loc.T("macro.pause");
+        System.Windows.Automation.AutomationProperties.SetName(PauseButton, Loc.T("macro.pause"));
+        System.Windows.Automation.AutomationProperties.SetName(StopButton, Loc.T("macro.stop"));
         SourceInitialized += (_, _) => UiNative.AddExStyle(UiNative.Handle(this), toolWindow: true, noActivate: true, clickThrough: false);
         SizeChanged += (_, _) => Reposition();
         _clock.Tick += (_, _) => UpdateInfo();
@@ -58,6 +61,21 @@ public partial class RecorderBar : Window
         }
         StopClicked -= OnStop;
         return !stopped;
+    }
+
+    /// <summary>
+    /// «Grabar vídeo» (F2): straight to "recording", with <paramref name="detail"/> after the time (the size), and left out
+    /// of every capture and recording of the screen (it never shows in the video).
+    /// </summary>
+    public void StartVideo(Func<string> detail)
+    {
+        _detail = detail;
+        SourceInitialized += (_, _) => UiNative.SetWindowDisplayAffinity(UiNative.Handle(this), UiNative.WDA_EXCLUDEFROMCAPTURE);
+        Show();
+        Reposition();
+        Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220)));
+        RootShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-24, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = EaseOut });
+        StartRecording(() => 0);
     }
 
     /// <summary>Switches to "recording".</summary>
@@ -93,7 +111,9 @@ public partial class RecorderBar : Window
     {
         var t = _elapsed.Elapsed;
         StateText.Text = Loc.T(_paused ? "macro.paused" : "macro.recording");
-        InfoText.Text = $"{(int)t.TotalMinutes:00}:{t.Seconds:00}  ·  " + Loc.T("macro.stepCount", _count?.Invoke() ?? 0) + "  ·  " + Loc.T("macro.stopKeys");
+        InfoText.Text = _detail is not null
+            ? $"{(int)t.TotalMinutes:00}:{t.Seconds:00}  ·  " + _detail()
+            : $"{(int)t.TotalMinutes:00}:{t.Seconds:00}  ·  " + Loc.T("macro.stepCount", _count?.Invoke() ?? 0) + "  ·  " + Loc.T("macro.stopKeys");
     }
 
     private void OnPause(object sender, RoutedEventArgs e)
@@ -102,6 +122,7 @@ public partial class RecorderBar : Window
         if (_paused) _elapsed.Stop(); else _elapsed.Start();
         PauseIcon.Symbol = _paused ? SymbolRegular.Play24 : SymbolRegular.Pause24;
         PauseButton.ToolTip = Loc.T(_paused ? "macro.resume" : "macro.pause");
+        System.Windows.Automation.AutomationProperties.SetName(PauseButton, (string)PauseButton.ToolTip);
         Dot.Fill = _paused ? (Brush)FindResource("Kd.Warning") : new SolidColorBrush(Color.FromRgb(0xE5, 0x48, 0x4D));
         Pulse(!_paused);
         UpdateInfo();

@@ -156,6 +156,12 @@ public interface IUiServices
     Task<AnnotatedCapture?> AnnotateAsync(Platform.BgraImage image, Platform.ScreenRect area, bool copy, bool save) =>
         Task.FromResult<AnnotatedCapture?>(new(image, copy, save));
 
+    /// <summary>
+    /// «Grabar vídeo» (F2): the bar with the time, <paramref name="detail"/>, pause and stop, left out of what is recorded;
+    /// disposing it closes it. Null without a screen.
+    /// </summary>
+    IDisposable? ShowRecordingBar(Func<string> detail, Action stop, Action<bool> pause) => null;
+
     /// <summary>A quick white flash over <paramref name="area"/> (screen pixels): a screenshot was taken.</summary>
     void FlashArea(Platform.ScreenRect area) { }
 }

@@ -1810,6 +1810,77 @@
                 </StackPanel>
             </Border>
 
+<!-- Videos (F2): as the audio recordings above -->
+            <Border Style="{StaticResource Card}" Tag="recording">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.videos}" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.videoFolder}" />
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding VideoFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.videoFolderHint}" />
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseVideoFolder" />
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr settings.openFolder}" Icon="{ui:SymbolIcon Open24}" Click="OnOpenVideoFolder"
+                                   AutomationProperties.Name="{l:Tr settings.openVideoFolder}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.videoFps}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.videoFpsHint}" />
+                        </StackPanel>
+                        <UniformGrid x:Name="VideoFpsPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="30" GroupName="VideoFps" Checked="OnVideoFps" AutomationProperties.Name="30">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="30" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoFps.30}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="60" GroupName="VideoFps" Checked="OnVideoFps" AutomationProperties.Name="60">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="60" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoFps.60}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.videoQuality}" />
+                        <UniformGrid x:Name="VideoQualityPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Low" GroupName="VideoQuality" Checked="OnVideoQuality" AutomationProperties.Name="{l:Tr settings.videoQuality.Low}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" FontSize="15" Text="{l:Tr settings.videoQuality.Low}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoQualityHint.Low}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Normal" GroupName="VideoQuality" Checked="OnVideoQuality" AutomationProperties.Name="{l:Tr settings.videoQuality.Normal}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" FontSize="15" Text="{l:Tr settings.videoQuality.Normal}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoQualityHint.Normal}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="High" GroupName="VideoQuality" Checked="OnVideoQuality" AutomationProperties.Name="{l:Tr settings.videoQuality.High}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" FontSize="15" Text="{l:Tr settings.videoQuality.High}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoQualityHint.High}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.videoCursor}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VideoCursor}" AutomationProperties.Name="{l:Tr settings.videoCursor}" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" TextWrapping="Wrap" Text="{l:Tr settings.videoHint}" />
+                </StackPanel>
+            </Border>
+
             <!-- The last seconds, kept in memory -->
             <Border Style="{StaticResource Card}" Tag="recording">
                 <StackPanel>

@@ -1013,6 +1013,16 @@ public partial class SettingsPage : UserControl
         if (sender is RadioButton { Tag: string tag } && Enum.TryParse<ImageFileFormat>(tag, out var format)) _app.Config.Settings.CaptureFormat = format;
     }
 
+    private void OnVideoFps(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && int.TryParse(tag, System.Globalization.CultureInfo.InvariantCulture, out var fps)) _app.Config.Settings.VideoFps = fps;
+    }
+
+    private void OnVideoQuality(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<VideoQuality>(tag, out var quality)) _app.Config.Settings.VideoQuality = quality;
+    }
+
     private void OnRecordFormat(object sender, RoutedEventArgs e)
     {
         if (sender is RadioButton { Tag: string tag } && Enum.TryParse<AudioFileFormat>(tag, out var format)) _app.Config.Settings.RecordFormat = format;
@@ -1037,6 +1047,8 @@ public partial class SettingsPage : UserControl
         Mark(ZoomColorsPicker, s.ZoomColors.ToString());
         Mark(CaptureFormatPicker, s.CaptureFormat.ToString());
         Mark(RecordFormatPicker, s.RecordFormat.ToString());
+        Mark(VideoFpsPicker, s.VideoFps >= 60 ? "60" : "30");
+        Mark(VideoQualityPicker, s.VideoQuality.ToString());
         Mark(GestureButtonPicker, s.GestureButton.ToString());
     }
 
@@ -1110,6 +1122,16 @@ public partial class SettingsPage : UserControl
 
     private void OnOpenCaptureFolder(object sender, RoutedEventArgs e) =>
         OpenFolder(CommandEngine.FolderFor(null, _app.Config.Settings.CaptureFolder, Environment.SpecialFolder.MyPictures));
+
+    private void OnOpenVideoFolder(object sender, RoutedEventArgs e) =>
+        OpenFolder(CommandEngine.FolderFor(null, _app.Config.Settings.VideoFolder, Environment.SpecialFolder.MyVideos));
+
+    private void OnBrowseVideoFolder(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        var dlg = new OpenFolderDialog { Title = Loc.T("editor.chooseFolder"), InitialDirectory = CommandEngine.FolderFor(null, s.VideoFolder, Environment.SpecialFolder.MyVideos) };
+        if (dlg.ShowDialog(Window.GetWindow(this)) == true) s.VideoFolder = dlg.FolderName;
+    }
 
     private void OnOpenRecordFolder(object sender, RoutedEventArgs e) =>
         OpenFolder(CommandEngine.FolderFor(null, _app.Config.Settings.RecordFolder, Environment.SpecialFolder.MyMusic));

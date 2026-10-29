@@ -1582,6 +1582,51 @@
     </DataTemplate>
 
     <!-- ── Grabar audio ────────────────────────────────────────────────── -->
+    <!-- ── Grabar vídeo (as «Grabar audio») ─────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:VideoRecordAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VideoModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel x:Name="AreaRow" Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.captureArea}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VideoAreas}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Area}" />
+                </StackPanel>
+                <StackPanel x:Name="SoundRow" Grid.Column="4">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.videoSound}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VideoSounds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Sound}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.folder}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{Binding Converter={StaticResource SettingsText}, ConverterParameter=videoFolder}" />
+                <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
+                           Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.videoHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="Stop">
+                <Setter TargetName="AreaRow" Property="Visibility" Value="Hidden" />
+                <Setter TargetName="SoundRow" Property="Visibility" Value="Hidden" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type m:AudioRecordAction}">
         <StackPanel>
             <Grid Style="{StaticResource EdRow}">

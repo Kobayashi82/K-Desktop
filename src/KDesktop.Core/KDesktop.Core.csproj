@@ -8,6 +8,9 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+    <!-- Recording video (F2): the frames of Windows.Graphics.Capture on Direct3D 11 -->
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="Concentus" Version="2.2.2" />
     <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
     <!-- Only the .NET wrapper: it uses the onnxruntime.dll that sherpa-onnx already ships (1.28.2; the C API is

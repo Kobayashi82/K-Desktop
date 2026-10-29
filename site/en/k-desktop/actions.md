@@ -45,6 +45,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 
 | Action | What it does |
 |---|---|
+| **Record video** | Records to MP4 a region you pick with the mouse, the active window or the mouse's monitor, with what the PC plays, the microphone, both or no sound. A pill at the top shows the time, **Pause** and **Stop**, and is not in the video; the same hotkey (*Start / stop*) or the tray also stop it. When it stops, the file is in `{resultado}`. Frames, quality, pointer and folder in *Settings → Recording*. |
 | **Screenshot** | Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it and saves it. With *Annotate first* an editor comes first: arrow, box, text, highlighter, blur (what is covered cannot be read), crop and **copy text** (drag over some text, or click for the whole picture: the Windows OCR reads it and copies it without closing the editor), with seven colours, a thickness to choose and Undo / Redo (Ctrl+Z / Ctrl+Y; keys 1–7 pick the tool). From there **Copy** or **Save** (what you press counts that time). Esc cancels and the command does not go on. |
 | **Copy text from the screen** | Reads the text of a region you pick with the mouse, the active window or a monitor and copies it. No AI: Windows' text recognition (OCR). If you cancel the region (Esc) or it finds no text, the rest of the command is not run. |
 | **Colour picker** | Freezes the screen with a magnifier by the mouse; a click copies the pixel's colour as `#1E90FF`, `rgb(30, 144, 255)` or `hsl(210, 100%, 56%)` (your choice). The arrows move the mouse one pixel and the wheel changes the zoom; Esc cancels and the rest of the command is not run. |
@@ -112,7 +113,7 @@ and the ones you can use show up; choose one with the arrows and put it with Ent
 
 These give something: **Copy text from the screen** (the text read), **Colour picker** (the colour), **Ruler** (the size), **Web request** (the answer), **Assistant: ask** (the
 answer, except with *Say it*), **Record audio** (what is said, with *When it ends, transcribe it*), **Clipboard** (the text
-it leaves copied), **Screenshot** (the saved file) and **Run script** (what it writes, when *Wait until it finishes* is
+it leaves copied), **Screenshot** (the saved file), **Record video** (the video, when it stops) and **Run script** (what it writes, when *Wait until it finishes* is
 ticked and the window is *Hidden*; not in VBScript). These actions have the **Save in a variable** field: with a name
 (letters, digits and `_`), what they give stays available until the command ends, even if another action changes
 `{result}` later.

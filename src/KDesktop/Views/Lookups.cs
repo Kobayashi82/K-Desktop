@@ -76,6 +76,11 @@ public static class Lookups
     public static IReadOnlyList<Option<RecordMode>> RecordModes { get; } = Enum<RecordMode>("enum.recordMode");
     public static IReadOnlyList<Option<AudioSource>> AudioSources { get; } = Enum<AudioSource>("enum.audioSource");
 
+    /// <summary>«Grabar vídeo»: start / stop, without «lo que acaba de sonar»; a region, a window or a monitor (not all at once).</summary>
+    public static IReadOnlyList<Option<RecordMode>> VideoModes { get; } = [.. RecordModes.Where(o => o.Value != RecordMode.SaveReplay)];
+    public static IReadOnlyList<Option<CaptureArea>> VideoAreas { get; } = [.. CaptureAreas.Where(o => o.Value != CaptureArea.AllMonitors)];
+    public static IReadOnlyList<Option<VideoSound>> VideoSounds { get; } = Enum<VideoSound>("enum.videoSound");
+
     /// <summary>Zoom levels of the action «Lupa».</summary>
     private static IReadOnlyList<Option<double>> ZoomLevels { get; } =
         [.. new[] { 1.5, 2, 2.5, 3, 4, 5 }.Select(z => new Option<double>(z, string.Create(System.Globalization.CultureInfo.CurrentCulture, $"×{z:0.#}")))];

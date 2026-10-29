@@ -460,6 +460,9 @@ public enum CaptureArea { Region, ActiveWindow, Monitor, AllMonitors }
 /// <summary>The file of a screenshot (Settings › Capturas): PNG and WebP keep every pixel; JPG is smaller, with a quality.</summary>
 public enum ImageFileFormat { Png, Jpg, WebP }
 
+/// <summary>The quality of a video (Settings › Grabación): how many bits per second for its size and frames.</summary>
+public enum VideoQuality { Low, Normal, High }
+
 /// <summary>Takes a picture of the screen: a region chosen with the mouse, the window in front, a monitor or all of them.</summary>
 public partial class ScreenshotAction : CommandAction
 {
@@ -606,6 +609,38 @@ public partial class AudioRecordAction : CommandAction
             return GivesResult ? $"{what}  ·  {Loc.T("summary.recordTranscribe")}" : what;
         }
     }
+}
+
+// ── Grabar vídeo ──────────────────────────────────────────────────────────
+
+/// <summary>The sound of a video (F2): none, or what «Grabar audio» records.</summary>
+public enum VideoSound { None, Output, Microphone, Both }
+
+/// <summary>
+/// «Grabar vídeo» (F2): a region, the window in front or the monitor of the mouse, to an MP4 encoded by the graphics card,
+/// with a bar to pause and stop it (left out of the video); stopped with the same hotkey (Empezar / parar), the bar or the
+/// tray. The file is in {resultado} when it stops.
+/// </summary>
+public partial class VideoRecordAction : CommandAction
+{
+    [ObservableProperty] private RecordMode _mode = RecordMode.Toggle;
+    [ObservableProperty] private CaptureArea _area = CaptureArea.Region;
+    [ObservableProperty] private VideoSound _sound = VideoSound.Output;
+
+    /// <summary>Where it is saved; empty = Settings › Grabación (Videos\K-Desktop by default).</summary>
+    [ObservableProperty] private string _folder = string.Empty;
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.VideoRecord;
+
+    /// <summary>The file, when it stops.</summary>
+    public override bool GivesResult => Mode != RecordMode.Start;
+
+    partial void OnModeChanged(RecordMode value) => OnPropertyChanged(nameof(GivesResult));
+
+    public override string Summary => Mode == RecordMode.Stop
+        ? Loc.T("enum.recordMode.Stop")
+        : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.captureArea.{Area}")}  ·  {Loc.T($"enum.videoSound.{Sound}")}";
 }
 
 // ── Dictar ────────────────────────────────────────────────────────────────

@@ -189,6 +189,13 @@ internal static class UiNative
             && r.Left <= monitor.Left && r.Top <= monitor.Top && r.Right >= monitor.Right && r.Bottom >= monitor.Bottom;
     }
 
+    /// <summary>Left out of screenshots and screen recordings (Windows 10 2004 and later; before it, nothing).</summary>
+    public const uint WDA_EXCLUDEFROMCAPTURE = 0x11;
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint affinity);
+
     public static void MoveWindow(IntPtr hwnd, int x, int y) =>
         SetWindowPos(hwnd, IntPtr.Zero, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 

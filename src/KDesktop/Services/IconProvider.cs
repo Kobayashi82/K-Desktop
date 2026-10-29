@@ -119,6 +119,7 @@ public static partial class IconProvider
         RulerAction => Kd("Ruler24", "orange"),
         AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
         AudioRecordAction => Kd("MicPulse24", "red"),
+        VideoRecordAction => Kd("Video24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),
         DictateAction => Kd("MicSparkle24", "teal"),
         AssistantExtraAction { IsShowOrHide: true } x => ForAssistant(x.Assistant) ?? Kd("Bot24", "gray"),

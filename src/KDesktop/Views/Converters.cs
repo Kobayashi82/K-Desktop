@@ -330,6 +330,7 @@ public sealed class SettingsTextConverter : IValueConverter
         return parameter switch
         {
             "recordFolder" => s.RecordFolder.Length > 0 ? s.RecordFolder : Core.Localization.Loc.T("settings.recordFolderHint"),
+            "videoFolder" => s.VideoFolder.Length > 0 ? s.VideoFolder : Core.Localization.Loc.T("settings.videoFolderHint"),
             "captureFolder" => s.CaptureFolder.Length > 0 ? s.CaptureFolder : Core.Localization.Loc.T("settings.captureFolderHint"),
             "captureSave" => Core.Localization.Loc.T("editor.captureSave", s.CaptureFormat.ToString().ToUpperInvariant()),
             "recordHint" => Core.Localization.Loc.T("editor.recordHint",

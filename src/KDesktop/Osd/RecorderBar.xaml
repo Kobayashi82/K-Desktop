@@ -17,7 +17,7 @@
             <TranslateTransform x:Name="RootShift" Y="-24" />
         </Grid.RenderTransform>
         <Border CornerRadius="22" Background="{DynamicResource Kd.OsdBackground}" BorderBrush="{DynamicResource Kd.OsdBorder}" BorderThickness="1"
-                Padding="16,8,8,8">
+                Padding="16,8,12,8">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="26" ShadowDepth="6" Direction="270" Opacity="0.32" Color="Black" />
             </Border.Effect>

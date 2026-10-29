@@ -17,6 +17,7 @@ public enum ActionKind
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
     ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat, Arrangement, ColorPicker, Ruler,
+    VideoRecord,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -77,6 +78,7 @@ public enum ScriptShell { Cmd, PowerShell, VBScript }
 [JsonDerivedType(typeof(ConditionAction), "condition")]
 [JsonDerivedType(typeof(ScreenshotAction), "screenshot")]
 [JsonDerivedType(typeof(AudioRecordAction), "audioRecord")]
+[JsonDerivedType(typeof(VideoRecordAction), "videoRecord")]
 [JsonDerivedType(typeof(MagnifierAction), "magnifier")]
 [JsonDerivedType(typeof(DictateAction), "dictate")]
 [JsonDerivedType(typeof(ScreenTextAction), "screenText")]

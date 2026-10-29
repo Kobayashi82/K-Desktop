@@ -437,6 +437,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string _recordFolder = string.Empty;
     [ObservableProperty] private AudioFileFormat _recordFormat = AudioFileFormat.Wav;
 
+    /// <summary>«Grabar vídeo» (F2): its folder (empty: Videos\K-Desktop), frames per second (30 or 60), quality and the pointer.</summary>
+    [ObservableProperty] private string _videoFolder = string.Empty;
+    [ObservableProperty] private int _videoFps = 30;
+    [ObservableProperty] private VideoQuality _videoQuality = VideoQuality.Normal;
+    [ObservableProperty] private bool _videoCursor = true;
+
     /// <summary>The microphone's volume in recordings and the replay, in % (25–400); what the PC plays stays as it is.</summary>
     [ObservableProperty] private int _recordMicVolume = 100;
 

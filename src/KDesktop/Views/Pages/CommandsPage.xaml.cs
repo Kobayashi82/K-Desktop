@@ -900,6 +900,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             case OpenFolderAction a when PickFolder(a.Path) is { } path: a.Path = path; break;
             case ScreenshotAction s when PickFolder(s.Folder) is { } path: s.Folder = path; break;
             case AudioRecordAction r when PickFolder(r.Folder) is { } path: r.Folder = path; break;
+            case VideoRecordAction v when PickFolder(v.Folder) is { } path: v.Folder = path; break;
             case FilesAction f when PickFolder(f.Destination) is { } path: f.Destination = path; break;
         }
     }
