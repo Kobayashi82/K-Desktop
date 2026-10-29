@@ -3,7 +3,10 @@ package net.kobayashi82.kdesktop;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.app.PendingIntent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.pm.PackageInstaller;
 import android.content.SharedPreferences;
@@ -17,8 +20,10 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Base64;
 import android.view.View;
 import android.view.Window;
@@ -31,6 +36,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -102,6 +108,12 @@ public class MainActivity extends Activity {
 
     /** Voice orders: recorded here (a browser only lets pages use the microphone over HTTPS). */
     private static final int VOICE_PERMISSION = 7;
+
+    /** «Avisos con la app cerrada»: Android 13+ asks for the notifications first. */
+    private static final int INBOX_PERMISSION = 8;
+
+    /** Opened from a notification of K-Desktop: the page shows what arrived once it is loaded. */
+    private boolean openInboxPending;
     private static final int VOICE_RATE = 16000;
     private static final int VOICE_MAX_BYTES = VOICE_RATE * 2 * 31 / 2; // 15.5 s, under what K-Desktop accepts
     private volatile boolean voiceRun;
@@ -141,6 +153,10 @@ public class MainActivity extends Activity {
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new Client());
 
+        // Messages with the app closed: the service runs again whenever the app is opened (it may have been stopped).
+        if (InboxService.enabled(this)) InboxService.start(this);
+        if (InboxService.ACTION_OPEN_INBOX.equals(getIntent().getAction())) openInboxPending = true;
+
         if (state != null && web.restoreState(state) != null) return;
         String shared = sharedLink(getIntent());
         if (shared != null) openLink(shared);
@@ -152,6 +168,11 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         if (ACTION_INSTALLED.equals(intent.getAction())) {
             installerAnswered(intent);
+            return;
+        }
+        if (InboxService.ACTION_OPEN_INBOX.equals(intent.getAction())) {
+            if (current != null && !loading) js("window.kdOpenInbox && window.kdOpenInbox()");
+            else openInboxPending = true;
             return;
         }
         String shared = sharedLink(intent);
@@ -472,6 +493,56 @@ public class MainActivity extends Activity {
         tellPage(status == PackageInstaller.STATUS_FAILURE_ABORTED ? "cancelled" : "error", message == null ? "" : message);
     }
 
+    // ── messages with the app closed (B11) ───────────────────────────
+
+    /** Turns the service on: notifications first (Android 13+), then the battery exemption so it is not frozen. */
+    private void setInbox(boolean on) {
+        if (!on) {
+            InboxService.setEnabled(this, false);
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, INBOX_PERMISSION);
+            return;
+        }
+        enableInbox();
+    }
+
+    @SuppressLint("BatteryLife")
+    private void enableInbox() {
+        InboxService.setEnabled(this, true);
+        js("window.kdInboxState && window.kdInboxState(true)");
+        // Android freezes the connection of apps asleep to save battery: ask to leave this one alone.
+        if (Build.VERSION.SDK_INT >= 23) {
+            PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
+            if (power != null && !power.isIgnoringBatteryOptimizations(getPackageName())) {
+                try {
+                    startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName())));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    /** A file of the inbox, with Android's downloads (it shows its own notification and keeps it in Downloads). */
+    private void download(String url, String name) {
+        try {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            String token = prefs.getString(KEY_TOKEN, "");
+            if (!token.isEmpty()) request.addRequestHeader("Authorization", "Bearer " + token);
+            String cookie = CookieManager.getInstance().getCookie(url);
+            if (cookie != null) request.addRequestHeader("Cookie", cookie);
+            request.setTitle(name);
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            // Before Android 10 the shared Downloads folder needs a permission: the app's own one instead.
+            if (Build.VERSION.SDK_INT >= 29) request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+            else request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, name);
+            ((DownloadManager) getSystemService(DOWNLOAD_SERVICE)).enqueue(request);
+        } catch (Exception e) {
+            Toast.makeText(this, String.valueOf(e.getMessage()), Toast.LENGTH_LONG).show();
+        }
+    }
+
     // ── voice orders ─────────────────────────────────────────────────
 
     private void startVoice() {
@@ -485,6 +556,12 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == INBOX_PERMISSION) {
+            boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
+            if (granted) enableInbox();
+            else js("window.kdInboxState && window.kdInboxState(false)");
+            return;
+        }
         if (requestCode != VOICE_PERMISSION) return;
         if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) recordVoice();
         else js("window.kdVoiceError && window.kdVoiceError('denied')");
@@ -570,6 +647,10 @@ public class MainActivity extends Activity {
             loading = false;
             handler.removeCallbacks(loadTimeout);
             retried = false;
+            if (openInboxPending) {
+                openInboxPending = false;
+                handler.postDelayed(() -> js("window.kdOpenInbox && window.kdOpenInbox()"), 900);
+            }
         }
 
         @Override
@@ -729,6 +810,34 @@ public class MainActivity extends Activity {
         public void cancelVoice() {
             voiceSend = false;
             voiceRun = false;
+        }
+
+        /** «Avisos con la app cerrada»: whether the service is on. */
+        @JavascriptInterface
+        public boolean inboxEnabled() {
+            return InboxService.enabled(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void setInbox(boolean on) {
+            runOnUiThread(() -> MainActivity.this.setInbox(on));
+        }
+
+        /** What the service showed as notifications (and the PC no longer gives): a JSON array, then forgotten. */
+        @JavascriptInterface
+        public String takeInbox() {
+            return InboxService.take(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void copy(String text) {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("K-Desktop", text));
+        }
+
+        @JavascriptInterface
+        public void download(String url, String name) {
+            runOnUiThread(() -> MainActivity.this.download(url, name));
         }
 
         /** Updates the app from K-Desktop (url: its api/android). */

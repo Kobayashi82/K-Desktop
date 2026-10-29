@@ -32,6 +32,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<UsageDoneMessage?>> _usages = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DiagnosedMessage?>> _diagnoses = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MadeEventMessage?>> _events = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<PhoneSentMessage?>> _phones = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -126,6 +127,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     /// <summary>Makes or removes an event (create_event, B8).</summary>
     public Task<MadeEventMessage?> MakeEventAsync(MakeEventMessage request, CancellationToken cancellationToken) =>
         AskAsync(_events, id => request with { Id = id }, MatchWait, cancellationToken);
+
+    /// <summary>Sends something to the paired phones (send_to_phone, notify_when with phone; B11).</summary>
+    public Task<PhoneSentMessage?> SendToPhoneAsync(SendPhoneMessage request, CancellationToken cancellationToken) =>
+        AskAsync(_phones, id => request with { Id = id }, MatchWait, cancellationToken);
+
+    public void OnPhoneSent(PhoneSentMessage sent)
+    {
+        if (_phones.TryRemove(sent.Id, out var waiting)) waiting.TrySetResult(sent);
+    }
 
     public void OnMadeEvent(MadeEventMessage made)
     {

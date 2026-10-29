@@ -22,7 +22,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 | **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is pending · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Write a document · Copy a file · Create a folder · Compress into a ZIP · Extract a ZIP · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
-| **Internet** | Open a website · Search in the browser · Look it up online · Read a web page · Check the network | «how much is an RTX 5080», «summarise this page», «is there internet?», «is the NAS answering?» |
+| **Internet** | Open a website · Search in the browser · Look it up online · Read a web page · Check the network · Send to the phone | «how much is an RTX 5080», «summarise this page», «is there internet?», «is the NAS answering?», «send this address to my phone» |
 | **Screen and texts** | Look at the screen · Translate and fix texts · Read what is copied · Copy a text | «what is this error», «translate what I copied into French», «what have I copied?», «copy the plumber's number for me» |
 | **Programs and PC** | Open a program · Handle windows and programs · See the open windows · Arrange several windows · Force close · PC status · Free the brain · Change the volume · Change the audio device · Screen · Light or dark mode · Wi-Fi and Bluetooth · Lock the PC · Shut down or restart · Take a screenshot · Power plan · Keep awake | «minimize Steam», «put the browser and VS Code side by side», «set the volume to 30», «turn on dark mode», «lock the PC», «Chrome is not responding, force it closed», «why is the computer slow» |
 | **Music and video** | What's playing · Control playback | «what song is this», «pause the video» |
@@ -32,7 +32,9 @@ Some details:
 
 - **Tell me when something happens** watches for a program closing or a window appearing, the processor or the graphics
   card calming down, a download finishing or a folder that stops changing. The assistant that set it says it when it
-  happens.
+  happens, and, if you ask («tell me on my phone…»), [it reaches your phone too](../k-desktop/remote.md#what-the-pc-sends).
+- **Send to the phone** sends a text, a link or a small file to your paired devices (all, or the one you name). It asks the
+  first time, as *Ask before doing something* says.
 - **Create an event**: «when I open Steam turn on game mode», «if I leave the PC alone for 10 minutes, lock it», «every
   time I connect the headphones tell me their battery», «when a pdf arrives in Downloads, let me know». It makes an
   [event](../k-desktop/events.md) of any kind (a time, a program that opens or comes to the front, the PC left alone, locked

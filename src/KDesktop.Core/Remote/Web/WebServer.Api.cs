@@ -58,6 +58,7 @@ public sealed partial class WebServer
             return;
         }
         if (await AssistantsAsync(request, context).ConfigureAwait(false)) return;
+        if (await InboxAsync(request, context, device).ConfigureAwait(false)) return;
 
         switch (request.Method, request.Path)
         {

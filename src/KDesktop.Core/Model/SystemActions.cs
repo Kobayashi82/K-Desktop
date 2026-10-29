@@ -642,3 +642,34 @@ public partial class MagnifierAction : CommandAction
     public override ActionKind Kind => ActionKind.Magnifier;
     public override string Summary => Loc.T($"summary.zoom.{Mode}") + (Zoom > 1 ? string.Create(CultureInfo.CurrentCulture, $"  ·  ×{Zoom:0.#}") : "");
 }
+
+// ── Enviar al móvil ───────────────────────────────────────────────────────
+
+/// <summary>
+/// «Enviar al móvil» (B11): a text, a link and/or a small file to the paired phones and browsers (all, or the one named),
+/// kept until each has it (<see cref="Remote.Web.PhoneInbox"/>). With variables.
+/// </summary>
+public partial class SendToPhoneAction : CommandAction
+{
+    [ObservableProperty] private string _title = string.Empty;
+    [ObservableProperty] private string _text = string.Empty;
+    [ObservableProperty] private string _url = string.Empty;
+    [ObservableProperty] private string _file = string.Empty;
+
+    /// <summary>Part of the device's name; empty: all of them.</summary>
+    [ObservableProperty] private string _device = string.Empty;
+
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.SendToPhone;
+
+    public override string Summary
+    {
+        get
+        {
+            var what = Title.Trim().Length > 0 ? Title.Trim() : Text.Trim().Length > 0 ? Text.Trim() : Url.Trim().Length > 0 ? Url.Trim()
+                : File.Trim().Length > 0 ? System.IO.Path.GetFileName(File.Trim()) : "…";
+            return $"\"{(what.Length > 40 ? what[..40] + "…" : what)}\"  ·  " + (Device.Trim().Length > 0 ? Device.Trim() : Loc.T("summary.phone.all"));
+        }
+    }
+}

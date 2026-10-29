@@ -49,6 +49,7 @@ public static class ActionCatalog
         new(ActionKind.HttpRequest, "network", "ArrowSwap24", () => new HttpRequestAction()),
         new(ActionKind.WakeOnLan, "network", "DesktopPulse24", () => new WakeOnLanAction()),
         new(ActionKind.Radio, "network", "Wifi124", () => new RadioAction()),
+        new(ActionKind.SendToPhone, "network", "Phone24", () => new SendToPhoneAction()),
 
         new(ActionKind.Files, "system", "DocumentCopy24", () => new FilesAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),

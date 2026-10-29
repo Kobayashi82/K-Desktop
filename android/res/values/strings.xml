@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="timeout">K-Desktop did not answer</string>
+    <string name="inbox_channel_link">Connection with K-Desktop</string>
+    <string name="inbox_channel_messages">Messages from K-Desktop</string>
+    <string name="inbox_connecting">Connecting to the PC…</string>
+    <string name="inbox_waiting">Ready for messages from the PC</string>
+    <string name="inbox_offline">The PC does not answer: trying again</string>
+    <string name="inbox_unpaired">Open the app and pair it with K-Desktop</string>
+    <string name="inbox_from">From %1$s</string>
+    <string name="inbox_open">Open</string>
+    <string name="inbox_copy">Copy</string>
+    <string name="inbox_copied">Copied</string>
 </resources>

@@ -40,6 +40,9 @@ public interface ICommandBridge
     Task<EndMessage?> SystemAsync(string group, string op, int? value, string text, string? assistant, CancellationToken cancellationToken) =>
         Task.FromResult<EndMessage?>(null);
 
+    /// <summary>Something for the paired phones (B11, <see cref="SendPhoneMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
+    Task<PhoneSentMessage?> SendToPhoneAsync(SendPhoneMessage request, CancellationToken cancellationToken) => Task.FromResult<PhoneSentMessage?>(null);
+
     Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
         Task.FromResult<EndMessage?>(null);
 
@@ -118,6 +121,7 @@ public static class CommandTools
         registry.Add(new StopCountdownTool(bridge));
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new ArrangeWindowsTool(bridge));
+        registry.Add(new SendToPhoneTool(bridge));
         registry.Add(new SetVolumeTool(bridge));
         registry.Add(new AudioDeviceTool(bridge));
         registry.Add(new DisplayTool(bridge));

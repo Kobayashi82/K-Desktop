@@ -1086,6 +1086,26 @@ public sealed record RunEventMessage(string Assistant, string Run, string Event,
 /// <param name="Group">One of <see cref="AssistantSystem.Ops"/>.</param>
 /// <param name="Value">A level in % (volume, brightness), minutes (awake) or seconds (power countdown).</param>
 /// <param name="Text">microphone (volume), a device (audio), a projection (display), wifi or bluetooth (radio), screen, window, all or region (screenshot), a plan (powerPlan).</param>
+/// <summary>
+/// «Mándame esto al móvil» (B11, tool <c>send_to_phone</c>, and <c>notify_when</c> with <c>phone</c>): a text, a link and/or a
+/// small file for the paired phones and browsers (<see cref="Remote.Web.PhoneInbox"/>), all of them or the one named. Answered
+/// with <see cref="PhoneSentMessage"/>.
+/// </summary>
+/// <param name="File">A full path; K-Desktop copies it (25 MB at most).</param>
+/// <param name="Device">Part of the device's name; null: all of them.</param>
+public sealed record SendPhoneMessage(string Id, string? Assistant, string Title, string Text, string? Url = null, string? File = null, string? Device = null) : PipeMessage
+{
+    public override string Type => "phone";
+}
+
+/// <param name="Names">The devices it went to.</param>
+/// <param name="Reason">Not sent: <c>empty</c>, <c>noDevice</c>, <c>fileMissing</c>, <c>fileTooBig</c>.</param>
+/// <param name="Devices">With <c>noDevice</c>: the names of the paired devices there are.</param>
+public sealed record PhoneSentMessage(string Id, bool Ok, IReadOnlyList<string> Names, string? Reason = null, IReadOnlyList<string>? Devices = null) : PipeMessage
+{
+    public override string Type => "phoneSent";
+}
+
 public sealed record SystemMessage(string Assistant, string Run, string Group, string Op, int? Value = null, string Text = "", bool Choreography = false,
     string? Scheduled = null, string? Shared = null) : PipeMessage
 {
@@ -1306,6 +1326,8 @@ public static class PipeJson
         ["madeEvent"] = typeof(MadeEventMessage),
         ["act"] = typeof(ActMessage),
         ["system"] = typeof(SystemMessage),
+        ["phone"] = typeof(SendPhoneMessage),
+        ["phoneSent"] = typeof(PhoneSentMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),
         ["voice"] = typeof(VoiceMessage),

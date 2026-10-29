@@ -227,6 +227,9 @@ internal sealed class AssistantSession : IDisposable
                     case DiagnosedMessage diagnosed when Commands is { } commands:
                         commands.OnDiagnosed(diagnosed);
                         return;
+                    case PhoneSentMessage phoneSent when Commands is { } commands:
+                        commands.OnPhoneSent(phoneSent);
+                        return;
                     case MadeEventMessage madeEvent when Commands is { } commands:
                         commands.OnMadeEvent(madeEvent);
                         return;

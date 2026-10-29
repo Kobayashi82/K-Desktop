@@ -873,3 +873,32 @@ body.chat-typing .big-title { display: none; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .ambient i { animation: none; }
 }
+
+/* ── what K-Desktop sent («Enviar al móvil») ─────────────────── */
+
+.inbox-btn { position: relative; color: var(--accent-text); }
+.inbox-btn::after {
+  content: attr(data-count); position: absolute; top: 3px; right: 2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+  background: var(--gold); color: var(--on-accent); font: 700 11px/17px system-ui, sans-serif; text-align: center;
+}
+.inbox-sheet {
+  position: fixed; z-index: 10; inset: 0; display: flex; align-items: flex-start; justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 12px) 12px 12px; background: color-mix(in srgb, #000 30%, transparent);
+  animation: view-in .3s var(--ease);
+}
+.inbox-sheet[hidden] { display: none; }
+.inbox-panel {
+  width: min(520px, 100%); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 16px 14px 6px; border-radius: 28px;
+  background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--shadow-lift);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+}
+.inbox-top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.inbox-top h2 { flex: 1; font-size: 20px; margin: 0; }
+.inbox-card { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.inbox-head { display: flex; align-items: center; gap: 8px; }
+.inbox-head b { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.inbox-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.inbox-url { margin: 0; overflow-wrap: anywhere; }
+.inbox-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.btn.small { padding: 7px 12px; border-radius: 12px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.btn.small svg { width: 18px; height: 18px; }

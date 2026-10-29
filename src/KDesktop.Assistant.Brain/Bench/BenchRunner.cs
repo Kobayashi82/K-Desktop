@@ -175,6 +175,12 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         public Task<EndMessage?> SystemAsync(string group, string op, int? value, string text, string? assistant, CancellationToken cancellationToken) =>
             Pretend($"{group} {op} {text}".Trim());
 
+        public Task<PhoneSentMessage?> SendToPhoneAsync(SendPhoneMessage request, CancellationToken cancellationToken)
+        {
+            lock (ran) ran.Add("phone " + request.Text);
+            return Task.FromResult<PhoneSentMessage?>(new PhoneSentMessage(request.Id, true, ["bench"]));
+        }
+
         public Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
             Pretend("arrange " + string.Join(", ", apps));
 

@@ -4,6 +4,7 @@ import { searchKey, tokens, score } from './fuzzy.js';
 import { setupPad, padActive, padTexts } from './pad.js';
 import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
 import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, chatAsked, chatTexts } from './chat.js';
+import { setupInbox, fetchInbox } from './inbox.js';
 
 const $ = id => document.getElementById(id);
 
@@ -72,6 +73,8 @@ const ICONS = {
   link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
   server: '<rect x="3.5" y="4" width="17" height="7" rx="2"/><rect x="3.5" y="13" width="17" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
   unlink: '<path d="M9.5 14.5l5-5M10 6.5l1.5-1.5a4 4 0 0 1 5.66 5.66L15.5 12M14 17.5L12.5 19a4 4 0 0 1-5.66-5.66L8.5 12"/><path d="M3.5 3.5l3 3M20.5 20.5l-3-3"/>',
+  inbox: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
   chat: '<path d="M20.5 11.5a8 7.5 0 0 1-11.6 6.7L4 19.5l1.4-4A7.3 7.3 0 0 1 4.5 11.5a8 7.5 0 0 1 16 0z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/>',
   send: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
@@ -1082,6 +1085,7 @@ function startEvents() {
     chatResync();
   });
   events.addEventListener('catalog', () => loadCatalog());
+  events.addEventListener('inbox', () => fetchInbox());
   events.addEventListener('session', () => loadSession());
   events.addEventListener('assistants', () => onAssistants());
   events.addEventListener('chat', e => {
@@ -1175,6 +1179,7 @@ async function connect(manual = false) {
     fillSession();
     showShell();
     startEvents();
+    fetchInbox();
     await loadCatalog(manual);
   } catch (e) {
     if (e instanceof Unpaired) return;
@@ -1323,6 +1328,7 @@ function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
   setupPad({ t, store, svg, toast, online: setOnline, onUnpaired: () => showPair() });
   setupVoice({ t, toast, post: postBinary, updateApp });
+  setupInbox({ $, el, svg, t, api, store, toast, lang: () => state.texts?.lang ?? navigator.language });
   setupChat({
     t, toast, api, store,
     lang: () => state.texts?.lang ?? navigator.language,
@@ -1435,6 +1441,7 @@ function wire() {
     }
     if (!state.session) return;
     startEvents();
+    fetchInbox();
     if (Date.now() - state.lastLoad > 5000) {
       loadSession();
       loadCatalog();

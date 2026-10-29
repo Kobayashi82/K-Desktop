@@ -258,7 +258,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                         // It was asked to send something and answers without having sent it, with a tool for it at hand: once,
                         // it is told so.
                         if (!reminded && offer && ActionClaims.Missing(said, used) is [var missing, ..]
-                            && atHand.Any(t => ActionClaims.IsOfKind(t.Name, missing)))
+                            && atHand.Any(t => ActionClaims.IsOfKind(t.Name, missing) && ActionClaims.Reaches(t.Name, said)))
                         {
                             reminded = true;
                             Log.Info($"Asistente: la IA contesta sin hacer lo que le pedían ({missing}): otra vuelta");

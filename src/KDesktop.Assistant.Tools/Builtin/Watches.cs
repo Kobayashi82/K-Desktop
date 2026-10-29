@@ -49,6 +49,9 @@ public sealed record WatchItem(string Id, string Kind, string What, string? Assi
 
     /// <summary>Download by the network: bytes per second when it was set (the quiet is measured against it).</summary>
     public long? Rate { get; init; }
+
+    /// <summary>Also told on the phone (B11): «avísame en el móvil cuando termine la descarga».</summary>
+    public bool Phone { get; init; }
 }
 
 /// <summary>What the watches look at, so tests can pretend.</summary>
@@ -498,7 +501,7 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
     public string Description => "Tells the user later, when something happens on the PC: closes (a program or window closes), appears (a window of a program appears), cpu_below or gpu_below (the processor or graphics card goes below a %), download (the download in progress finishes: browser or Steam), folder_quiet (a folder stops changing: a copy or export ends). For a time or a delay use set_timer.";
 
     public string ParametersSchemaJson { get; } =
-        $$$$"""{"type":"object","properties":{"when":{"type":"string","enum":[{{{{string.Join(",", WatchKinds.All.Select(k => $"\"{k}\""))}}}}]},"what":{"type":"string","description":"The program, window or folder, in the user's words (for closes, appears, folder_quiet; a folder can be downloads, desktop, documents… or a path)"},"percent":{"type":"integer","description":"For cpu_below / gpu_below: the % (default 20)"}},"required":["when"]}""";
+        $$$$"""{"type":"object","properties":{"when":{"type":"string","enum":[{{{{string.Join(",", WatchKinds.All.Select(k => $"\"{k}\""))}}}}]},"what":{"type":"string","description":"The program, window or folder, in the user's words (for closes, appears, folder_quiet; a folder can be downloads, desktop, documents… or a path)"},"percent":{"type":"integer","description":"For cpu_below / gpu_below: the % (default 20)"},"phone":{"type":"boolean","description":"Also tell it on the user's phone (when they say so: on the phone, al móvil)"}},"required":["when"]}""";
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
 
@@ -529,7 +532,10 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
     public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
         if (Kind(arguments) is not { } kind) return ToolResult.Fail("Say when: one of " + string.Join(", ", WatchKinds.All) + ".");
-        var item = Draft(kind, arguments, context.Assistant, watches.Time.GetLocalNow());
+        var item = Draft(kind, arguments, context.Assistant, watches.Time.GetLocalNow()) with
+        {
+            Phone = arguments.ValueKind == JsonValueKind.Object && arguments.TryGetProperty("phone", out var phone) && phone.ValueKind == JsonValueKind.True,
+        };
         var probe = watches.Probe;
         string? note = null;
         long watched = 0;
@@ -614,10 +620,10 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
             WatchKinds.GpuBelow => $"when the graphics card stays below {item.Percent}%",
             WatchKinds.Download => "when the download finishes",
             _ => $"when {item.What} stops changing",
-        }}. {note}".Trim())
+        }}{(item.Phone ? ", also on their phone" : string.Empty)}. {note}".Trim())
         {
             Done = Loc.T("tool.notify_when.done", told),
-            Reply = Loc.T("tool.notify_when.reply", told),
+            Reply = Loc.T(item.Phone ? "tool.notify_when.replyPhone" : "tool.notify_when.reply", told),
             Undo = new ToolUndo(Name, item.Id),
         };
     }

@@ -48,6 +48,9 @@ public partial class App
                     (who, choreography) => AssistantSystem.RunAsync(Engine, system, who, (command, risk) => AskCommandAsync(system.Run, system.Assistant, command, risk, remember: false), choreography,
                         CommandPermit(system.Scheduled, act: true)));
                 return true;
+            case SendPhoneMessage phone:
+                _ = Task.Run(() => supervisor.Send(AssistantPhone.Handle(phone, AssistantName(phone.Assistant))));
+                return true;
             case ScheduleMessage schedule:
                 OnSchedule(supervisor, schedule);
                 return true;

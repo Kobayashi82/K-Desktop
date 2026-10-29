@@ -23,7 +23,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 | **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
-| **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web · Comprobar la red | «cuánto cuesta una RTX 5080», «resúmeme esta página», «¿hay internet?», «¿responde el NAS?» |
+| **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web · Comprobar la red · Mandar al móvil | «cuánto cuesta una RTX 5080», «resúmeme esta página», «¿hay internet?», «¿responde el NAS?», «mándame esta dirección al móvil» |
 | **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos · Leer lo copiado · Copiar un texto | «qué error me sale», «tradúceme esto al inglés», «¿qué tengo copiado?», «cópiame el teléfono del fontanero» |
 | **Programas y PC** | Abrir un programa · Manejar ventanas y programas · Ver las ventanas abiertas · Colocar varias ventanas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro · Cambiar el volumen · Cambiar el dispositivo de audio · Pantalla · Modo claro u oscuro · Wi-Fi y Bluetooth · Bloquear el PC · Apagar o reiniciar · Hacer una captura · Plan de energía · Mantener despierto | «minimiza Steam», «pon el navegador y VS Code uno al lado del otro», «pon el volumen al 30», «pon el modo oscuro», «bloquea el PC», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador» |
 | **Música y vídeo** | Qué suena · Controlar la reproducción | «qué canción es esta», «pausa el vídeo» |
@@ -32,7 +32,10 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 Algunos detalles:
 
 - **Avisar cuando pase algo** vigila que se cierre un programa o aparezca una ventana, que se calmen el procesador o la
-  gráfica, que acabe una descarga o que una carpeta deje de cambiar. Cuando pasa, lo dice el asistente que lo puso.
+  gráfica, que acabe una descarga o que una carpeta deje de cambiar. Cuando pasa, lo dice el asistente que lo puso y, si se lo pides
+  («avísame en el móvil…»), [también te llega al móvil](../k-desktop/remote.md#lo-que-manda-el-pc).
+- **Mandar al móvil** manda un texto, un enlace o un archivo pequeño a tus dispositivos emparejados (todos, o el que nombres).
+  Pregunta la primera vez, según *Preguntar antes de hacer algo*.
 - **Crear un evento**: «cuando abra Steam pon el modo juego», «si dejo el PC 10 minutos sin tocar, bloquéalo», «cada vez
   que conecte los cascos dime su batería», «cuando llegue un pdf a Descargas, avísame». Hace un
   [evento](../k-desktop/events.md) de cualquier tipo (una hora, un programa que se abre o pasa delante, el PC sin tocar,

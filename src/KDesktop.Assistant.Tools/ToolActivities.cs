@@ -65,6 +65,7 @@ public static class ToolActivities
         ["get_time"] = AssistantActivity.Calculating,
         ["pc_status"] = AssistantActivity.System,
         ["network_check"] = AssistantActivity.System,
+        ["send_to_phone"] = AssistantActivity.Other,
         ["set_volume"] = AssistantActivity.System,
         ["audio_device"] = AssistantActivity.System,
         ["display"] = AssistantActivity.System,

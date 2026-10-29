@@ -32,11 +32,25 @@ Notes:
 - *Accept orders from* says where it can be reached from: *This PC only*, *Local network* or *Internet* (what comes
   through the proxy counts as internet). Pairing is always needed.
 
+## What the PC sends
+
+The [Send to phone](actions.md) action and the assistants («send this address to my phone», «tell me on my phone when the
+download finishes») send a text, a link or a small file (25 MB at most) to your paired devices: all of them, or the one you
+name. This PC's own browsers do not count. It arrives at once if the app is open, and shows in **Received from the PC** (the
+envelope at the top), with buttons to copy, open the link or download the file. If it is not open, K-Desktop keeps it for up
+to a week and it reaches you as soon as you open it. It goes through no outside server: straight from your PC to your phone.
+
 ## Android app
 
 The Android app is the same web app with a native microphone. *Settings → Mobile app → Save the APK…*, copy it to the
 phone and open it (Android asks to allow installing apps from that source). It needs no store: when a phone with an older
 version connects, the app offers to update itself from the PC.
+
+In its *Settings*, **Messages with the app closed** (since version 1.1.0) keeps the connection with the PC open even when
+you close the app, and what the PC sends reaches you as a normal notification (with *Open* and *Copy*). Turning it on asks
+for the notifications and for Android not to put it to sleep to save battery; while it is on, Android shows a fixed
+«Connection with K-Desktop» notification. It works wherever the phone can reach the PC: at home always, and away only if
+you have the internet address (proxy).
 
 ## UDP
 

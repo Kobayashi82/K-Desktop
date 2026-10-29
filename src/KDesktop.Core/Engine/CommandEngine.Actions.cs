@@ -43,6 +43,7 @@ public sealed partial class CommandEngine
         RadioAction a => Run(() => Radio(a)),
         MediaAction a => MediaAsync(a, ctx),
         KeepAwakeAction a => Run(() => StayAwake(a)),
+        SendToPhoneAction a => Run(() => SendToPhone(a)),
         ScreenshotAction a => ScreenshotAsync(a, ctx),
         ScreenTextAction a => ScreenTextAsync(a, ctx),
         AudioRecordAction a => Run(() => AudioRecord(a)),

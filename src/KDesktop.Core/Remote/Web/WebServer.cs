@@ -37,6 +37,7 @@ public sealed partial class WebServer : IDisposable
         _catalog = new WebCatalog(host);
         _host.Engine.Magnifier.Changed += BroadcastZoom;
         WatchAssistants();
+        WatchInbox();
     }
 
     /// <summary>Paired devices and pairing codes.</summary>

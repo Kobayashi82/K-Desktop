@@ -1378,6 +1378,38 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Enviar al móvil ─────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:SendToPhoneAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.phoneTitle}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" AutomationProperties.Name="{l:Tr editor.phoneTitle}" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.phoneText}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" AcceptsReturn="True" TextWrapping="Wrap"
+                        MinHeight="60" AutomationProperties.Name="{l:Tr editor.phoneText}" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.phoneUrl}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="https://…"
+                        AutomationProperties.Name="{l:Tr editor.phoneUrl}" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.phoneFile}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding File, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.phoneFileHint}"
+                            AutomationProperties.Name="{l:Tr editor.phoneFile}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
+                           Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
+            </Grid>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.phoneDevice}" />
+            <ComboBox Margin="0,0,0,12" IsEditable="True" Text="{Binding Device, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr editor.phoneDeviceAll}"
+                      ItemsSource="{Binding Source={x:Static v:Lookups.PhoneDevicesNow}}" AutomationProperties.Name="{l:Tr editor.phoneDevice}" />
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.phoneHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Mantener despierto ──────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:KeepAwakeAction}">
         <StackPanel>

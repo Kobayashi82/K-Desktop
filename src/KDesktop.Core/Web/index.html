@@ -51,6 +51,7 @@
       <button class="conn" id="connPill" data-state="connecting">
         <i></i><span id="machine"></span>
       </button>
+      <button class="icon-btn inbox-btn" id="inboxButton" data-icon="inbox" data-i18n-title="pwa.inbox.title" hidden></button>
       <button class="icon-btn voice-btn" id="voiceButton" data-icon="mic" data-i18n-title="pwa.voice.button" hidden></button>
     </header>
 
@@ -229,6 +230,17 @@
           </div>
         </div>
 
+        <div id="inboxBackgroundRow" hidden>
+          <h3 class="section-title" data-i18n="pwa.inbox.title"></h3>
+          <div class="group">
+            <label class="row">
+              <span class="row-icon" data-icon="inbox"></span>
+              <span class="row-label"><span data-i18n="pwa.inbox.background"></span><small class="row-sub" data-i18n="pwa.inbox.backgroundHint"></small></span>
+              <input type="checkbox" class="switch" id="inboxBackground">
+            </label>
+          </div>
+        </div>
+
         <h3 class="section-title" data-i18n="pwa.settings.device"></h3>
         <div class="group">
           <button class="row row-button" id="reloadButton">
@@ -284,6 +296,19 @@
     <button class="voice-orb" id="voiceOrb" data-i18n-title="pwa.voice.stop"><span class="voice-ring" id="voiceRing"></span><span class="voice-mic" data-icon="mic"></span></button>
     <p class="voice-text" id="voiceText"></p>
     <button class="voice-cancel" id="voiceCancel" data-icon="error" data-i18n-title="pwa.voice.cancel"></button>
+  </div>
+
+  <!-- What K-Desktop sent to this device («Enviar al móvil») -->
+  <div class="inbox-sheet" id="inboxSheet" hidden>
+    <div class="inbox-panel">
+      <div class="inbox-top">
+        <h2 data-i18n="pwa.inbox.title"></h2>
+        <button class="btn small" id="inboxClear" data-i18n="pwa.inbox.clear"></button>
+        <button class="icon-btn small" id="inboxClose" data-icon="error" data-i18n-title="pwa.inbox.close"></button>
+      </div>
+      <p class="muted center" id="inboxEmpty" data-i18n="pwa.inbox.empty"></p>
+      <div id="inboxList"></div>
+    </div>
   </div>
 
   <div class="toasts" id="toasts" aria-live="polite"></div>

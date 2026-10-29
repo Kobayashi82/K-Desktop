@@ -40,6 +40,21 @@ public sealed class WatchTests : IDisposable
     private static readonly OpenWindow Mail = new(12, 2, "chrome", "Correo - Google Chrome", "Google Chrome");
 
     [Fact]
+    public async Task OnThePhoneTooWhenAsked()
+    {
+        _probe.Running.Add("blender");
+        _probe.Open.Add(Blender);
+        var set = await NotifyAsync("""{"when":"closes","what":"Blender","phone":true}""");
+        Assert.Equal("Vale, te aviso cuando se cierre Blender, también en el móvil.", set.Reply);
+        Assert.Contains("also on their phone", set.Text, StringComparison.Ordinal);
+        Assert.True(Assert.Single(_store.Pending).Phone);
+        // Kept with the watch: after a restart it still goes to the phone.
+        _store.Dispose();
+        _store = Store();
+        Assert.True(Assert.Single(_store.Pending).Phone);
+    }
+
+    [Fact]
     public async Task AProgramClosingIsToldOnce()
     {
         _probe.Running.Add("blender");

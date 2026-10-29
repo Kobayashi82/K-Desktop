@@ -51,6 +51,17 @@ public static partial class ActionClaims
         && !(kind == "send" && IsOfKind(tool, "schedule"));
 
     /// <summary>
+    /// Whether a tool of the kind asked for is the way for this order: send_to_phone only when the order speaks of the phone
+    /// (B11: «mándame al telegram…» without a Telegram tool must not end up on the phone).
+    /// </summary>
+    public static bool Reaches(string tool, string order)
+    {
+        if (tool != "send_to_phone") return true;
+        var folded = " " + string.Join(' ', KDesktop.Core.Voice.TextSimilarity.Words(order)) + " ";
+        return Requests("phone").Any(p => folded.Contains(" " + p + " ", StringComparison.Ordinal));
+    }
+
+    /// <summary>
     /// The kinds of action the order asks for that no tool of that kind did (<paramref name="worked"/>): «…y luego me
     /// envías la página» answered «Sí, es una página de chistes» with nothing sent. The asking phrases are
     /// <c>assistant.requests.&lt;kind&gt;</c> (this language and English, folded); only the kinds that have them.

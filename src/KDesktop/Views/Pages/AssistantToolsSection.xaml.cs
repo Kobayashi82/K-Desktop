@@ -334,7 +334,7 @@ public partial class AssistantToolsSection : UserControl
         ["get_time"] = "time", ["set_timer"] = "time", ["cancel_timer"] = "time", ["schedule"] = "time", ["list_scheduled"] = "time", ["cancel_scheduled"] = "time", ["notify_when"] = "time", ["stop_watching"] = "time", ["date_math"] = "time", ["calculate"] = "time",
         ["save_note"] = "notes", ["find_notes"] = "notes", ["edit_note"] = "notes", ["delete_note"] = "notes", ["remember"] = "notes", ["forget"] = "notes",
         ["find_files"] = "files", ["open_file"] = "files", ["read_file"] = "files", ["delete_file"] = "files", ["move_file"] = "files", ["write_file"] = "files", ["copy_file"] = "files", ["create_folder"] = "files", ["zip_files"] = "files", ["unzip"] = "files", ["search_knowledge"] = "files",
-        ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web", ["network_check"] = "web",
+        ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web", ["network_check"] = "web", ["send_to_phone"] = "web",
         ["look_at_screen"] = "screen", ["transform_text"] = "screen", ["read_clipboard"] = "screen", ["set_clipboard"] = "screen",
         ["open_app"] = "pc", ["control_app"] = "pc", ["list_windows"] = "pc", ["arrange_windows"] = "pc", ["set_volume"] = "pc", ["audio_device"] = "pc", ["display"] = "pc", ["windows_theme"] = "pc", ["toggle_radio"] = "pc", ["lock_pc"] = "pc", ["power_pc"] = "pc", ["take_screenshot"] = "pc", ["power_plan"] = "pc", ["keep_awake"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc", ["free_brain"] = "pc",
         ["whats_playing"] = "media", ["control_media"] = "media",

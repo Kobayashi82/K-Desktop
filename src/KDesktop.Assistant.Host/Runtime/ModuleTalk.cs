@@ -62,9 +62,29 @@ internal sealed class ModuleTalk : ITalkOutput
             recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: () => brain.LoadAsync());
         // The AI frees its own brain once its answer is over («descarga el modelo, que voy a jugar»).
         tools.Runner.Registry.Add(new Tools.Builtin.FreeBrainTool(Service.FreeBrainAfter));
-        tools.Builtin.Watches.Fired += (item, detail) => _ = AnnounceAsync(item.Assistant, "watch", item.Kind, "tool.notify_when.title",
-            () => Tools.Builtin.WatchStore.Happened(item, detail));
+        tools.Builtin.Watches.Fired += (item, detail) =>
+        {
+            _ = AnnounceAsync(item.Assistant, "watch", item.Kind, "tool.notify_when.title", () => Tools.Builtin.WatchStore.Happened(item, detail));
+            if (item.Phone) _ = PhoneAsync(commands, item, detail);
+        };
         tools.Builtin.Timers.Rang += timer => _ = AnnounceAsync(timer.Assistant, "timer", null, "tool.set_timer.title", () => TimerText(timer));
+    }
+
+    /// <summary>A watch told on the phone too (B11): its text, from the assistant that set it.</summary>
+    private async Task PhoneAsync(ModuleCommands commands, Tools.Builtin.WatchItem item, string? detail)
+    {
+        try
+        {
+            string text;
+            using (Loc.Instance.Use(_personal.LanguageOf(item.Assistant))) text = Tools.Builtin.WatchStore.Happened(item, detail);
+            if (text.Length > 0) text = char.ToUpper(text[0], Loc.Instance.Culture) + text[1..];
+            var sent = await commands.SendToPhoneAsync(new SendPhoneMessage(string.Empty, item.Assistant, string.Empty, text), CancellationToken.None).ConfigureAwait(false);
+            if (sent is not { Ok: true }) Log.Warn($"Asistente: el aviso no llegó al móvil ({sent?.Reason ?? "sin respuesta"})");
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Log.Warn("Asistente: el aviso no llegó al móvil: " + ex.Message);
+        }
     }
 
     /// <summary>What a timer that rang says (in the language in use).</summary>

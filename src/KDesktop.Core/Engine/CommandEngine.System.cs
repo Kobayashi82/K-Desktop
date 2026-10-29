@@ -431,6 +431,21 @@ public sealed partial class CommandEngine
         }
     }
 
+    // ── Enviar al móvil ──────────────────────────────────────────────────
+
+    private void SendToPhone(SendToPhoneAction a)
+    {
+        var sent = Remote.Web.PhoneInbox.Current.Send(TextVariables.Expand(a.Title), TextVariables.Expand(a.Text), TextVariables.Expand(a.Url),
+            TextVariables.Expand(a.File), "K-Desktop", TextVariables.Expand(a.Device));
+        if (sent.Reason is { } reason)
+        {
+            Log.Warn($"Enviar al móvil: no se envió ({reason})");
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.phone." + reason), OsdKind.Warning, look: OsdLook.Of("Phone24"));
+            return;
+        }
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.phone.sent", string.Join(", ", sent.Names)), OsdKind.Success, look: OsdLook.Of("Phone24"));
+    }
+
     // ── Mantener despierto ───────────────────────────────────────────────
 
     private void StayAwake(KeepAwakeAction a)

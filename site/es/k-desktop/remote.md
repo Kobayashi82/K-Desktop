@@ -32,11 +32,26 @@ A tener en cuenta:
 - *Aceptar órdenes de* dice desde dónde se puede entrar: *Solo este PC*, *Red local* o *Internet* (lo que llega por el
   proxy cuenta como internet). Emparejar hace falta siempre.
 
+## Lo que manda el PC
+
+La acción [Enviar al móvil](actions.md) y los asistentes («mándame esta dirección al móvil», «avísame en el móvil cuando
+termine la descarga») mandan un texto, un enlace o un archivo pequeño (25 MB como mucho) a tus dispositivos emparejados:
+a todos, o al que nombres. Los navegadores del propio PC no cuentan. Llega al momento si tienes la aplicación abierta, y
+sale en **Recibido del PC** (el sobre de arriba), con botones para copiar, abrir el enlace o descargar el archivo. Si no está
+abierta, K-Desktop lo guarda hasta una semana y te llega en cuanto la abras. No pasa por ningún servidor de fuera: va directo
+de tu PC a tu móvil.
+
 ## Aplicación de Android
 
 La aplicación de Android es la misma aplicación web con micrófono propio. *Opciones → Aplicación móvil → Guardar la
 APK…*, cópiala al móvil y ábrela (Android pide permitir instalar aplicaciones de ese origen). No necesita tienda: cuando se
 conecta un móvil con una versión más antigua, la aplicación ofrece actualizarse desde el PC.
+
+En sus *Ajustes*, **Avisos con la app cerrada** (desde la versión 1.1.0) deja la conexión con el PC abierta aunque cierres la
+aplicación, y lo que mande el PC te llega como una notificación normal (con *Abrir* y *Copiar*). Al encenderlo pide permiso
+para las notificaciones y que Android no la duerma para ahorrar batería; mientras está encendido, Android enseña un aviso
+fijo «Conexión con K-Desktop». Funciona donde el móvil llegue al PC: en casa siempre, y fuera solo si tienes la dirección
+de internet (proxy).
 
 ## UDP
 

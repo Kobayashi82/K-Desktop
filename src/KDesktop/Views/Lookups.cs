@@ -168,6 +168,9 @@ public static class Lookups
 
     public static IReadOnlyList<string> RunningProcessesNow => RunningProcesses();
 
+    /// <summary>«Enviar al móvil»: the names of the paired phones and browsers, read when the editor opens.</summary>
+    public static IReadOnlyList<string> PhoneDevicesNow => [.. KDesktop.Core.Remote.Web.PhoneInbox.Current.Targets().Select(d => d.Name).Distinct()];
+
     /// <summary>The extras of the installed assistants («Lander: Modo manual»), read when an editor opens.</summary>
     public static IReadOnlyList<ExtraChoice> AssistantActionsOf(string assistant) =>
     [
