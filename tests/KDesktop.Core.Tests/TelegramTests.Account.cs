@@ -48,6 +48,19 @@ public sealed partial class TelegramTests
     }
 
     [Fact]
+    public async Task TheCodeLinksAsItIsShown()
+    {
+        var (service, connection) = await AccountLinked();
+        using var _ = service;
+        service.Unlink();
+        var code = service.StartLinking();
+        // As the page shows it, with a space («301 870»).
+        connection.Incoming.Add(From(42, code[..3] + " " + code[3..]));
+        await Until(() => service.Owner?.Id == 42);
+        Assert.Empty(service.Read(s => s.Pending));
+    }
+
+    [Fact]
     public async Task WithoutButtonsTheyAreAnsweredWithTheNumberOrTheWord()
     {
         var (service, connection) = await AccountLinked();

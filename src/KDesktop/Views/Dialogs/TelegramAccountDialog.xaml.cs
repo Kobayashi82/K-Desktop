@@ -42,7 +42,7 @@ public partial class TelegramAccountDialog : FluentWindow
         Form.Children.Add(_apiHash);
         Form.Children.Add(CalendarUi.GuideLink(this, "telegram.account.guide", GuideDialog.TelegramAccount, new Thickness(0, 0, 0, 12)));
         Form.Children.Add(CalendarUi.Label(Loc.T("telegram.account.phone")));
-        _phone = new UiTextBox { Text = account?.Phone ?? string.Empty, PlaceholderText = "+34 600 000 000", Margin = new Thickness(0, 0, 0, 4), ClearButtonEnabled = false };
+        _phone = new UiTextBox { Text = account?.Phone ?? string.Empty, PlaceholderText = Loc.T("telegram.account.phoneExample"), Margin = new Thickness(0, 0, 0, 4), ClearButtonEnabled = false };
         Form.Children.Add(_phone);
         Form.Children.Add(CalendarUi.Caption(Loc.T("telegram.account.phoneHint"), new Thickness(0, 0, 0, 0)));
         Loaded += (_, _) => (_apiId.Text.Length == 0 ? (UIElement)_apiId : _phone).Focus();

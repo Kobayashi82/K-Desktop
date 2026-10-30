@@ -23,7 +23,7 @@ public partial class TelegramAddContactDialog : FluentWindow
     private readonly ComboBox _agenda = new() { DisplayMemberPath = "Shown", HorizontalAlignment = HorizontalAlignment.Stretch, IsEditable = true, IsTextSearchEnabled = true };
     private readonly StackPanel _agendaPanel = new();
     private readonly StackPanel _numberPanel = new() { Visibility = Visibility.Collapsed };
-    private readonly UiTextBox _phone = new() { PlaceholderText = "+34 600 000 000", Margin = new Thickness(0, 0, 0, 8), ClearButtonEnabled = false };
+    private readonly UiTextBox _phone = new() { PlaceholderText = Loc.T("telegram.account.phoneExample"), Margin = new Thickness(0, 0, 0, 8), ClearButtonEnabled = false };
     private readonly UiTextBox _first = new() { Margin = new Thickness(0, 0, 0, 8), ClearButtonEnabled = false };
     private readonly UiTextBox _last = new() { Margin = new Thickness(0, 0, 0, 4), ClearButtonEnabled = false };
 

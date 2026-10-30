@@ -1074,7 +1074,8 @@ public sealed class TelegramService : IDisposable
     {
         var text = m.Text.Trim();
         var start = text.StartsWith("/start", StringComparison.OrdinalIgnoreCase);
-        var said = start ? text[6..].Trim() : text;
+        // As K-Desktop shows it («301 870») or written any other way («301-870»): only its digits count.
+        var said = new string([.. (start ? text[6..] : text).Where(c => !char.IsWhiteSpace(c) && c is not ('-' or '.'))]);
         string? code;
         lock (_gate) code = _linkCode is not null && Now() < _linkExpires ? _linkCode : null;
         if (code is null || Owner?.Id == m.From.Id || !(start || (said.Length == 6 && said.All(char.IsAsciiDigit)))) return false;
