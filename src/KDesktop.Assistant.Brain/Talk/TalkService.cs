@@ -724,6 +724,13 @@ public sealed class TalkService
             close = CloseCommands(matched, sure, capable);
             if (sure.Count == 0 && close.Count == 0 && !capable) leaveOut = ["run_command"];
         }
+        // A question is not run at once, and one about commands («¿qué hace el comando modo juego?») is left alone; but «¿puedes vaciar la papelera y luego
+        // abrirla?» is an order asked politely (Parakeet writes the «¿?» too): the AI decides, told the commands that are near.
+        else if (_commands is not null && taught.Count == 0 && IsQuestion(said) && !TalkMind.AboutCommands(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } asked)
+        {
+            close = CloseCommands(asked, [], capable);
+            if (close.Count > 0) Log.Info("Asistente: una pregunta que nombra comandos, para la IA: " + string.Join(", ", close));
+        }
 
         // Programs (stage 8.1): «minimiza Steam», «sal de Chrome», «abre Spotify», in what the user's own commands left.
         if (taught.Count == 0 && !IsQuestion(said))

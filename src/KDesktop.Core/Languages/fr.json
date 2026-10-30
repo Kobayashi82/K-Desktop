@@ -4580,6 +4580,7 @@
   "assistant.phrase.claim.close": "Je ne l'ai pas fermé.",
   "assistant.phrase.claim.schedule": "Je ne l'ai pas programmé.",
   "assistant.words.onScreen": "cette fenêtre|la fenêtre|cette page|la page|cet onglet|l'onglet|l'écran|à l'écran|ce que tu vois|ce que je vois|capture",
+  "assistant.words.command": "commande|commandes",
   "assistant.requests.send": "envoie-moi|envoie-le|envoie-la|envoie le|envoie la|envoyez-moi|transmets-moi|tu m'envoies|tu me l'envoies",
   "assistant.requests.phone": "téléphone|portable|mobile|tablette",
   "assistant.prompt.missing.send": "(On t'a aussi demandé de l'envoyer et tu ne l'as pas envoyé. Fais-le maintenant avec l'outil qui envoie ; si tu ne peux pas, dis-le clairement.)",

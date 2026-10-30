@@ -4580,6 +4580,7 @@
   "assistant.phrase.claim.close": "No lo he cerrado.",
   "assistant.phrase.claim.schedule": "No lo he programado.",
   "assistant.words.onScreen": "esta ventana|esa ventana|la ventana|esta página|esa página|la página|esta pestaña|esa pestaña|la pestaña|esta web|esa web|la pantalla|en pantalla|lo que ves|lo que veo|lo que hay delante|captura|lo que tengo abierto",
+  "assistant.words.command": "comando|comandos",
   "assistant.requests.send": "envíame|envíamelo|envíamela|envíalo|envíala|envía|envíaselo|mándame|mándamelo|mándamela|mándalo|mándala|me envías|me lo envías|me la envías|me mandas|me lo mandas|me la mandas|me envían|pásamelo por|reenvía|reenvíame",
   "assistant.requests.phone": "móvil|movil|teléfono|telefono|celular|tablet|tableta",
   "assistant.prompt.missing.send": "(También te ha pedido que lo envíes y no lo has enviado. Hazlo ahora con la herramienta que envía; si no puedes, dilo claramente.)",

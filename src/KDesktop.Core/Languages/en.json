@@ -4580,6 +4580,7 @@
   "assistant.phrase.claim.close": "I didn't close it.",
   "assistant.phrase.claim.schedule": "I didn't schedule it.",
   "assistant.words.onScreen": "this window|that window|the window|this page|that page|the page|this tab|that tab|the tab|the screen|on screen|what you see|what i see|screenshot|what i have open",
+  "assistant.words.command": "command|commands",
   "assistant.requests.send": "send me|send it|send that|send this|send a|send the|message me|text me|forward it|forward me|email me",
   "assistant.requests.phone": "phone|mobile|cell|cellphone|tablet",
   "assistant.prompt.missing.send": "(They also asked you to send it and you have not sent it. Do it now with the tool that sends; if you can't, say so plainly.)",

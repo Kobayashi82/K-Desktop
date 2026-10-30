@@ -582,10 +582,16 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         : "\n\n" + Loc.T("assistant.prompt.givenFiles", string.Join("; ", context.Files));
 
     /// <summary>Whether the order points at what is on the screen (<c>assistant.words.onScreen</c>, this language and English).</summary>
-    public static bool AboutTheScreen(string said)
+    public static bool AboutTheScreen(string said) => Says(said, "assistant.words.onScreen");
+
+    /// <summary>Whether the order talks about commands («¿qué hace el comando…?»; <c>assistant.words.command</c>, this language and English).</summary>
+    public static bool AboutCommands(string said) => Says(said, "assistant.words.command");
+
+    /// <summary>Whether <paramref name="said"/> has one of the phrases of <paramref name="key"/> (this language and English), as whole words.</summary>
+    private static bool Says(string said, string key)
     {
         var folded = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
-        return new[] { Loc.T("assistant.words.onScreen"), Loc.Strings(Loc.Fallback, "assistant.words.").GetValueOrDefault("assistant.words.onScreen") }
+        return new[] { Loc.T(key), Loc.Strings(Loc.Fallback, "assistant.words.").GetValueOrDefault(key) }
             .OfType<string>().SelectMany(p => p.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             .Select(p => " " + string.Join(' ', TextSimilarity.Words(p)) + " ")
             .Any(p => p.Trim().Length > 0 && folded.Contains(p, StringComparison.Ordinal));

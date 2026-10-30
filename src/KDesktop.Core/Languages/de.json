@@ -4580,6 +4580,7 @@
   "assistant.phrase.claim.close": "Ich habe es nicht geschlossen.",
   "assistant.phrase.claim.schedule": "Ich habe es nicht eingeplant.",
   "assistant.words.onScreen": "dieses fenster|das fenster|diese seite|die seite|dieser tab|der tab|den tab|der bildschirm|den bildschirm|auf dem bildschirm|was du siehst|was ich sehe|screenshot",
+  "assistant.words.command": "befehl|befehle|kommando|kommandos",
   "assistant.requests.send": "schick mir|schicke mir|schick es|schick das|sende mir|sende es|sende das|leite es weiter",
   "assistant.requests.phone": "handy|telefon|smartphone|tablet",
   "assistant.prompt.missing.send": "(Du solltest es auch schicken und hast es nicht geschickt. Tu es jetzt mit dem Werkzeug, das sendet; wenn du es nicht kannst, sag es klar.)",

@@ -4580,6 +4580,7 @@
   "assistant.phrase.claim.close": "Non l'ho chiuso.",
   "assistant.phrase.claim.schedule": "Non l'ho programmato.",
   "assistant.words.onScreen": "questa finestra|quella finestra|la finestra|questa pagina|quella pagina|la pagina|questa scheda|la scheda|lo schermo|sullo schermo|quello che vedi|quello che vedo|screenshot",
+  "assistant.words.command": "comando|comandi",
   "assistant.requests.send": "mandami|inviami|mandalo|invialo|mandala|inviala|me lo mandi|me lo invii|mandamelo|inviamelo",
   "assistant.requests.phone": "telefono|cellulare|tablet",
   "assistant.prompt.missing.send": "(Ti ha anche chiesto di inviarlo e non l'hai inviato. Fallo ora con lo strumento che invia; se non puoi, dillo chiaramente.)",

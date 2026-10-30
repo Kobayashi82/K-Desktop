@@ -576,6 +576,21 @@ public sealed class CommandRoutingTests : IDisposable
     }
 
     [Fact]
+    public async Task AnOrderAskedAsAQuestionTellsTheAiTheCommands()
+    {
+        // «¿Puedes vaciar la papelera?» (Parakeet writes the «¿?» too): not run at once, but the AI knows the command.
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.Sure("¿puedes vaciar la papelera?", ("bin", "Vaciar Papelera", null));
+        _model.Answers.Enqueue("Vale.");
+        await talk.HandleAsync(new HeardMessage("¿puedes vaciar la papelera?", "panel"));
+        Assert.Empty(_bridge.Done);
+        var request = Assert.Single(_model.Requests);
+        Assert.Contains(request.Tools, t => t.Name == "run_command");
+        Assert.Contains(request.Messages, m => m.Content?.Contains("Vaciar Papelera", StringComparison.Ordinal) == true);
+    }
+
+    [Fact]
     public async Task SayingSomethingNeedsNoAi()
     {
         using var builtin = new BuiltinTools(_folder);
