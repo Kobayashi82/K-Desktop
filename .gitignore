@@ -26,7 +26,6 @@ docs/VOZ.md
 docs/COMPILAR.md
 docs/HISTORIA.md
 ARREGLAR.md
-PRUEBAS.md
 CLAUDE.md
 
 ## Assistants: their own repository (K-Desktop-Assistants), cloned here
@@ -34,9 +33,3 @@ assistants/
 
 ## Copies of the user's logs to review (private, local only)
 registros/
-
-# Notas locales del usuario
-ideas-k-desktop.md
-plan.md
-pendientes-k-desktop.md
-plan-app-movil.md
