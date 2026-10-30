@@ -50,7 +50,7 @@ internal sealed class AssistantSession : IDisposable
             Tools!.Runner.Showing += choreography.Show;
         }
         Runtime.LanguageOf = Personal.LanguageOf;
-        if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
+        if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal) { Send = message => Link.Send(message) };
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!) { Choreography = choreography };
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
         if (Link is not null) Games = new ModuleGames(Brain!, Talk!.Service);

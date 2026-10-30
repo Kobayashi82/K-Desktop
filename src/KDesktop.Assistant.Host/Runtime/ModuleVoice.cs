@@ -46,6 +46,26 @@ internal sealed class ModuleVoice : IDisposable
 
     public Speech Speech { get; } = new();
 
+    /// <summary>To K-Desktop: the voice of an answer for the phone that asked (<see cref="SpeechAudioMessage"/>).</summary>
+    public Action<PipeMessage>? Send { get; set; }
+
+    /// <summary>Where each one's answers sound now ("" = K-Desktop): <c>phone</c> or <c>both</c>; not there: on the PC.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _routes = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// An order came from the phone wanting the answer there (<see cref="HeardMessage.Speak"/>), or the order is over (null):
+    /// the turns that start meanwhile sound there.
+    /// </summary>
+    public void Route(string? assistant, string? speak)
+    {
+        var key = assistant ?? string.Empty;
+        if (speak is HeardMessage.SpeakPhone or HeardMessage.SpeakBoth && Send is not null) _routes[key] = speak;
+        else _routes.TryRemove(key, out _);
+    }
+
+    /// <summary>Most of a sentence in one message to K-Desktop (16-bit samples in base64, well under the pipe's line).</summary>
+    private const double MaxPieceSeconds = 4;
+
     /// <summary>The voice profile an assistant brings (its package), or null (stage 5.5).</summary>
     public Func<string, VoiceProfile?>? ProfileOf { get; set; }
 
@@ -162,7 +182,15 @@ internal sealed class ModuleVoice : IDisposable
     /// Whether a turn is said aloud: a voice chosen and the sound on, and not hushed by something full screen (tests are
     /// said anyway: they were asked for).
     /// </summary>
-    private bool SpeaksNow(string turn)
+    private bool SpeaksNow(string turn, string? assistant)
+    {
+        // Asked from the phone: it is said there, whatever the PC's sound or a game (the PC's mouth moves in silence).
+        if (_routes.ContainsKey(assistant ?? string.Empty) && _settings.Engine != SpeechEngineKind.Off) return true;
+        return SpeaksOnPc(turn);
+    }
+
+    /// <summary>Whether it sounds on the PC: a voice chosen, the sound on and nothing full screen hushing it.</summary>
+    private bool SpeaksOnPc(string turn)
     {
         if (!Speaks) return false;
         var hushed = _hushFullscreen && _runtime.World.System.FullscreenMonitors.Count > 0 && !IsTest(turn);
@@ -201,7 +229,7 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public void Ahead(string? assistant, string turn, string textSoFar)
     {
-        if (!SpeaksNow(turn)) return;
+        if (!SpeaksNow(turn, assistant)) return;
         var speaker = For(assistant ?? string.Empty, turn);
         foreach (var sentence in speaker.Splitter.Feed(textSoFar)) speaker.Queue(sentence);
     }
@@ -212,7 +240,7 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public void Preface(string? assistant, string turn, string phrase)
     {
-        if (!SpeaksNow(turn)) return;
+        if (!SpeaksNow(turn, assistant)) return;
         Log.Info($"Asistente: «{(assistant is { Length: > 0 } ? assistant : "K-Desktop")}» piensa: «{phrase}»");
         For(assistant ?? string.Empty, turn).Queue(phrase);
     }
@@ -223,7 +251,7 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public Task SayAsync(string? assistant, string turn, string text, CancellationToken cancellationToken)
     {
-        if (!SpeaksNow(turn)) return Task.CompletedTask;
+        if (!SpeaksNow(turn, assistant)) return Task.CompletedTask;
         assistant ??= string.Empty;
         var speaker = For(assistant, turn);
         var rest = speaker.Splitter.Finish(text, out var diverged);
@@ -258,7 +286,10 @@ internal sealed class ModuleVoice : IDisposable
         {
             if (_speakers.TryGetValue(assistant, out var known) && known.Turn == turn) return known;
             old = known;
-            _speakers[assistant] = current = new Speaker(this, assistant, turn);
+            var route = _routes.GetValueOrDefault(assistant);
+            var remote = route is not null && Send is not null;
+            var local = !remote || (route == HeardMessage.SpeakBoth && SpeaksOnPc(turn));
+            _speakers[assistant] = current = new Speaker(this, assistant, turn, remote, local);
         }
         old?.Stop();
         return current;
@@ -284,17 +315,29 @@ internal sealed class ModuleVoice : IDisposable
         private readonly System.Threading.Channels.Channel<SpeechLine> _lines = System.Threading.Channels.Channel.CreateUnbounded<SpeechLine>();
         private SpeechLine? _playing;
 
-        public Speaker(ModuleVoice owner, string assistant, string turn)
+        /// <summary>Its voice goes to the phone that asked (<see cref="SpeechAudioMessage"/>).</summary>
+        private readonly bool _remote;
+
+        /// <summary>It sounds on the PC too (without it the mouth moves in silence, in time with the phone).</summary>
+        private readonly bool _local;
+
+        private int _sent;
+
+        public Speaker(ModuleVoice owner, string assistant, string turn, bool remote = false, bool local = true)
         {
             _owner = owner;
             _assistant = assistant;
+            _remote = remote;
+            _local = local;
             Turn = turn;
+            if (remote) Log.Info($"Asistente: «{Who}» contesta en el móvil{(local ? " y en el PC" : "")}");
             // Piper says a lone «Recibido.» badly: it goes with the next sentence.
             Splitter.JoinShort = owner.Speech.Resolve(owner.LanguageOf(assistant), owner.SettingsFor(assistant, [])) == SpeechEngineKind.Piper;
             var token = _stop.Token;
             Done = Task.WhenAll(Task.Run(() => MakeAsync(token)), Task.Run(() => PlayAsync(token))).ContinueWith(_ =>
             {
                 _owner._engine.Post(() => _owner._runtime.VoiceLevel(_assistant, 0));
+                if (_remote) _owner.Send?.Invoke(new SpeechEndMessage(Turn, token.IsCancellationRequested, _assistant.Length > 0 ? _assistant : null));
                 Dispose();
             }, TaskScheduler.Default);
         }
@@ -381,6 +424,16 @@ internal sealed class ModuleVoice : IDisposable
                 await foreach (var line in _lines.Reader.ReadAllAsync(token).ConfigureAwait(false))
                 {
                     _playing = line;
+                    if (_remote)
+                    {
+                        var sent = SendAsync(line);
+                        if (!_local)
+                        {
+                            await sent.ConfigureAwait(false);
+                            await SilentAsync(line, token).ConfigureAwait(false);
+                            continue;
+                        }
+                    }
                     _owner._runtime.Audio.Speak(line, _owner.GainFor(_assistant), _owner._pan ? await PanAsync().ConfigureAwait(false) : 0);
                     if (token.IsCancellationRequested) line.Stop();
                     while (!line.Ended.IsCompleted)
@@ -395,6 +448,41 @@ internal sealed class ModuleVoice : IDisposable
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
                 // Stopped.
+            }
+        }
+
+        /// <summary>A sentence for the phone once it is whole: in pieces of a few seconds, 16-bit, as they come.</summary>
+        private async Task SendAsync(SpeechLine line)
+        {
+            await line.Completed.ConfigureAwait(false);
+            if (line.Stopped || _owner.Send is not { } send) return;
+            var samples = line.Snapshot();
+            var piece = (int)(line.SampleRate * MaxPieceSeconds);
+            for (var start = 0; start < samples.Length; start += piece)
+            {
+                var count = Math.Min(piece, samples.Length - start);
+                var bytes = new byte[count * 2];
+                for (var i = 0; i < count; i++)
+                {
+                    var value = (short)Math.Round(Math.Clamp(samples[start + i], -1f, 1f) * short.MaxValue);
+                    bytes[2 * i] = (byte)value;
+                    bytes[2 * i + 1] = (byte)(value >> 8);
+                }
+                send(new SpeechAudioMessage(Turn, _sent++, line.SampleRate, Convert.ToBase64String(bytes), _assistant.Length > 0 ? _assistant : null));
+            }
+        }
+
+        /// <summary>Said on the phone only: the character moves its mouth for as long as it lasts, in silence.</summary>
+        private async Task SilentAsync(SpeechLine line, CancellationToken token)
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var length = line.Arrived;
+            while (!line.Stopped && !token.IsCancellationRequested && clock.Elapsed.TotalSeconds < length)
+            {
+                var level = line.LevelAt(clock.Elapsed.TotalSeconds);
+                _owner._engine.Post(() => _owner._runtime.VoiceLevel(_assistant, level));
+                try { await Task.Delay(LevelEvery, token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { break; }
             }
         }
 

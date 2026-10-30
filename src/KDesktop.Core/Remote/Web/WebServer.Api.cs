@@ -57,7 +57,7 @@ public sealed partial class WebServer
             await IconAsync(request.Path["/api/icon/".Length..], response).ConfigureAwait(false);
             return;
         }
-        if (await AssistantsAsync(request, context).ConfigureAwait(false)) return;
+        if (await AssistantsAsync(request, context, device).ConfigureAwait(false)) return;
         if (await InboxAsync(request, context, device).ConfigureAwait(false)) return;
 
         switch (request.Method, request.Path)
@@ -107,7 +107,7 @@ public sealed partial class WebServer
                 await RemoteEventAsync(context, request).ConfigureAwait(false);
                 break;
             case ("POST", "/api/voice"):
-                await VoiceAsync(context).ConfigureAwait(false);
+                await VoiceAsync(context, device.Id).ConfigureAwait(false);
                 break;
             case ("GET", "/api/audio"):
                 await AudioStateAsync(response).ConfigureAwait(false);
@@ -198,7 +198,7 @@ public sealed partial class WebServer
     /// The PC transcribes it and runs it like its own orders, and answers with what it heard and did. With
     /// <c>?assistant=id</c> it goes to that assistant.
     /// </summary>
-    private async Task VoiceAsync(HttpListenerContext context)
+    private async Task VoiceAsync(HttpListenerContext context, string deviceId)
     {
         var max = (int)(VoiceService.RemoteMax.TotalSeconds * MicCapture.SampleRate * 2);
         var bytes = new byte[max];
@@ -214,7 +214,7 @@ public sealed partial class WebServer
         var samples = new float[length / 2];
         for (var i = 0; i < samples.Length; i++) samples[i] = BitConverter.ToInt16(bytes, i * 2) / 32768f;
 
-        var result = await VoiceFor(context.Request.QueryString["assistant"], samples).ConfigureAwait(false);
+        var result = await VoiceFor(context.Request.QueryString["assistant"], samples, deviceId, context.Request.QueryString["speak"]).ConfigureAwait(false);
         var status = result.Kind switch { OsdKind.Success => "ok", OsdKind.Warning => "warning", _ => "info" };
         await WriteJsonAsync(context.Response, new { status, text = result.Text, message = result.Message }).ConfigureAwait(false);
     }

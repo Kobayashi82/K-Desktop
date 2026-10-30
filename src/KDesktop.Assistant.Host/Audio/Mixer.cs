@@ -216,6 +216,7 @@ internal sealed class SpeechLine(int sampleRate)
 
     private readonly Lock _gate = new();
     private readonly TaskCompletionSource _ended = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource _completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly List<double> _levels = [];
     private float[] _samples = new float[sampleRate * 4];
     private int _length;
@@ -256,6 +257,17 @@ internal sealed class SpeechLine(int sampleRate)
     /// <summary>Completes when it has been said to the end, or stopped.</summary>
     public Task Ended => _ended.Task;
 
+    /// <summary>Completes when all of it has arrived (<see cref="Complete"/>), or it was stopped.</summary>
+    public Task Completed => _completed.Task;
+
+    public bool Stopped => _stopped;
+
+    /// <summary>A copy of what has arrived (all of it once <see cref="Completed"/>).</summary>
+    public float[] Snapshot()
+    {
+        lock (_gate) return _samples[.._length];
+    }
+
     /// <summary>More of it (any thread).</summary>
     public void Append(float[] samples)
     {
@@ -284,6 +296,7 @@ internal sealed class SpeechLine(int sampleRate)
     public void Complete()
     {
         lock (_gate) _complete = true;
+        _completed.TrySetResult();
     }
 
     /// <summary>How loud it is at that second (0…1, against the loudest so far).</summary>
@@ -300,6 +313,7 @@ internal sealed class SpeechLine(int sampleRate)
     {
         _stopped = true;
         _gain = 0;
+        _completed.TrySetResult();
     }
 
     /// <summary>Not mixed (stopped before it started, or the sound was switched off): over at once.</summary>

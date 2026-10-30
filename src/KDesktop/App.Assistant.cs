@@ -35,6 +35,15 @@ public partial class App
     /// <summary>Raised (UI thread) when the module is turned on or off, its process changes state, or the assistants change.</summary>
     public event Action? AssistantChanged;
 
+    /// <summary>The voice of an answer for the phone that asked (<see cref="SpeechAudioMessage"/>, <see cref="SpeechEndMessage"/>; any thread).</summary>
+    internal event Action<PipeMessage>? AssistantSpeech;
+
+    /// <summary>
+    /// Where the answers to the orders from the phone sound, by assistant (<see cref="HeardMessage.Speak"/>): set by the web
+    /// app just before it sends the order (written or said).
+    /// </summary>
+    internal readonly System.Collections.Concurrent.ConcurrentDictionary<string, string?> PhoneSpeak = new(StringComparer.Ordinal);
+
     /// <summary>Starts or stops the module after a settings change (and at start-up).</summary>
     private void ApplyAssistant()
     {
@@ -97,6 +106,12 @@ public partial class App
                     return;
                 }
                 if (OnAssistantCommandRequest(supervisor, message)) return;
+                // The voice of an answer for the phone: straight to the web server, without the UI thread.
+                if (message is SpeechAudioMessage or SpeechEndMessage)
+                {
+                    AssistantSpeech?.Invoke(message);
+                    return;
+                }
                 Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
             };
             _assistant = supervisor;

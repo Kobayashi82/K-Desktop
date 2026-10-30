@@ -446,9 +446,15 @@ public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
 /// more than read may run.</param>
 /// <param name="Reply">«Asistente: preguntar» with what to do with the answer (D1, 5.0.370): answered quietly (no voice nor bubble;
 /// the chat has it) and the answer goes back with <see cref="RepliedMessage"/> with this id.</param>
+/// <param name="Speak">Where its answer sounds (phase 6 of the phone app, 5.0.410): <c>phone</c> (only on the phone that asked:
+/// the voice goes to K-Desktop with <see cref="SpeechAudioMessage"/>, the character moves its mouth in silence) or
+/// <c>both</c>; null: on the PC.</param>
 public sealed record HeardMessage(string Text, string Source, string? Assistant = null, IReadOnlyList<string>? Files = null, string? Act = null,
-    string? Scheduled = null, IReadOnlyList<string>? Allowed = null, string? Reply = null) : PipeMessage
+    string? Scheduled = null, IReadOnlyList<string>? Allowed = null, string? Reply = null, string? Speak = null) : PipeMessage
 {
+    public const string SpeakPhone = "phone";
+    public const string SpeakBoth = "both";
+
     public const string SourceScheduled = "scheduled";
 
     public const string ActOpen = "open";
@@ -1110,6 +1116,22 @@ public sealed record RunEventMessage(string Assistant, string Run, string Event,
 /// </summary>
 /// <param name="File">A full path; K-Desktop copies it (25 MB at most).</param>
 /// <param name="Device">Part of the device's name; null: all of them.</param>
+/// <summary>
+/// A piece of an answer's voice for the phone that asked (<see cref="HeardMessage.Speak"/>): a sentence, or part of a long one,
+/// as 16-bit mono PCM in base64 at <paramref name="Rate"/>. <paramref name="Index"/> counts from 0 in each turn; they play
+/// one after another. The turn ends with <see cref="SpeechEndMessage"/>.
+/// </summary>
+public sealed record SpeechAudioMessage(string Turn, int Index, int Rate, string Pcm, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "speechAudio";
+}
+
+/// <summary>The voice of a turn for the phone is over: said to the end, or <paramref name="Stopped"/> (cut, another turn).</summary>
+public sealed record SpeechEndMessage(string Turn, bool Stopped = false, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "speechEnd";
+}
+
 public sealed record SendPhoneMessage(string Id, string? Assistant, string Title, string Text, string? Url = null, string? File = null, string? Device = null) : PipeMessage
 {
     public override string Type => "phone";
@@ -1372,6 +1394,8 @@ public static class PipeJson
         ["act"] = typeof(ActMessage),
         ["system"] = typeof(SystemMessage),
         ["phone"] = typeof(SendPhoneMessage),
+        ["speechAudio"] = typeof(SpeechAudioMessage),
+        ["speechEnd"] = typeof(SpeechEndMessage),
         ["phoneSent"] = typeof(PhoneSentMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),

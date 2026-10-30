@@ -186,7 +186,8 @@ public partial class App
             return true;
         }
         var heard = new HeardMessage(text, source, ProcessIdOf(id), files is { Count: > 0 } ? files : null, act,
-            permit?.Key, permit is null ? null : [.. permit.Tools.Order(StringComparer.Ordinal)], reply);
+            permit?.Key, permit is null ? null : [.. permit.Tools.Order(StringComparer.Ordinal)], reply,
+            source == "phone" ? PhoneSpeak.GetValueOrDefault(id) : null);
         if (!_assistant.IsRunning || !_assistant.Send(heard))
         {
             Ui.ShowOsd(Loc.T("assistantChat.notRunning"), Core.Engine.OsdKind.Warning);

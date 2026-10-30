@@ -128,6 +128,8 @@ internal sealed class ModuleTalk : ITalkOutput
             return;
         }
         _reactions.Begin(heard.Assistant, heard.Text);
+        // Asked from the phone: its answer sounds there (or there too) until it is over.
+        if (heard.Reply is null) Voice.Route(heard.Assistant, heard.Speak);
         // In its own language (its answer, its phrases, what it did), whatever the others speak in.
         using (Loc.Instance.Use(_personal.LanguageOf(heard.Assistant))) _ = Service.HandleAsync(heard);
     }
@@ -335,6 +337,8 @@ internal sealed class ModuleTalk : ITalkOutput
         if (state == "thinking") Voice.Warm(assistant);
         // The answer is ready (or the order is over): how it went.
         if (state is "speaking" or "idle") _reactions.End(assistant);
+        // The order from the phone is over: what it says later (a timer, a notice) sounds on the PC again.
+        if (state == "idle") Voice.Route(assistant, null);
         States.Talk(assistant, state);
     }
 

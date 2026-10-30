@@ -6,6 +6,7 @@ import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
 import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, chatAsked, chatTexts } from './chat.js';
 import { setupInbox, fetchInbox } from './inbox.js';
 import { setupMedia, mediaActive, onMediaEvent, renderApps } from './media.js';
+import { setupSpeech, speakWhere, speechSettings, onSpeech, onSpeechEnd, stopSpeech } from './speech.js';
 
 const $ = id => document.getElementById(id);
 
@@ -1280,6 +1281,7 @@ function fillSession(s = state.session) {
   voiceAvailable(!!s.voice);
   chatVoice(!!s.voice);
   chatEnabled(!!s.assistants);
+  speechSettings(!!s.assistants, !!s.local);
   if (state.tab === 'pad') padActive(true, s.input !== false);
   fillAddresses(s);
   offerAppUpdate(s);
@@ -1418,6 +1420,12 @@ function startEvents() {
   });
   events.addEventListener('catalog', () => loadCatalog());
   events.addEventListener('media', () => onMediaEvent());
+  events.addEventListener('speech', e => {
+    try { onSpeech(JSON.parse(e.data)); } catch { /* not for us */ }
+  });
+  events.addEventListener('speechEnd', e => {
+    try { onSpeechEnd(JSON.parse(e.data)); } catch { /* not for us */ }
+  });
   events.addEventListener('inbox', () => fetchInbox());
   events.addEventListener('session', () => loadSession());
   events.addEventListener('assistants', () => onAssistants());
@@ -1799,10 +1807,25 @@ function wireDial() {
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
   setupPad({ t, store, pcStore, svg, toast, openSheet, online: setOnline, onUnpaired: () => showPair() });
-  setupVoice({ t, toast, post: postBinary, updateApp });
+  setupVoice({ t, toast, post: postBinary, updateApp, speak: () => speakWhere() });
   setupInbox({ $, el, svg, t, api, store, toast, lang: () => state.texts?.lang ?? navigator.language });
+  setupSpeech({
+    t, store,
+    local: () => !!state.session?.local,
+    visible: () => document.visibilityState === 'visible',
+    headers: () => {
+      const token = store.get('token');
+      return token ? { 'X-KD': '1', Authorization: 'Bearer ' + token } : { 'X-KD': '1' };
+    },
+    talk: id => {
+      chatAsked(id);
+      startVoiceFor(id);
+    },
+  });
   setupChat({
     t, toast, api, store,
+    speak: () => speakWhere(),
+    stopSpeech,
     lang: () => state.texts?.lang ?? navigator.language,
     showTab: showAssistantTab,
     openTab: () => setTab('assistant'),

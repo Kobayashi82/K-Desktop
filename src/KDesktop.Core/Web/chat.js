@@ -335,7 +335,7 @@ async function send() {
   updateBar();
   navigator.vibrate?.(6);
   try {
-    await ctx.api('assistants/say', { method: 'POST', body: { id: c.id, text } });
+    await ctx.api('assistants/say', { method: 'POST', body: { id: c.id, text, speak: ctx.speak() } });
     c.asked.set(c.id, Date.now());
     input.value = '';
     grow();
@@ -354,6 +354,7 @@ async function send() {
 async function stop() {
   if (!c.id) return;
   navigator.vibrate?.(8);
+  ctx.stopSpeech(c.id);
   try { await ctx.api('assistants/stop', { method: 'POST', body: { id: c.id } }); } catch { /* offline */ }
 }
 

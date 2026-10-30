@@ -284,6 +284,27 @@
           </div>
         </div>
 
+        <!-- The assistants: where the answers to this phone's orders sound, and keep listening after them -->
+        <div id="speechSettings" hidden>
+          <h3 class="section-title" data-i18n="pwa.tab.assistant"></h3>
+          <div class="group">
+            <label class="row" id="speakWhereRow">
+              <span class="row-icon" data-icon="speaker"></span>
+              <span class="row-label" data-i18n="pwa.speech.where"></span>
+              <select id="speakWhere">
+                <option value="phone" data-i18n="pwa.speech.phone"></option>
+                <option value="pc" data-i18n="pwa.speech.pc"></option>
+                <option value="both" data-i18n="pwa.speech.both"></option>
+              </select>
+            </label>
+            <label class="row">
+              <span class="row-icon" data-icon="mic"></span>
+              <span class="row-label"><span data-i18n="pwa.speech.follow"></span><small class="row-sub" data-i18n="pwa.speech.followHint"></small></span>
+              <input type="checkbox" class="switch" id="speakFollow">
+            </label>
+          </div>
+        </div>
+
         <div id="mediaNoticeRow" hidden>
           <h3 class="section-title" data-i18n="pwa.tab.audio"></h3>
           <div class="group">

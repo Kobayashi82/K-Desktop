@@ -14,6 +14,9 @@ internal sealed class WebAssistants : IWebAssistants
 {
     private readonly App _app;
 
+    /// <summary>The phone that sent each one its last order, where the voice of its answer goes (any thread).</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _devices = new(StringComparer.Ordinal);
+
     /// <summary>The icon of each assistant, drawn once per installed version.</summary>
     private readonly Dictionary<string, (string Key, WebIcon? Icon)> _icons = new(StringComparer.Ordinal);
 
@@ -22,6 +25,39 @@ internal sealed class WebAssistants : IWebAssistants
         _app = app;
         app.AssistantChanged += () => Changed?.Invoke();
         app.AssistantChatChanged += id => Line?.Invoke(id, app.AssistantChat(id) is { Count: > 0 } chat ? LineOf(chat[^1]) : null);
+        app.AssistantSpeech += OnSpeech;
+    }
+
+    public event Action<WebSpeech>? Speech;
+
+    private void OnSpeech(Core.Assistant.Pipe.PipeMessage message)
+    {
+        var (assistant, turn) = message switch
+        {
+            Core.Assistant.Pipe.SpeechAudioMessage audio => (audio.Assistant, audio.Turn),
+            Core.Assistant.Pipe.SpeechEndMessage end => (end.Assistant, end.Turn),
+            _ => (null, string.Empty),
+        };
+        var id = App.FromProcess(assistant);
+        if (!_devices.TryGetValue(id, out var device)) return;
+        if (message is Core.Assistant.Pipe.SpeechAudioMessage piece)
+        {
+            byte[] pcm;
+            try { pcm = Convert.FromBase64String(piece.Pcm); }
+            catch (FormatException) { return; }
+            Speech?.Invoke(new WebSpeech(device, id, turn, piece.Index, piece.Rate, pcm));
+        }
+        else if (message is Core.Assistant.Pipe.SpeechEndMessage over)
+        {
+            Speech?.Invoke(new WebSpeech(device, id, turn, 0, 0, null, End: true, Stopped: over.Stopped));
+        }
+    }
+
+    /// <summary>The next order of <paramref name="id"/> comes from <paramref name="device"/>: where its answer sounds.</summary>
+    private void FromPhone(string id, string? device, string? speak)
+    {
+        _app.PhoneSpeak[id] = device is null ? null : speak;
+        if (device is not null && speak is not null) _devices[id] = device;
     }
 
     public event Action? Changed;
@@ -37,9 +73,10 @@ internal sealed class WebAssistants : IWebAssistants
 
     public IReadOnlyList<WebChatLine> Chat(string id) => _app.AssistantChat(id).Select(LineOf).ToList();
 
-    public string? Send(string id, string text)
+    public string? Send(string id, string text, string? device = null, string? speak = null)
     {
         if (!Enabled || !App.IsAssistant(id) || !_app.IsOnDesktop(id)) return "notActive";
+        FromPhone(id, device, speak);
         return _app.SendToAssistant(id, text, "phone") ? null : "notRunning";
     }
 
@@ -48,9 +85,10 @@ internal sealed class WebAssistants : IWebAssistants
         if (Enabled && App.IsAssistant(id)) _app.StopAssistant(id);
     }
 
-    public Task<RemoteVoiceResult> VoiceAsync(string id, float[] samples)
+    public Task<RemoteVoiceResult> VoiceAsync(string id, float[] samples, string? device = null, string? speak = null)
     {
         var to = _app.Dispatcher.Invoke(() => Enabled && App.IsAssistant(id) && _app.IsOnDesktop(id) ? _app.AddresseeFor(id) : null);
+        if (to is not null) FromPhone(id, device, speak);
         return to is null
             ? Task.FromResult(new RemoteVoiceResult("", Core.Localization.Loc.T("assistantChat.nobody"), Core.Engine.OsdKind.Warning))
             : _app.Voice.RunRemoteAsync(samples, to);

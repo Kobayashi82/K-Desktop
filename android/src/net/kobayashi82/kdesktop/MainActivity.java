@@ -87,6 +87,8 @@ public class MainActivity extends Activity {
     private WebView web;
     private SharedPreferences prefs;
     private Pcs pcs;
+    /** The assistants' answers said on this phone (phase 6). */
+    private SpeechPlayer speech;
 
     /** The address loaded now (null: the app's own page or nothing yet). */
     private volatile String current;
@@ -849,6 +851,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         // Closed for good: without the background connection nobody keeps the notification up to date.
         if (isFinishing() && !InboxService.enabled(this)) MediaNotice.hide(getApplicationContext());
+        if (isFinishing() && speech != null) speech.stop();
         super.onDestroy();
     }
 
@@ -1190,6 +1193,27 @@ public class MainActivity extends Activity {
         public String startVoice() {
             runOnUiThread(MainActivity.this::startVoice);
             return "ok";
+        }
+
+        /** A piece of an assistant's answer to say here (<c>path</c>: api/assistants/audio?…, at the PC on screen). */
+        @JavascriptInterface
+        public void playSpeech(String path, String turn) {
+            if (path == null || !path.startsWith("api/assistants/audio") || current == null || onSetup) return;
+            Pcs.Pc pc = currentPc();
+            if (pc == null) return;
+            if (speech == null) speech = new SpeechPlayer(MainActivity.this, id -> js("window.kdSpeechDone && window.kdSpeechDone(" + JSONObject.quote(id) + ")"));
+            speech.play(current + path, turn, pc.token);
+        }
+
+        /** The PC said all of that turn: kdSpeechDone when it has played. */
+        @JavascriptInterface
+        public void endSpeech(String turn) {
+            if (speech != null) speech.end(turn);
+        }
+
+        @JavascriptInterface
+        public void stopSpeech() {
+            if (speech != null) speech.stop();
         }
 
         /** Done speaking: the recording goes to kdVoiceData (base64, 16-bit PCM, 16 kHz, mono). */

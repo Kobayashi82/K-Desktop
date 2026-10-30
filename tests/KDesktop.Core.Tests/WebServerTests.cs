@@ -25,10 +25,36 @@ public sealed class WebServerTests : IDisposable
         public IReadOnlyDictionary<string, long> Runs() => new Dictionary<string, long>();
         public bool VoiceReady => false;
         public Task<RemoteVoiceResult> VoiceAsync(float[] samples) => throw new NotSupportedException();
-        public IWebAssistants? Assistants => null;
+        public IWebAssistants? Assistants { get; init; }
+    }
+
+    /// <summary>An assistant that only records what the phone asks; its voice comes when the test says.</summary>
+    private sealed class FakeAssistants : IWebAssistants
+    {
+        public List<(string Id, string Text, string? Device, string? Speak)> Sent { get; } = [];
+        public bool Enabled => true;
+        public IReadOnlyList<WebAssistantInfo> List() => [new WebAssistantInfo("kobii", "Kobii", false, null)];
+        public IReadOnlyList<WebChatLine> Chat(string id) => [];
+        public string? Send(string id, string text, string? device = null, string? speak = null)
+        {
+            Sent.Add((id, text, device, speak));
+            return null;
+        }
+        public void Stop(string id) { }
+        public Task<RemoteVoiceResult> VoiceAsync(string id, float[] samples, string? device = null, string? speak = null) => throw new NotSupportedException();
+        public event Action? Changed;
+        public event Action<string, WebChatLine?>? Line;
+        public event Action<WebSpeech>? Speech;
+        public void Say(WebSpeech speech) => Speech?.Invoke(speech);
+        public void Quiet()
+        {
+            Changed?.Invoke();
+            Line?.Invoke("kobii", null);
+        }
     }
 
     private readonly CommandEngine _engine;
+    private readonly FakeAssistants _assistants = new();
     private readonly WebServer _server;
     private readonly HttpClient _http;
     private readonly List<(PowerMode Mode, string Device)> _power = [];
@@ -37,7 +63,7 @@ public sealed class WebServerTests : IDisposable
     {
         Assert.True(Platform.PowerTools.Disabled);
         _engine = new CommandEngine(new ConfigStore(), new FakeUi());
-        _server = new WebServer(new Host(_engine)) { NoMediaWatch = true };
+        _server = new WebServer(new Host(_engine) { Assistants = _assistants }) { NoMediaWatch = true };
         var port = FreePort();
         _server.Start(new WebServerOptions(port, string.Empty));
         Assert.True(_server.IsRunning);
@@ -215,6 +241,42 @@ public sealed class WebServerTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, badOp.StatusCode);
         using var noArt = await _http.SendAsync(Request(HttpMethod.Get, "api/media/art?app=nadie.exe", token));
         Assert.Equal(HttpStatusCode.NotFound, noArt.StatusCode);
+    }
+
+    [Fact]
+    public async Task TheAnswersVoiceGoesOnlyToThePhoneThatAsked()
+    {
+        var asker = await PairAsync("Uno");
+        var other = await PairAsync("Dos");
+        var askerId = _server.Devices.Authenticate(asker, null)!.Id;
+        using (var said = await _http.SendAsync(Request(HttpMethod.Post, "api/assistants/say", asker, new { id = "kobii", text = "hola", speak = "phone" })))
+            Assert.Equal(HttpStatusCode.OK, said.StatusCode);
+        Assert.Equal(("kobii", "hola", askerId, "phone"), _assistants.Sent.Single());
+
+        using var events = await OpenEventsAsync(asker);
+        await Task.Delay(200);
+        _assistants.Say(new WebSpeech(askerId, "kobii", "t1", 0, 24000, [1, 0, 2, 0]));
+        Assert.Contains("event: speech", await ReadUntilAsync(events, "speech"));
+
+        using var wav = await _http.SendAsync(Request(HttpMethod.Get, "api/assistants/audio?turn=t1&n=0", asker));
+        Assert.Equal(HttpStatusCode.OK, wav.StatusCode);
+        var bytes = await wav.Content.ReadAsByteArrayAsync();
+        Assert.Equal("RIFF", Encoding.ASCII.GetString(bytes, 0, 4));
+        Assert.Equal(24000, BitConverter.ToInt32(bytes, 24));
+        Assert.Equal(48, bytes.Length);
+        // Another phone, or another piece: nothing.
+        using var stranger = await _http.SendAsync(Request(HttpMethod.Get, "api/assistants/audio?turn=t1&n=0", other));
+        Assert.Equal(HttpStatusCode.NotFound, stranger.StatusCode);
+        using var missing = await _http.SendAsync(Request(HttpMethod.Get, "api/assistants/audio?turn=t1&n=1", asker));
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+
+        _assistants.Say(new WebSpeech(askerId, "kobii", "t1", 0, 0, null, End: true, Stopped: true));
+        var end = await ReadUntilAsync(events, "\"stopped\"");
+        Assert.Contains("event: speechEnd", end);
+        Assert.Contains("\"stopped\":true", end);
+        // Where the PC hears it: anything else than phone or both is the PC.
+        using (await _http.SendAsync(Request(HttpMethod.Post, "api/assistants/say", asker, new { id = "kobii", text = "otra", speak = "loud" }))) { }
+        Assert.Null(_assistants.Sent[^1].Speak);
     }
 
     private async Task<StreamReader> OpenEventsAsync(string token)

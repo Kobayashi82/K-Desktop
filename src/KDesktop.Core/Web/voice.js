@@ -160,7 +160,7 @@ function cancel(quiet) {
 
 async function send(buffer) {
   try {
-    const r = await ctx.post(v.target ? 'voice?assistant=' + encodeURIComponent(v.target) : 'voice', buffer);
+    const r = await ctx.post(v.target ? 'voice?assistant=' + encodeURIComponent(v.target) + '&speak=' + ctx.speak() : 'voice', buffer);
     const toAssistant = !!v.target;
     close();
     const kind = { ok: 'ok', warning: 'warning', error: 'error' }[r.status] ?? 'info';
