@@ -1414,6 +1414,7 @@ function startEvents() {
     // The stream came back: maybe K-Desktop restarted, perhaps as a newer version.
     loadSession();
     chatResync();
+    onMediaEvent();
   });
   events.addEventListener('catalog', () => loadCatalog());
   events.addEventListener('media', () => onMediaEvent());

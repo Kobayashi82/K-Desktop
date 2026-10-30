@@ -984,6 +984,8 @@
   "pwa.media.unknown": "Sem título",
   "pwa.media.refused": "O player não fez isso",
   "pwa.media.seek": "Ir para outro ponto",
+  "pwa.media.notice": "O que toca, nas notificações",
+  "pwa.media.noticeHint": "Com seus botões; as teclas de volume do celular mudam o do PC",
   "pwa.tab.pad": "Touchpad",
   "pwa.pad.hint": "Deslize para mover o ponteiro · toque para clicar\nDois dedos: rolar · toque com dois dedos: clique direito\nToque, depois toque de novo e arraste (ou segure) para arrastar",
   "pwa.pad.off": "Desconectado",

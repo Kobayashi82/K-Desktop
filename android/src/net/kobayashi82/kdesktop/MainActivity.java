@@ -131,6 +131,9 @@ public class MainActivity extends Activity {
     /** «Avisos con la app cerrada»: Android 13+ asks for the notifications first. */
     private static final int INBOX_PERMISSION = 8;
 
+    /** The notification of what plays on the PC (Android 13+ asks for notifications). */
+    private static final int MEDIA_PERMISSION = 10;
+
     /** Scanning K-Desktop's QR on the app's page: the camera. */
     private static final int CAMERA_PERMISSION = 9;
     private PermissionRequest pendingCamera;
@@ -761,6 +764,13 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
         boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
+        if (requestCode == MEDIA_PERMISSION) {
+            if (!granted) {
+                MediaNotice.setEnabled(this, false);
+                js("window.kdMediaNoticeState && window.kdMediaNoticeState(false)");
+            }
+            return;
+        }
         if (requestCode == INBOX_PERMISSION) {
             if (granted) enableInbox();
             else js("window.kdInboxState && window.kdInboxState(false)");
@@ -833,6 +843,13 @@ public class MainActivity extends Activity {
 
     private void js(String script) {
         runOnUiThread(() -> web.evaluateJavascript(script, null));
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Closed for good: without the background connection nobody keeps the notification up to date.
+        if (isFinishing() && !InboxService.enabled(this)) MediaNotice.hide(getApplicationContext());
+        super.onDestroy();
     }
 
     @Override
@@ -1192,6 +1209,35 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public boolean inboxEnabled() {
             return InboxService.enabled(MainActivity.this);
+        }
+
+        /** What plays on the PC on screen (api/media's answer, or "" for nothing), for its notification. */
+        @JavascriptInterface
+        public void setMedia(String json, String chosen) {
+            runOnUiThread(() -> {
+                Pcs.Pc pc = currentPc();
+                if (pc == null || onSetup) return;
+                JSONObject state = null;
+                try {
+                    if (json != null && !json.isEmpty()) state = new JSONObject(json);
+                } catch (Exception ignored) {
+                }
+                MediaNotice.update(MainActivity.this, state, chosen, current, pc.token);
+            });
+        }
+
+        @JavascriptInterface
+        public boolean mediaNotice() {
+            return MediaNotice.enabled(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void setMediaNotice(boolean on) {
+            runOnUiThread(() -> {
+                MediaNotice.setEnabled(MainActivity.this, on);
+                if (on && Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+                    requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS }, MEDIA_PERMISSION);
+            });
         }
 
         @JavascriptInterface

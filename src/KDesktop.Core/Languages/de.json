@@ -984,6 +984,8 @@
   "pwa.media.unknown": "Ohne Titel",
   "pwa.media.refused": "Der Player hat es nicht getan",
   "pwa.media.seek": "An eine andere Stelle springen",
+  "pwa.media.notice": "Was läuft, in den Benachrichtigungen",
+  "pwa.media.noticeHint": "Mit seinen Tasten; die Lautstärketasten des Handys ändern die des PCs",
   "pwa.tab.pad": "Touchpad",
   "pwa.pad.hint": "Wischen bewegt den Zeiger · Tippen klickt\nZwei Finger: scrollen · Tippen mit zwei Fingern: Rechtsklick\nTippen, dann erneut tippen und ziehen (oder halten) zum Ziehen",
   "pwa.pad.off": "Getrennt",

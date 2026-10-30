@@ -984,6 +984,8 @@
   "pwa.media.unknown": "Senza titolo",
   "pwa.media.refused": "Il lettore non l’ha fatto",
   "pwa.media.seek": "Vai a un altro punto",
+  "pwa.media.notice": "Cosa suona, nelle notifiche",
+  "pwa.media.noticeHint": "Con i suoi pulsanti; i tasti del volume del telefono cambiano quello del PC",
   "pwa.tab.pad": "Touchpad",
   "pwa.pad.hint": "Scorri per muovere il puntatore · tocca per fare clic\nDue dita: scorrere · tocco con due dita: clic destro\nTocca, poi tocca di nuovo e trascina (o tieni premuto) per trascinare",
   "pwa.pad.off": "Disconnesso",

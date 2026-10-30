@@ -984,6 +984,8 @@
   "pwa.media.unknown": "No title",
   "pwa.media.refused": "The player did not do it",
   "pwa.media.seek": "Move to another point",
+  "pwa.media.notice": "What plays, in the notifications",
+  "pwa.media.noticeHint": "With its buttons; the phone's volume keys change the PC's",
   "pwa.tab.pad": "Touchpad",
   "pwa.pad.hint": "Slide to move the pointer · tap to click\nTwo fingers: scroll · two-finger tap: right click\nTap, then tap again and drag (or hold) to drag",
   "pwa.pad.off": "Disconnected",

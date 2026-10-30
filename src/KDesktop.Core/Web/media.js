@@ -33,6 +33,7 @@ function time(seconds) {
 
 export function setupMedia(deps) {
   ctx = deps;
+  wireNotice();
   $('nowPrev').addEventListener('click', () => control('previous'));
   $('nowNext').addEventListener('click', () => control('next'));
   $('nowPlay').addEventListener('click', () => control('toggle'));
@@ -66,9 +67,12 @@ export function mediaActive(on) {
   media.tick = setInterval(drawProgress, 500);
 }
 
-/** K-Desktop says that something changed (a track, a pause, a program that starts playing). */
+/**
+ * K-Desktop says that something changed (a track, a pause, a program that starts playing), or the app connected. In the
+ * Android app also from another tab: its notification shows what plays.
+ */
 export function onMediaEvent() {
-  if (media.active && document.visibilityState === 'visible') loadMedia();
+  if (media.active ? document.visibilityState === 'visible' : noticeOn()) loadMedia();
 }
 
 async function loadMedia() {
@@ -109,6 +113,7 @@ function render(state) {
   media.received = performance.now();
   const s = current();
   if (s) media.chosen = s.appId;
+  if (noticeOn()) window.KDesktopApp.setMedia(JSON.stringify({ sessions: media.list }), media.chosen);
   $('nowCard').hidden = !s;
   // Without a program that says what it plays, the media keys of the volume card do it.
   $('mediaKeys').hidden = !!s;
@@ -177,6 +182,26 @@ function drawProgress() {
 }
 
 const fill = input => input.style.setProperty('--fill', (input.value / input.max * 100) + '%');
+
+// ── the Android app's notification ─────────────────────────────────
+
+const noticeOn = () => !!window.KDesktopApp?.setMedia && window.KDesktopApp.mediaNotice?.();
+
+/** «Lo que suena en las notificaciones»: only in the app. */
+function wireNotice() {
+  const app = window.KDesktopApp;
+  const row = $('mediaNoticeRow');
+  row.hidden = !app?.setMedia || !app?.mediaNotice;
+  if (row.hidden) return;
+  const box = $('mediaNotice');
+  box.checked = !!app.mediaNotice();
+  box.addEventListener('change', () => {
+    app.setMediaNotice(box.checked);
+    if (box.checked) loadMedia();
+    else app.setMedia('', '');
+  });
+  window.kdMediaNoticeState = on => { box.checked = !!on; };
+}
 
 // ── the volume of each program ─────────────────────────────────────
 

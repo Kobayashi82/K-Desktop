@@ -52,6 +52,11 @@
             android:exported="false"
             android:foregroundServiceType="remoteMessaging" />
 
+        <!-- The buttons of the notification of what plays on the PC -->
+        <receiver
+            android:name=".MediaNotice$Receiver"
+            android:exported="false" />
+
         <receiver
             android:name=".BootReceiver"
             android:exported="true">

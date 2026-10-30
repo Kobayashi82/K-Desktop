@@ -188,12 +188,27 @@ public class InboxService extends Service {
                 if (line.startsWith("event:")) event = line.substring(6).trim();
                 else if (line.isEmpty()) {
                     if ("inbox".equals(event)) fetch(address, token);
+                    else if ("media".equals(event) && MediaNotice.enabled(this)) media(address, token);
                     event = null;
                 }
             }
         } finally {
             stream = null;
             c.disconnect();
+        }
+    }
+
+    /** What plays on the PC changed: the notification of what plays follows it, also with the app closed. */
+    private void media(String address, String token) {
+        try {
+            HttpURLConnection c = open(address + "api/media", token);
+            try {
+                if (c.getResponseCode() == 200) MediaNotice.update(this, new JSONObject(read(c.getInputStream())), "", address, token);
+            } finally {
+                c.disconnect();
+            }
+        } catch (Exception ignored) {
+            // Next time.
         }
     }
 
