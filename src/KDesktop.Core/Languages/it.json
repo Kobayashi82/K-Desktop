@@ -5749,8 +5749,8 @@
   "assistant.rule.agendaTomorrow": "cosa ho domani|cosa ho in programma domani|cosa c’è domani nella mia agenda|che appuntamenti ho domani|ho qualcosa domani|la mia agenda di domani",
   "assistant.rule.agendaWeek": "cosa ho questa settimana|cosa ho in programma questa settimana|che appuntamenti ho questa settimana|la mia agenda della settimana",
 
-  "settings.nav.group.calendar": "Calendario e account",
-  "settings.nav.calendars": "Calendari",
+  "settings.nav.group.calendar": "Account e calendario",
+  "settings.nav.calendars": "Calendario",
   "settings.nav.calendars.hint": "I tuoi, abbonamenti .ics e promemoria",
   "settings.nav.accounts": "Account",
   "settings.nav.accounts.hint": "Google e Microsoft",
@@ -5976,9 +5976,9 @@
   "mailOptions.keywords": "Parole nell’oggetto",
   "mailOptions.keywordsHint": "fattura, urgente, consegna",
   "mailOptions.assistant": "L’assistente e la posta",
-  "mailOptions.assistantIntro": "Una mail non dà mai ordini: dopo averne letta una, l’assistente chiede prima di fare qualsiasi cosa. L’invio chiede sempre.",
-  "mailOptions.maySend": "Gli assistenti possono inviare (chiedendo)",
-  "mailOptions.maySendHint": "Spento: lasciano solo bozze nella tua casella.",
+  "mailOptions.assistantIntro": "Una mail non dà mai ordini: dopo averne letta una, l’assistente chiede prima di fare qualsiasi cosa.",
+  "mailOptions.maySend": "Gli assistenti possono inviare",
+  "mailOptions.maySendHint": "Spento: lasciano solo bozze. Se chiedono prima: Assistente › Strumenti › mail_send.",
   "mailOptions.keepDays": "Giorni di posta conservati",
   "mailOptions.keepDaysHint": "Solo intestazioni e un frammento, per cercare senza chiedere al server; il corpo e gli allegati si scaricano all’apertura.",
 

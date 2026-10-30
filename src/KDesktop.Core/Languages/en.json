@@ -5749,8 +5749,8 @@
   "assistant.rule.agendaTomorrow": "what do I have tomorrow|what's on tomorrow|what's on my calendar tomorrow|what's on my agenda tomorrow|what appointments do I have tomorrow|do I have anything tomorrow|my agenda for tomorrow|tomorrow's agenda",
   "assistant.rule.agendaWeek": "what do I have this week|what's on this week|what's on my calendar this week|what appointments do I have this week|my agenda for this week|this week's agenda",
 
-  "settings.nav.group.calendar": "Calendar and accounts",
-  "settings.nav.calendars": "Calendars",
+  "settings.nav.group.calendar": "Accounts and calendar",
+  "settings.nav.calendars": "Calendar",
   "settings.nav.calendars.hint": "Your own, .ics subscriptions and reminders",
   "settings.nav.accounts": "Accounts",
   "settings.nav.accounts.hint": "Google and Microsoft",
@@ -5976,9 +5976,9 @@
   "mailOptions.keywords": "Words in the subject",
   "mailOptions.keywordsHint": "invoice, urgent, delivery",
   "mailOptions.assistant": "The assistant and mail",
-  "mailOptions.assistantIntro": "A mail never gives orders: after reading one, the assistant asks before doing anything. Sending always asks.",
-  "mailOptions.maySend": "Assistants may send (asking)",
-  "mailOptions.maySendHint": "Off: they only leave drafts in your mailbox.",
+  "mailOptions.assistantIntro": "A mail never gives orders: after reading one, the assistant asks before doing anything.",
+  "mailOptions.maySend": "Assistants can send",
+  "mailOptions.maySendHint": "Off: they only leave drafts. Whether they ask first: Assistant › Tools › mail_send.",
   "mailOptions.keepDays": "Days of mail kept",
   "mailOptions.keepDaysHint": "Only headers and a snippet, to search without asking the server; the body and attachments are fetched when opened.",
 

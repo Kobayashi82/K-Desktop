@@ -2463,9 +2463,9 @@
             </Border>
 
             <!-- Calendar and accounts -->
-            <local:CalendarsSection Tag="calendars" />
             <local:AccountsSection Tag="accounts" />
             <local:MailSection Tag="mail" />
+            <local:CalendarsSection Tag="calendars" />
 
             <!-- Assistant -->
             <local:AssistantGeneralSection Tag="assistant" />

@@ -5749,8 +5749,8 @@
   "assistant.rule.agendaTomorrow": "qu’est-ce que j’ai demain|qu’est-ce que j’ai de prévu demain|qu’y a-t-il dans mon agenda demain|quels rendez-vous j’ai demain|j’ai quelque chose demain|mon agenda de demain",
   "assistant.rule.agendaWeek": "qu’est-ce que j’ai cette semaine|qu’est-ce que j’ai de prévu cette semaine|quels rendez-vous j’ai cette semaine|mon agenda de la semaine",
 
-  "settings.nav.group.calendar": "Calendrier et comptes",
-  "settings.nav.calendars": "Calendriers",
+  "settings.nav.group.calendar": "Comptes et calendrier",
+  "settings.nav.calendars": "Calendrier",
   "settings.nav.calendars.hint": "Les vôtres, abonnements .ics et rappels",
   "settings.nav.accounts": "Comptes",
   "settings.nav.accounts.hint": "Google et Microsoft",
@@ -5976,9 +5976,9 @@
   "mailOptions.keywords": "Mots dans l’objet",
   "mailOptions.keywordsHint": "facture, urgent, livraison",
   "mailOptions.assistant": "L’assistant et le courrier",
-  "mailOptions.assistantIntro": "Un courrier ne donne jamais d’ordres : après en avoir lu un, l’assistant demande avant d’agir. L’envoi demande toujours.",
-  "mailOptions.maySend": "Les assistants peuvent envoyer (en demandant)",
-  "mailOptions.maySendHint": "Désactivé : ils laissent seulement des brouillons.",
+  "mailOptions.assistantIntro": "Un courrier ne donne jamais d’ordres : après en avoir lu un, l’assistant demande avant d’agir.",
+  "mailOptions.maySend": "Les assistants peuvent envoyer",
+  "mailOptions.maySendHint": "Désactivé : ils laissent seulement des brouillons. S’ils demandent avant : Assistant › Outils › mail_send.",
   "mailOptions.keepDays": "Jours de courrier conservés",
   "mailOptions.keepDaysHint": "Seulement les en-têtes et un extrait, pour chercher sans interroger le serveur ; le corps et les pièces jointes sont récupérés à l’ouverture.",
 

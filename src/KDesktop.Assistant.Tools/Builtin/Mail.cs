@@ -179,7 +179,7 @@ public sealed class MailSendTool(ICommandBridge bridge) : ITool
 {
     public string Name => "mail_send";
 
-    public string Description => "Sends a mail now from one of the user's accounts (it always asks the user first, showing everything). It cannot be undone: when unsure, use mail_draft.";
+    public string Description => "Sends a mail now from one of the user's accounts (it may ask the user first, showing everything). It cannot be undone: when unsure, use mail_draft.";
 
     public string ParametersSchemaJson => """{"type":"object","properties":{""" + MailTools.ComposeProperties + """},"required":["body"]}""";
 

@@ -215,6 +215,12 @@ public sealed class ToolRegistry
     public ToolRisk? ChosenRisk(ITool tool) =>
         _preferences.TryGetValue(tool.Name, out var preference) ? ToolPreference.Parse(preference.Risk) : null;
 
+    /// <summary>
+    /// Whether <paramref name="tool"/> asks every time, whatever «Preguntar antes de hacer algo» says (sending a mail,
+    /// deleting a cita…): those that do, unless the user chose «Sin preguntar» for it in Options → Tools.
+    /// </summary>
+    public bool AlwaysAsks(ITool tool) => tool.AlwaysAsks && ChosenRisk(tool) != ToolRisk.Safe;
+
     /// <summary>Its risk for one call (<see cref="ITool.RiskFor"/>), unless the user chose one in Options → Tools.</summary>
     public ToolRisk RiskOf(ITool tool, JsonElement arguments) =>
         _preferences.TryGetValue(tool.Name, out var preference) && ToolPreference.Parse(preference.Risk) is { } risk ? risk : tool.RiskFor(arguments);

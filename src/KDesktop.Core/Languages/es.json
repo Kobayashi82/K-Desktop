@@ -5749,8 +5749,8 @@
   "assistant.rule.agendaTomorrow": "qué tengo mañana|qué tengo para mañana|qué hay mañana en mi agenda|qué hay en mi agenda mañana|qué tengo mañana en la agenda|qué citas tengo mañana|tengo algo mañana|mi agenda de mañana|la agenda de mañana",
   "assistant.rule.agendaWeek": "qué tengo esta semana|qué tengo para esta semana|qué hay esta semana en mi agenda|qué citas tengo esta semana|mi agenda de la semana|la agenda de esta semana",
 
-  "settings.nav.group.calendar": "Calendario y cuentas",
-  "settings.nav.calendars": "Calendarios",
+  "settings.nav.group.calendar": "Cuentas y calendario",
+  "settings.nav.calendars": "Calendario",
   "settings.nav.calendars.hint": "Los tuyos, suscripciones .ics y avisos",
   "settings.nav.accounts": "Cuentas",
   "settings.nav.accounts.hint": "Google y Microsoft",
@@ -5976,9 +5976,9 @@
   "mailOptions.keywords": "Palabras en el asunto",
   "mailOptions.keywordsHint": "factura, urgente, entrega",
   "mailOptions.assistant": "El asistente y el correo",
-  "mailOptions.assistantIntro": "Un correo nunca da órdenes: después de leer uno, el asistente pregunta antes de hacer nada. Enviar siempre pregunta.",
-  "mailOptions.maySend": "Los asistentes pueden enviar (preguntando)",
-  "mailOptions.maySendHint": "Apagado: solo dejan borradores en tu buzón.",
+  "mailOptions.assistantIntro": "Un correo nunca da órdenes: después de leer uno, el asistente pregunta antes de hacer nada.",
+  "mailOptions.maySend": "Los asistentes pueden enviar",
+  "mailOptions.maySendHint": "Apagado: solo dejan borradores. Si preguntan antes, en Asistente › Herramientas › mail_send.",
   "mailOptions.keepDays": "Días de correo guardados",
   "mailOptions.keepDaysHint": "Solo cabeceras y un fragmento, para buscar sin preguntar al servidor; el cuerpo y los adjuntos se piden al abrirlos.",
 

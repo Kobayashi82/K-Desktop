@@ -154,6 +154,12 @@ public sealed class GivenFilesTests : IDisposable
         await runner.RunAsync("delete_file", Json("{}"), new ToolContext("dot") { Files = [file] }, "bórralo", "ai", CancellationToken.None);
         Assert.Single(asked);
         Assert.Empty(recycled);
+
+        // Unless the user chose «Sin preguntar» for it in Options → Tools.
+        registry.SetPreferences(new Dictionary<string, ToolPreference> { ["delete_file"] = new(Risk: "safe") });
+        await runner.RunAsync("delete_file", Json("{}"), new ToolContext("dot") { Files = [file] }, "bórralo", "ai", CancellationToken.None);
+        Assert.Single(asked);
+        Assert.Single(recycled);
     }
 
     [Fact]

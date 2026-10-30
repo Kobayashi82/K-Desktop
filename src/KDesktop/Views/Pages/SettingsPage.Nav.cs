@@ -52,9 +52,9 @@ public partial class SettingsPage
         ]),
         new("calendar", "settings.nav.group.calendar",
         [
-            new("calendars", "CalendarLtr24", "settings.nav.calendars"),
             new("accounts", "PersonAccounts24", "settings.nav.accounts"),
             new("mail", "Mail24", "settings.nav.mail"),
+            new("calendars", "CalendarLtr24", "settings.nav.calendars"),
         ]),
         new("connections", "settings.nav.group.connections",
         [

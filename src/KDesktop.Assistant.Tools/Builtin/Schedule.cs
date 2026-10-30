@@ -42,7 +42,7 @@ public sealed class ScheduleTool(ICommandBridge bridge, ToolRegistry registry) :
         var risk = commands ? ToolRisk.AskOnce : ToolRisk.Safe;
         foreach (var tool in tools.Select(registry.FindAny).OfType<ITool>().Where(t => !t.ReadsOnly))
         {
-            var its = tool.AlwaysAsks ? ToolRisk.AskAlways : registry.RiskOf(tool);
+            var its = registry.AlwaysAsks(tool) ? ToolRisk.AskAlways : registry.RiskOf(tool);
             // What K-Desktop asks about itself (the tool is «safe» here): a command, an event, a program closed or ended.
             if (AskedByKDesktop.TryGetValue(tool.Name, out var there) && there > its) its = there;
             if (its > risk) risk = its;

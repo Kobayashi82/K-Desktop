@@ -5749,7 +5749,7 @@
   "assistant.rule.agendaTomorrow": "was habe ich morgen|was steht morgen an|was steht morgen in meinem Kalender|welche Termine habe ich morgen|habe ich morgen etwas|mein Kalender für morgen",
   "assistant.rule.agendaWeek": "was habe ich diese Woche|was steht diese Woche an|welche Termine habe ich diese Woche|mein Kalender für diese Woche",
 
-  "settings.nav.group.calendar": "Kalender und Konten",
+  "settings.nav.group.calendar": "Konten und Kalender",
   "settings.nav.calendars": "Kalender",
   "settings.nav.calendars.hint": "Eigene, .ics-Abos und Erinnerungen",
   "settings.nav.accounts": "Konten",
@@ -5976,9 +5976,9 @@
   "mailOptions.keywords": "Wörter im Betreff",
   "mailOptions.keywordsHint": "Rechnung, dringend, Lieferung",
   "mailOptions.assistant": "Der Assistent und E-Mail",
-  "mailOptions.assistantIntro": "Eine E-Mail gibt nie Befehle: Nach dem Lesen fragt der Assistent vor jeder Aktion. Senden fragt immer.",
-  "mailOptions.maySend": "Assistenten dürfen senden (mit Rückfrage)",
-  "mailOptions.maySendHint": "Aus: Sie legen nur Entwürfe in deinem Postfach ab.",
+  "mailOptions.assistantIntro": "Eine E-Mail gibt nie Befehle: Nach dem Lesen fragt der Assistent vor jeder Aktion.",
+  "mailOptions.maySend": "Assistenten dürfen senden",
+  "mailOptions.maySendHint": "Aus: nur Entwürfe. Ob sie vorher fragen: Assistent › Werkzeuge › mail_send.",
   "mailOptions.keepDays": "Gespeicherte E-Mail-Tage",
   "mailOptions.keepDaysHint": "Nur Kopfzeilen und ein Ausschnitt, um ohne Serveranfrage zu suchen; Inhalt und Anhänge werden beim Öffnen geholt.",
 

@@ -173,7 +173,7 @@ public sealed class ToolRunner
         {
             // An order programmed earlier, now due: nobody is asked. What was approved then runs, and what only reads or
             // is safe; whatever else would ask is not done (the answer says so).
-            if (!scheduled.Allowed.Contains(name) && !tool.ReadsOnly && (unseen || tool.AlwaysAsks || risk != ToolRisk.Safe))
+            if (!scheduled.Allowed.Contains(name) && !tool.ReadsOnly && (unseen || _registry.AlwaysAsks(tool) || risk != ToolRisk.Safe))
             {
                 Log.Info($"Asistente: {name} no se aprobó al programar la orden: no se ejecuta");
                 return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.notApproved", intent), ok: false));
@@ -274,8 +274,8 @@ public sealed class ToolRunner
     /// user's policy, until «yes, and don't ask again»; what always asks, always.
     /// </summary>
     private bool MustAsk(ITool tool, ToolRisk risk, bool shared, bool free) =>
-        shared && free && !tool.AlwaysAsks ? risk == ToolRisk.AskAlways
-        : tool.AlwaysAsks || shared
+        shared && free && !_registry.AlwaysAsks(tool) ? risk == ToolRisk.AskAlways
+        : _registry.AlwaysAsks(tool) || shared
         ? risk == ToolRisk.AskAlways || (!tool.ReadsOnly && !_trusted().Contains(tool.Name))
         : AskPolicy.Asks(risk, _askBefore(), _trusted().Contains(tool.Name));
 
