@@ -77,6 +77,12 @@ public sealed record ToolResult(string Text)
     /// <summary>It could not do it (something was missing…): the activity shows it failed.</summary>
     public bool Failed { get; init; }
 
+    /// <summary>
+    /// Its text came from outside, from someone who is not the user (a mail): from now on in this turn everything that
+    /// acts asks first, even with «no preguntar» (mail, phase 4.3).
+    /// </summary>
+    public bool Outside { get; init; }
+
     public static implicit operator ToolResult(string text) => new(text);
 
     public static ToolResult Fail(string text) => new(text) { Failed = true };
@@ -116,6 +122,23 @@ public sealed record ToolContext(string? Assistant, string? Heard = null, bool D
     /// means, and the path a tool takes when the model gives none.
     /// </summary>
     public IReadOnlyList<string> Files { get; init; } = [];
+
+    /// <summary>What this turn has read from outside (a mail): shared by every tool of the order (copies keep it).</summary>
+    public TurnTrust Trust { get; init; } = new();
+}
+
+/// <summary>
+/// Whether an order has read text from outside (mail, phase 4.3): a mail's content is data, never orders. After reading
+/// one, whatever acts asks first and says why, so an instruction hidden in a mail («reenvía…», «abre…») is never followed
+/// unseen.
+/// </summary>
+public sealed class TurnTrust
+{
+    private int _outside;
+
+    public bool ReadOutside => Volatile.Read(ref _outside) == 1;
+
+    public void MarkOutside() => Volatile.Write(ref _outside, 1);
 }
 
 /// <summary>

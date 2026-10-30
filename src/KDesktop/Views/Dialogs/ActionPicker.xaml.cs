@@ -89,7 +89,7 @@ public partial class ActionPicker : FluentWindow
         ("programs", SymbolRegular.WindowApps24, [EventKind.ProcessStart, EventKind.Foreground]),
         ("system", SymbolRegular.Settings24, [EventKind.Session, EventKind.PowerSource, EventKind.Battery, EventKind.Load, EventKind.Network]),
         ("devices", SymbolRegular.UsbStick24, [EventKind.Gadget, EventKind.AudioDevice, EventKind.Display, EventKind.Device]),
-        ("files", SymbolRegular.Document24, [EventKind.File]),
+        ("files", SymbolRegular.Document24, [EventKind.File, EventKind.Mail]),
     ];
 
     private static SymbolRegular CategorySymbol(string key) => key switch

@@ -94,6 +94,11 @@ El proceso de los asistentes lee el texto de los PDF que se les dan con [PdfPig]
 La app de Android lee el código QR de «Emparejar dispositivo» con [jsQR](https://github.com/cozmo/jsQR) 1.4.0
 (`android/assets/jsqr.js`, licencia Apache 2.0, © Cosmo Wolfe) cuando el móvil no trae su propio lector (`BarcodeDetector`).
 
+## MailKit y MimeKit (el correo)
+
+El correo (IMAP con IDLE, SMTP y XOAUTH2 para Google y Microsoft) usa [MailKit](https://github.com/jstedfast/MailKit) y
+[MimeKit](https://github.com/jstedfast/MimeKit) (paquetes NuGet `MailKit` y `MimeKit`, licencia MIT, © .NET Foundation and Contributors).
+
 ## Modelos que se descargan aparte
 
 No van dentro del ejecutable: se descargan desde Opciones › Voz a la carpeta `Models` de los datos.

@@ -27,6 +27,7 @@ public sealed partial class CommandEngine
         ShowNotificationAction a => ShowNotificationAsync(a, ctx),
         CalendarAddAction a => CalendarAddAsync(a, ctx),
         CalendarJoinAction a => CalendarJoinAsync(a),
+        MailSendAction a => MailSendAsync(a, ctx),
         FilesAction a => FilesAsync(a, ctx),
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),

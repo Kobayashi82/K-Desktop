@@ -835,6 +835,7 @@ public partial class App : Application
         SaveAssistantPanels();
         Events?.Dispose();
         Calendar?.Dispose();
+        Mail?.Dispose();
         ClipboardUi?.Dispose();
         Router.Dispose();
         _zoneSnapper?.Dispose();

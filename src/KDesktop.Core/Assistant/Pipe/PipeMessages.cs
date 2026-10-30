@@ -1096,6 +1096,21 @@ public sealed record CalendarDoneMessage(string Id, Calendar.CalendarAnswer Answ
     public override string Type => "calendarDone";
 }
 
+/// <summary>
+/// The mail for the assistants (mail, phase 4: mail_list, mail_read, mail_draft, mail_send, mail_move,
+/// mail_invitation): K-Desktop answers it with its <see cref="Mail.MailService"/> (<see cref="Mail.MailAssistant"/>), so
+/// the passwords and tokens never leave it. Answered with <see cref="MailDoneMessage"/>.
+/// </summary>
+public sealed record MailMessage(string Id, Mail.MailRequest Request, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "mail";
+}
+
+public sealed record MailDoneMessage(string Id, Mail.MailAnswer Answer) : PipeMessage
+{
+    public override string Type => "mailDone";
+}
+
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
 public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null, string? Shared = null) : PipeMessage
@@ -1408,6 +1423,8 @@ public static class PipeJson
         ["madeEvent"] = typeof(MadeEventMessage),
         ["calendar"] = typeof(CalendarMessage),
         ["calendarDone"] = typeof(CalendarDoneMessage),
+        ["mail"] = typeof(MailMessage),
+        ["mailDone"] = typeof(MailDoneMessage),
         ["act"] = typeof(ActMessage),
         ["system"] = typeof(SystemMessage),
         ["phone"] = typeof(SendPhoneMessage),

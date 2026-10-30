@@ -86,6 +86,13 @@ public static class Lookups
             .Where(c => !c.ReadOnly && App.Current.Calendar.Source(c.SourceId)?.Capabilities.HasFlag(Core.Calendar.CalendarCapabilities.Write) == true)
             .Select(c => new CalendarChoice(c.SourceId + "/" + c.Id, c.Name))];
 
+    /// <summary>«Cualquier cuenta» (or «la primera» to send) and the mail accounts.</summary>
+    public static IReadOnlyList<CalendarChoice> MailAccountsAny =>
+        [new(string.Empty, Loc.T("event.mailAnyAccount")), .. App.Current.Mail.Accounts.Select(a => new CalendarChoice(a.Id, a.Display))];
+
+    public static IReadOnlyList<CalendarChoice> MailAccountsSend =>
+        [new(string.Empty, Loc.T("editor.mailFirstAccount")), .. App.Current.Mail.Accounts.Select(a => new CalendarChoice(a.Id, a.Display))];
+
     private static readonly int[] ReminderMinutes = [5, 10, 15, 30, 60, 1440];
 
     /// <summary>Reminder choices of «Crear cita» (-1: none).</summary>

@@ -233,6 +233,9 @@ internal sealed class AssistantSession : IDisposable
                     case PhoneSentMessage phoneSent when Commands is { } commands:
                         commands.OnPhoneSent(phoneSent);
                         return;
+                    case MailDoneMessage mailDone when Commands is { } commands:
+                        commands.OnMailDone(mailDone);
+                        return;
                     case CalendarDoneMessage calendarDone when Commands is { } commands:
                         commands.OnCalendarDone(calendarDone);
                         return;

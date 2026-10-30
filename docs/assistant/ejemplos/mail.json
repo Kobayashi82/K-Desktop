@@ -1,0 +1,12 @@
+{
+  "t": "mail",
+  "id": "c-61",
+  "request": {
+    "do": "list",
+    "unread": true,
+    "important": false,
+    "text": "factura",
+    "max": 10
+  },
+  "assistant": "kobii"
+}

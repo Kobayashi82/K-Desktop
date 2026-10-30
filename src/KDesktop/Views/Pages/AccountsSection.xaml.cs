@@ -198,6 +198,7 @@ public partial class AccountsSection : UserControl
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         App.Current.Calendar.ForgetAccount(account.Id);
+        App.Current.Mail.ForgetAccount(account.Id);
         await Accounts.DisconnectAsync(account.Id);
     }
 }

@@ -1291,6 +1291,28 @@
         </StackPanel>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type m:MailSendAction}">
+        <StackPanel>
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="260">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mailAccount}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.MailAccountsSend}}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Account}" />
+                </StackPanel>
+                <CheckBox VerticalAlignment="Bottom" Margin="0,0,0,18" Content="{l:Tr editor.mailDraftOnly}" IsChecked="{Binding DraftOnly}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mailTo}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding To, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="ana@ejemplo.es, …" v:VariableHints.IsEnabled="True" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mailSubject}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Subject, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mailBody}" />
+            <ui:TextBox Margin="0,0,0,12" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mailAttachments}" />
+            <ui:TextBox Margin="0,0,0,8" AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="50" Text="{Binding Attachments, UpdateSourceTrigger=PropertyChanged}"
+                        PlaceholderText="{l:Tr editor.mailAttachmentsHint}" v:VariableHints.IsEnabled="True" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.mailSendHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type m:CalendarJoinAction}">
         <StackPanel>
             <WrapPanel>

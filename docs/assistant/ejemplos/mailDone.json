@@ -1,0 +1,20 @@
+{
+  "t": "mailDone",
+  "id": "c-61",
+  "answer": {
+    "ok": true,
+    "items": [
+      {
+        "id": "mail-3f2c9a|INBOX|1712345678|4211",
+        "account": "ana@gmail.com",
+        "from": "Iberdrola <clientes@iberdrola.es>",
+        "subject": "Tu factura de octubre",
+        "date": "2026-11-04 08:12",
+        "snippet": "Ya puedes consultar tu factura de octubre: 42,10 €.",
+        "read": false,
+        "important": true,
+        "attachments": ["factura-octubre.pdf"]
+      }
+    ]
+  }
+}

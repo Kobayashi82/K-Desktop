@@ -29,6 +29,8 @@
     <!-- JSON Schema: checking assistant packages (Assistant/Packages). MIT up to 8.x (9 is not). Its global «Json»
          namespace would hide K-Desktop's Json class in the projects that use Core: only its runtime goes on. -->
     <PackageReference Include="JsonSchema.Net" Version="8.0.5" PrivateAssets="compile" />
+    <!-- The mail (Mail/): IMAP with IDLE and SMTP, with XOAUTH2 for Google and Microsoft. MIT (Jeffrey Stedfast). -->
+    <PackageReference Include="MailKit" Version="4.18.2" />
   </ItemGroup>
 
   <!-- Types shared with the assistant process: gestures for the choreography map (Assistant/). -->

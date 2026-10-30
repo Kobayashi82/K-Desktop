@@ -86,6 +86,9 @@ public interface ICommandBridge
     /// <summary>The calendar: list, add, change, delete or undo (calendar_*; <see cref="CalendarMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
     Task<CalendarDoneMessage?> CalendarAsync(CalendarMessage request, CancellationToken cancellationToken) => Task.FromResult<CalendarDoneMessage?>(null);
 
+    /// <summary>The mail: list, read, draft, send, move or undo (mail_*; <see cref="MailMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
+    Task<MailDoneMessage?> MailAsync(MailMessage request, CancellationToken cancellationToken) => Task.FromResult<MailDoneMessage?>(null);
+
     /// <summary>An event made and saved, or removed again (B8, <see cref="MakeEventMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
     Task<MadeEventMessage?> MakeEventAsync(MakeEventMessage request, CancellationToken cancellationToken) => Task.FromResult<MadeEventMessage?>(null);
 }
@@ -154,6 +157,12 @@ public static class CommandTools
         registry.Add(new CalendarAddTool(bridge));
         registry.Add(new CalendarChangeTool(bridge));
         registry.Add(new CalendarDeleteTool(bridge));
+        registry.Add(new MailListTool(bridge));
+        registry.Add(new MailReadTool(bridge));
+        registry.Add(new MailDraftTool(bridge));
+        registry.Add(new MailSendTool(bridge));
+        registry.Add(new MailMoveTool(bridge));
+        registry.Add(new MailInvitationTool(bridge));
         registry.Add(new ListScheduledTool(bridge, builtin));
         registry.Add(new CancelScheduledTool(bridge));
     }

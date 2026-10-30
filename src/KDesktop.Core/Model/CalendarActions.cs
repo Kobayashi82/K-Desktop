@@ -82,3 +82,28 @@ public partial class CalendarJoinAction : CommandAction
 
     public override string Summary => Loc.T($"summary.calendarJoin.{Which}");
 }
+
+/// <summary>
+/// «Enviar correo» (mail, phase 3.3): a mail from one of the accounts (empty: the first one), to, subject and text with
+/// variables, and files attached (one per line; {resultado} of «Captura de pantalla» attaches the capture). For reports
+/// and notices of the commands themselves; «solo enviar» accounts only reach the addresses allowed.
+/// </summary>
+public partial class MailSendAction : CommandAction
+{
+    [ObservableProperty] private string _account = string.Empty;
+    [ObservableProperty] private string _to = string.Empty;
+    [ObservableProperty] private string _subject = string.Empty;
+    [ObservableProperty] private string _body = string.Empty;
+
+    /// <summary>Files to attach, one per line (variables allowed).</summary>
+    [ObservableProperty] private string _attachments = string.Empty;
+
+    /// <summary>Leave it as a draft instead of sending it.</summary>
+    [ObservableProperty] private bool _draftOnly;
+
+    [JsonIgnore] public override bool GivesResult => true;
+
+    public override ActionKind Kind => ActionKind.MailSend;
+
+    public override string Summary => Loc.T(DraftOnly ? "summary.mailDraft" : "summary.mailSend", string.IsNullOrWhiteSpace(To) ? "…" : To.Trim(), string.IsNullOrWhiteSpace(Subject) ? "…" : Subject.Trim());
+}

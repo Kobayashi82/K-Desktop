@@ -179,10 +179,13 @@ public sealed class ToolRunner
                 return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.notApproved", intent), ok: false));
             }
         }
-        else if (unseen || MustAsk(tool, risk, shared, context.SharedFree))
+        else if (unseen || MustAsk(tool, risk, shared, context.SharedFree) || (context.Trust.ReadOutside && !tool.ReadsOnly))
         {
             Use(context, tool, ToolPhase.Asking);
-            var text = shared ? Loc.T("tools.askShared", context.Caller ?? "?", intent) : Loc.T(unseen ? "tools.askNew" : "tools.ask", intent);
+            // After reading a mail, what acts says so: the order may come from the mail, not from the user.
+            var text = shared ? Loc.T("tools.askShared", context.Caller ?? "?", intent)
+                : context.Trust.ReadOutside && !tool.ReadsOnly ? Loc.T("tools.askAfterMail", intent)
+                : Loc.T(unseen ? "tools.askNew" : "tools.ask", intent);
             var choice = await AskAsync(tool, risk, text, fingerprint is not null || (shared && risk != ToolRisk.AskAlways), context, cancellationToken).ConfigureAwait(false);
             if (choice is not ("yes" or "always"))
             {
@@ -204,6 +207,8 @@ public sealed class ToolRunner
             Log.Warn($"Asistente: la herramienta {name} ha fallado: {ex.Message}");
             result = ToolResult.Fail(Loc.T("tools.failed", intent));
         }
+
+        if (result.Outside) context.Trust.MarkOutside();
 
         string? undoId = null;
         var did = result.Done ?? Capitalize(intent);

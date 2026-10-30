@@ -37,6 +37,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DiagnosedMessage?>> _diagnoses = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MadeEventMessage?>> _events = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<CalendarDoneMessage?>> _calendar = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<MailDoneMessage?>> _mail = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<PhoneSentMessage?>> _phones = new(StringComparer.Ordinal);
     private int _next;
 
@@ -145,6 +146,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     /// <summary>The calendar (calendar_*): a server may be slow, so it waits longer than a match.</summary>
     public Task<CalendarDoneMessage?> CalendarAsync(CalendarMessage request, CancellationToken cancellationToken) =>
         AskAsync(_calendar, id => request with { Id = id }, TimeSpan.FromSeconds(30), cancellationToken);
+
+    /// <summary>The mail (mail_*): a server may be slow (searching, sending with attachments).</summary>
+    public Task<MailDoneMessage?> MailAsync(MailMessage request, CancellationToken cancellationToken) =>
+        AskAsync(_mail, id => request with { Id = id }, TimeSpan.FromSeconds(90), cancellationToken);
+
+    public void OnMailDone(MailDoneMessage done)
+    {
+        if (_mail.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
+    }
 
     public void OnCalendarDone(CalendarDoneMessage done)
     {

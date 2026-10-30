@@ -17,7 +17,7 @@ public enum ActionKind
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
     ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat, Arrangement, ColorPicker, Ruler,
-    VideoRecord, AssistantTool, CalendarAdd, CalendarJoin,
+    VideoRecord, AssistantTool, CalendarAdd, CalendarJoin, MailSend,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -56,6 +56,7 @@ public enum ScriptShell { Cmd, PowerShell, VBScript }
 [JsonDerivedType(typeof(ShowNotificationAction), "showNotification")]
 [JsonDerivedType(typeof(CalendarAddAction), "calendarAdd")]
 [JsonDerivedType(typeof(CalendarJoinAction), "calendarJoin")]
+[JsonDerivedType(typeof(MailSendAction), "mailSend")]
 [JsonDerivedType(typeof(FilesAction), "files")]
 [JsonDerivedType(typeof(PowerAction), "power")]
 [JsonDerivedType(typeof(OpenQuickMenuAction), "quickMenu")]

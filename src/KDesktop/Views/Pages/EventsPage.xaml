@@ -276,6 +276,36 @@
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.battery}" />
                 </StackPanel>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type m:MailTrigger}">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,8" MinWidth="240">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.mailAccount}" />
+                            <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.MailAccountsAny}}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Account}" AutomationProperties.Name="{l:Tr event.mailAccount}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.mailFrom}" />
+                            <ui:TextBox Width="240" Text="{Binding From, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr event.mailFromHint}" Icon="{ui:SymbolIcon Person24}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.mailSubject}" />
+                            <ui:TextBox Width="240" Text="{Binding SubjectContains, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr event.mailSubjectHint}" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <WrapPanel Margin="0,0,0,8">
+                        <CheckBox Content="{l:Tr event.mailWithAttachments}" IsChecked="{Binding WithAttachments}" Margin="0,0,16,4" />
+                        <CheckBox Content="{l:Tr event.mailOnlyImportant}" IsChecked="{Binding OnlyImportant}" Margin="0,0,0,4" />
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.mailSaveTo}" />
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="120" /></Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding SaveAttachmentsTo, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr event.mailSaveToHint}" Icon="{ui:SymbolIcon FolderArrowRight24}" />
+                        <ui:TextBox Grid.Column="1" Margin="8,0,0,0" Text="{Binding AttachmentFilter, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="*.pdf" ToolTip="{l:Tr event.mailFilter}" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.mail}" />
+                </StackPanel>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type m:CalendarTrigger}">
                 <StackPanel>
                     <WrapPanel>

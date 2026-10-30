@@ -314,7 +314,7 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
-    RemoteCall, Gadget, Load, Battery, Sun, Display, Calendar,
+    RemoteCall, Gadget, Load, Battery, Sun, Display, Calendar, Mail,
 }
 
 /// <summary>«Archivo» (5.0.341): what happens to the file.</summary>
@@ -365,6 +365,7 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(SunTrigger), "sun")]
 [JsonDerivedType(typeof(DisplayTrigger), "display")]
 [JsonDerivedType(typeof(CalendarTrigger), "calendar")]
+[JsonDerivedType(typeof(MailTrigger), "mail")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -838,4 +839,57 @@ public sealed partial class CalendarTrigger : EventTrigger
         CalendarMoment.End => o.End > o.Start ? o.End : o.Start,
         _ => o.Start - TimeSpan.FromMinutes(Math.Max(0, Minutes)),
     };
+}
+
+/// <summary>
+/// «Llega un correo» (mail, phase 2.4): a mail arrives to an account (or any), from someone, with a text in its subject,
+/// with attachments or only the important ones. It can save the attachments in a folder first (never over another file).
+/// The commands get the mail in {correo_de}, {correo_asunto}, {correo_fragmento}, {correo_adjuntos}, {correo_rutas} and
+/// {correo_cuenta} (and in English: {mail_from}…).
+/// </summary>
+public sealed partial class MailTrigger : EventTrigger
+{
+    /// <summary>The mail account's id; empty: any.</summary>
+    [ObservableProperty] private string _account = string.Empty;
+
+    /// <summary>Part of the sender's name or address («@iberdrola.es»); empty: anyone.</summary>
+    [ObservableProperty] private string _from = string.Empty;
+
+    [ObservableProperty] private string _subjectContains = string.Empty;
+
+    [ObservableProperty] private bool _withAttachments;
+
+    [ObservableProperty] private bool _onlyImportant;
+
+    /// <summary>A folder to save its attachments in before the commands run; empty: not saved.</summary>
+    [ObservableProperty] private string _saveAttachmentsTo = string.Empty;
+
+    /// <summary>Which attachments are saved («*.pdf»; empty or «*»: all).</summary>
+    [ObservableProperty] private string _attachmentFilter = "*";
+
+    public override EventKind Kind => EventKind.Mail;
+
+    public override int DefaultCooldown => 0;
+
+    public override string Summary
+    {
+        get
+        {
+            var who = From.Trim().Length > 0 ? Loc.T("event.summary.mail.from", From.Trim())
+                : OnlyImportant ? Loc.T("event.summary.mail.important") : Loc.T("event.summary.mail.any");
+            return SubjectContains.Trim().Length > 0 ? Loc.T("event.summary.mail.subject", who, SubjectContains.Trim()) : who;
+        }
+    }
+
+    /// <summary>Whether a mail that arrived is one this event waits for.</summary>
+    public bool Matches(global::KDesktop.Core.Mail.MailHeader mail, bool important)
+    {
+        if (Account.Trim().Length > 0 && Account.Trim() != mail.AccountId) return false;
+        if (OnlyImportant && !important) return false;
+        if (WithAttachments && mail.Attachments.Count == 0) return false;
+        static string Fold(string s) => global::KDesktop.Core.Mail.MailRules.Fold(s);
+        if (From.Trim().Length > 0 && !Fold($"{mail.From.Name} <{mail.From.Address}>").Contains(Fold(From), StringComparison.Ordinal)) return false;
+        if (SubjectContains.Trim().Length > 0 && !Fold(SubjectContains).Split(' ', StringSplitOptions.RemoveEmptyEntries).All(w => Fold(mail.Subject).Contains(w, StringComparison.Ordinal))) return false;
+        return true;
+    }
 }

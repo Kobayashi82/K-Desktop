@@ -21,6 +21,7 @@ public partial class App
         Calendar = new CalendarService(CalendarService.DefaultFolder, Secrets.Protect, Secrets.Unprotect);
         Calendar.ReminderDue += r => Dispatcher.BeginInvoke(() => ShowCalendarReminder(r));
         CreateAccounts();
+        CreateMail();
     }
 
     /// <summary>The accounts of Google and Microsoft (Opciones › Cuentas): the calendar and the mail use them.</summary>
@@ -42,6 +43,7 @@ public partial class App
     {
         Web.Calendar = Calendar;
         Calendar.Changed += () => Web?.NotifyCalendarChanged();
+        StartMail();
         try
         {
             Calendar.Start();

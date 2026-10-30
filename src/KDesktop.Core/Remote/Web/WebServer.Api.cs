@@ -256,6 +256,8 @@ public sealed partial class WebServer
         await response.OutputStream.WriteAsync(apk.Bytes).ConfigureAwait(false);
     }
 
+    private static readonly string[] WebTextPrefixes = ["pwa.", "agenda.", "calendar.", "common."];
+
     /// <summary>The web app's texts ("pwa.*") in the requested language, or in the language of the PC.</summary>
     private static object Texts(string? lang)
     {
@@ -266,7 +268,7 @@ public sealed partial class WebServer
             lang = code,
             languages = available.Select(l => new { l.Code, l.Name }),
             // The agenda (calendar, phase 9) shares the texts of the PC's.
-            strings = new[] { "pwa.", "agenda.", "calendar.", "common." }.SelectMany(prefix => Loc.Strings(code, prefix)).ToDictionary(p => p.Key, p => p.Value),
+            strings = WebTextPrefixes.SelectMany(prefix => Loc.Strings(code, prefix)).ToDictionary(p => p.Key, p => p.Value),
         };
     }
 

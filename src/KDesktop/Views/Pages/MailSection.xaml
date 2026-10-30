@@ -1,0 +1,6 @@
+<UserControl x:Class="KDesktop.Views.Pages.MailSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Options › Correo: the mail accounts, which mails are important and what the assistants may do. Made in code. -->
+    <StackPanel x:Name="Root" />
+</UserControl>

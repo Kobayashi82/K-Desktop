@@ -85,6 +85,9 @@ public static class ActionRisk
         ActionKind.Condition or ActionKind.Screenshot or ActionKind.ScreenText or ActionKind.AudioRecord or ActionKind.Dictate or ActionKind.Magnifier or ActionKind.AssistantExtra or ActionKind.AssistantAsk or ActionKind.AssistantSay or ActionKind.AssistantBrain or ActionKind.AssistantChat or ActionKind.Arrangement or ActionKind.ColorPicker or ActionKind.Ruler or ActionKind.VideoRecord or
         ActionKind.CalendarAdd or ActionKind.CalendarJoin => ToolRisk.Safe,
 
+        // A mail goes out and cannot come back.
+        ActionKind.MailSend => ToolRisk.AskAlways,
+
         // A tool does whatever it does (send a message, pause downloads…): the command is confirmed the first time.
         ActionKind.AssistantTool => ToolRisk.AskOnce,
 
