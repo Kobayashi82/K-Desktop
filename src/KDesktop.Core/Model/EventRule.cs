@@ -314,7 +314,7 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
-    RemoteCall, Gadget, Load, Battery, Sun, Display,
+    RemoteCall, Gadget, Load, Battery, Sun, Display, Calendar,
 }
 
 /// <summary>«Archivo» (5.0.341): what happens to the file.</summary>
@@ -322,6 +322,9 @@ public enum FileChange { Created, Changed, Deleted, Renamed, Any }
 
 /// <summary>«Amanecer o atardecer».</summary>
 public enum SunEvent { Sunrise, Sunset }
+
+/// <summary>«Cita del calendario»: some minutes before it, when it starts or when it ends.</summary>
+public enum CalendarMoment { Before, Start, End }
 
 /// <summary>«Pantalla»: one is plugged in (or switched on), or taken out.</summary>
 public enum DisplayEvent { Connected, Disconnected }
@@ -361,6 +364,7 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(BatteryTrigger), "battery")]
 [JsonDerivedType(typeof(SunTrigger), "sun")]
 [JsonDerivedType(typeof(DisplayTrigger), "display")]
+[JsonDerivedType(typeof(CalendarTrigger), "calendar")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -761,4 +765,77 @@ public sealed partial class DisplayTrigger : EventTrigger
 
     /// <summary>Whether a screen called <paramref name="name"/> is one it waits for.</summary>
     public bool Matches(string name) => Filter.Trim().Length == 0 || name.Contains(Filter.Trim(), StringComparison.OrdinalIgnoreCase);
+}
+
+/// <summary>
+/// «Cita del calendario» (calendar, phase 3): some minutes before a cita, when it starts or when it ends, of any
+/// calendar or one, whose title has a text, only with a place or only online. Works with every source (read-only ones
+/// too). The commands get the cita in {cita}, {cita_hora}, {cita_lugar}, {cita_notas}, {cita_enlace} and
+/// {cita_calendario} (and in English: {appointment}…). «Empieza» ends when the cita ends («Al terminar»).
+/// </summary>
+public sealed partial class CalendarTrigger : EventTrigger
+{
+    [ObservableProperty] private CalendarMoment _moment = CalendarMoment.Before;
+
+    /// <summary>With «Antes»: how many minutes before.</summary>
+    [ObservableProperty] private int _minutes = 10;
+
+    /// <summary>«source/calendar» of one calendar; empty: any.</summary>
+    [ObservableProperty] private string _calendar = string.Empty;
+
+    /// <summary>Only citas whose title has this text (no case, no accents); empty: any.</summary>
+    [ObservableProperty] private string _titleContains = string.Empty;
+
+    /// <summary>Only citas with a place.</summary>
+    [ObservableProperty] private bool _onlyWithPlace;
+
+    /// <summary>Only online meetings (with a link of Teams, Meet, Zoom…).</summary>
+    [ObservableProperty] private bool _onlyOnline;
+
+    /// <summary>Also all-day citas (they start at 0:00): off by default.</summary>
+    [ObservableProperty] private bool _includeAllDay;
+
+    public override EventKind Kind => EventKind.Calendar;
+
+    public override bool HasEnd => Moment == CalendarMoment.Start;
+
+    partial void OnMomentChanged(CalendarMoment value) => OnPropertyChanged(nameof(HasEnd));
+
+    public override string Summary
+    {
+        get
+        {
+            var what = TitleContains.Trim().Length > 0 ? Loc.T("event.summary.calendar.titled", TitleContains.Trim())
+                : OnlyOnline ? Loc.T("event.summary.calendar.online") : Loc.T("event.summary.calendar.any");
+            return Moment switch
+            {
+                CalendarMoment.Start => Loc.T("event.summary.calendar.start", what),
+                CalendarMoment.End => Loc.T("event.summary.calendar.end", what),
+                _ => Loc.T("event.summary.calendar.before", Math.Max(0, Minutes), what),
+            };
+        }
+    }
+
+    /// <summary>Whether a cita is one this event waits for.</summary>
+    public bool Matches(global::KDesktop.Core.Calendar.CalendarOccurrence o)
+    {
+        if (o.AllDay && !IncludeAllDay) return false;
+        if (Calendar.Trim().Length > 0 && Calendar.Trim() != o.Series.SourceId + "/" + o.Series.CalendarId) return false;
+        if (OnlyWithPlace && string.IsNullOrWhiteSpace(o.Event.Location)) return false;
+        if (OnlyOnline && string.IsNullOrWhiteSpace(o.Event.MeetingUrl)) return false;
+        if (TitleContains.Trim().Length > 0)
+        {
+            var folded = new string(o.Event.Title.Select(Engine.FuzzyMatch.Fold).ToArray());
+            if (!Engine.FuzzyMatch.Tokens(TitleContains).All(token => folded.Contains(token, StringComparison.Ordinal))) return false;
+        }
+        return true;
+    }
+
+    /// <summary>The moment it fires for a cita.</summary>
+    public DateTimeOffset MomentOf(global::KDesktop.Core.Calendar.CalendarOccurrence o) => Moment switch
+    {
+        CalendarMoment.Start => o.Start,
+        CalendarMoment.End => o.End > o.Start ? o.End : o.Start,
+        _ => o.Start - TimeSpan.FromMinutes(Math.Max(0, Minutes)),
+    };
 }

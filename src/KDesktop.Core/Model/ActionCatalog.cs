@@ -55,6 +55,9 @@ public static class ActionCatalog
         new(ActionKind.Radio, "network", "Wifi124", () => new RadioAction()),
         new(ActionKind.SendToPhone, "network", "Phone24", () => new SendToPhoneAction()),
 
+        new(ActionKind.CalendarAdd, "calendar", "CalendarAdd24", () => new CalendarAddAction()),
+        new(ActionKind.CalendarJoin, "calendar", "Video24", () => new CalendarJoinAction()),
+
         new(ActionKind.Files, "system", "DocumentCopy24", () => new FilesAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),
         new(ActionKind.PowerPlan, "system", "Battery1024", () => new PowerPlanAction()),

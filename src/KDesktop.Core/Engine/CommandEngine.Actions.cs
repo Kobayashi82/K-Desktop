@@ -25,6 +25,8 @@ public sealed partial class CommandEngine
         ToggleDisabledInAction a => Run(() => ToggleDisabledIn(a, ctx)),
         ShowMessageAction a => ShowMessageAsync(a, ctx),
         ShowNotificationAction a => ShowNotificationAsync(a, ctx),
+        CalendarAddAction a => CalendarAddAsync(a, ctx),
+        CalendarJoinAction a => CalendarJoinAsync(a),
         FilesAction a => FilesAsync(a, ctx),
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),

@@ -27,6 +27,18 @@ public sealed record AssistantChoice(string Id, string Name, System.Windows.Medi
     public override string ToString() => Name;
 }
 
+/// <summary>A value with a name already worked out (calendars, reminders).</summary>
+public sealed record NamedChoice<T>(T Value, string Name)
+{
+    public override string ToString() => Name;
+}
+
+/// <summary>A calendar in the editor of «Cita del calendario» (empty value: any).</summary>
+public sealed record CalendarChoice(string Value, string Name)
+{
+    public override string ToString() => Name;
+}
+
 /// <summary>Item sources for the editors (all display names are translated).</summary>
 public static class Lookups
 {
@@ -64,6 +76,25 @@ public static class Lookups
     public static IReadOnlyList<Option<VariableTest>> VariableTests { get; } = Enum<VariableTest>("enum.variableTest");
     public static IReadOnlyList<Option<FileChange>> FileChanges { get; } = Enum<FileChange>("enum.fileChange");
     public static IReadOnlyList<Option<SunEvent>> SunEvents { get; } = Enum<SunEvent>("enum.sunEvent");
+    public static IReadOnlyList<Option<CalendarMoment>> CalendarMoments { get; } = Enum<CalendarMoment>("enum.calendarMoment");
+    public static IReadOnlyList<Option<CalendarWhen>> CalendarWhens { get; } = Enum<CalendarWhen>("enum.calendarWhen");
+    public static IReadOnlyList<Option<CalendarJoinWhich>> CalendarJoinWhichs { get; } = Enum<CalendarJoinWhich>("enum.calendarJoin");
+
+    /// <summary>«Calendario por defecto» and the calendars citas can be added to.</summary>
+    public static IReadOnlyList<CalendarChoice> WritableCalendars =>
+        [new(string.Empty, Loc.T("event.calendarDefault")), .. App.Current.Calendar.Calendars
+            .Where(c => !c.ReadOnly && App.Current.Calendar.Source(c.SourceId)?.Capabilities.HasFlag(Core.Calendar.CalendarCapabilities.Write) == true)
+            .Select(c => new CalendarChoice(c.SourceId + "/" + c.Id, c.Name))];
+
+    private static readonly int[] ReminderMinutes = [5, 10, 15, 30, 60, 1440];
+
+    /// <summary>Reminder choices of «Crear cita» (-1: none).</summary>
+    public static IReadOnlyList<NamedChoice<int>> ReminderChoices =>
+        [new(-1, Loc.T("agenda.reminder.none")), new(0, Loc.T("agenda.reminder.atStart")), .. ReminderMinutes.Select(m => new NamedChoice<int>(m, Loc.T("agenda.reminder.before", CalendarText.Minutes(m))))];
+
+    /// <summary>«Cualquier calendario» and every calendar (read when the editor opens: accounts and subscriptions change).</summary>
+    public static IReadOnlyList<CalendarChoice> CalendarChoices =>
+        [new(string.Empty, Loc.T("event.calendarAny")), .. App.Current.Calendar.Calendars.Select(c => new CalendarChoice(c.SourceId + "/" + c.Id, c.Name))];
     public static IReadOnlyList<Option<DisplayEvent>> DisplayEvents { get; } = Enum<DisplayEvent>("enum.displayEvent");
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
     public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");

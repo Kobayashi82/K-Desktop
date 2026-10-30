@@ -276,6 +276,46 @@
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.battery}" />
                 </StackPanel>
             </DataTemplate>
+            <DataTemplate DataType="{x:Type m:CalendarTrigger}">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
+                            <ComboBox Width="220" ItemsSource="{x:Static v:Lookups.CalendarMoments}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Moment}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Moment}" Value="Before">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.calendarMinutes}" />
+                            <ui:TextBox Width="110" Text="{Binding Minutes, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="10080"
+                                        AutomationProperties.Name="{l:Tr event.calendarMinutes}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,8" MinWidth="240">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.calendarWhich}" />
+                            <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CalendarChoices}}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Calendar}" AutomationProperties.Name="{l:Tr event.calendarWhich}" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.calendarTitle}" />
+                    <ui:TextBox Width="360" HorizontalAlignment="Left" Text="{Binding TitleContains, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="{l:Tr event.calendarTitleHint}" Icon="{ui:SymbolIcon TextT24}" AutomationProperties.Name="{l:Tr event.calendarTitle}" />
+                    <WrapPanel Margin="0,8,0,4">
+                        <CheckBox Content="{l:Tr event.calendarOnline}" IsChecked="{Binding OnlyOnline}" Margin="0,0,16,4" />
+                        <CheckBox Content="{l:Tr event.calendarPlace}" IsChecked="{Binding OnlyWithPlace}" Margin="0,0,16,4" />
+                        <CheckBox Content="{l:Tr event.calendarAllDay}" IsChecked="{Binding IncludeAllDay}" Margin="0,0,0,4" />
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.calendar}" />
+                </StackPanel>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type m:SunTrigger}">
                 <StackPanel>
                     <WrapPanel>

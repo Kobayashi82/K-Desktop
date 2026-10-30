@@ -1228,6 +1228,85 @@
     </DataTemplate>
 
     <!-- ── Despertar equipo ────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:CalendarAddAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr agenda.field.title}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.calendarTitleHint}" v:VariableHints.IsEnabled="True" />
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.calendarWhen}" />
+                    <ComboBox Width="170" ItemsSource="{x:Static v:Lookups.CalendarWhens}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding When}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,12">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding When}" Value="In"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.calendarInMinutes}" />
+                    <v:NumberField Width="150" Minimum="0" Maximum="525600" Value="{Binding InMinutes}" AutomationProperties.Name="{l:Tr editor.calendarInMinutes}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,16,12">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding When}" Value="At"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.calendarDay}" />
+                        <v:DateField Date="{Binding DateValue}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.calendarTime}" />
+                        <v:TimeField Time="{Binding Time}" />
+                    </StackPanel>
+                    <CheckBox VerticalAlignment="Bottom" Margin="0,0,0,6" Content="{l:Tr agenda.field.allDay}" IsChecked="{Binding AllDay}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,12">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.calendarDuration}" />
+                    <v:NumberField Width="150" Minimum="0" Maximum="10080" Value="{Binding DurationMinutes}" AutomationProperties.Name="{l:Tr editor.calendarDuration}" />
+                </StackPanel>
+            </WrapPanel>
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="220">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr agenda.field.calendar}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.WritableCalendars}}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Calendar}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="200">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr agenda.field.reminder}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.ReminderChoices}}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Reminder}" />
+                </StackPanel>
+            </WrapPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr agenda.field.location}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr agenda.field.notes}" />
+            <ui:TextBox Margin="0,0,0,8" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.calendarAddHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type m:CalendarJoinAction}">
+        <StackPanel>
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.calendarJoinWhich}" />
+                    <ComboBox Width="260" ItemsSource="{x:Static v:Lookups.CalendarJoinWhichs}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Which}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="220">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr agenda.field.calendar}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CalendarChoices}}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Calendar}" />
+                </StackPanel>
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.calendarJoinHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type m:WakeOnLanAction}">
         <StackPanel>
             <!-- Boxes as wide as what goes in them: an address up to 255.255.255.255, a MAC; they wrap on a narrow window -->

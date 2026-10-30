@@ -140,6 +140,7 @@ public sealed partial class EventService : IDisposable
             ConfigureLoad();
             ConfigureBattery();
             ConfigureDisplays();
+            ConfigureCalendar();
             ConfigureWatcher();
             _initial = false;
         }
@@ -162,6 +163,7 @@ public sealed partial class EventService : IDisposable
         _loadState.Remove(id);
         _batteryActive.Remove(id);
         _displays.Remove(id);
+        _calendarStarted.Remove(id);
         _guard.Reset(id);
     }
 
@@ -1227,6 +1229,7 @@ public sealed partial class EventService : IDisposable
             _load?.Dispose();
             _batteryTimer?.Dispose();
             _displayTimer?.Dispose();
+            _calendarTimer?.Dispose();
             foreach (var w in _fileWatchers.Values) w.Dispose();
             _networkTimer?.Dispose();
             if (_networkWatching) System.Net.NetworkInformation.NetworkChange.NetworkAddressChanged -= OnNetworkChanged;

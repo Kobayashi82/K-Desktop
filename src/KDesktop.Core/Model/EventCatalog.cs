@@ -39,6 +39,7 @@ public static class EventCatalog
         new(EventKind.Battery, "BatteryWarning24", "lime", () => new BatteryTrigger()),
         new(EventKind.Sun, "WeatherSunnyLow24", "gold", () => new SunTrigger()),
         new(EventKind.Display, "DesktopArrowRight24", "sky", () => new DisplayTrigger()),
+        new(EventKind.Calendar, "CalendarClock24", "blue", () => new CalendarTrigger()),
         new(EventKind.RemoteCall, "PlugConnected24", "pink", () => new RemoteCallTrigger()),
     ];
 

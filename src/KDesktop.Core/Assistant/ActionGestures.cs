@@ -88,7 +88,7 @@ public static class ActionGestures
         ActionKind.Magnifier => [new(GestureKind.PointAt, Place: GesturePlace.Point)],
 
         ActionKind.Power => Say("power"),
-        ActionKind.Wait => Say("clock"),
+        ActionKind.Wait or ActionKind.CalendarAdd or ActionKind.CalendarJoin => Say("clock"),
         ActionKind.RunScript => Say("script"),
         ActionKind.HttpRequest => Say("web"),
         ActionKind.WakeOnLan => Say("network"),
