@@ -39,6 +39,9 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         [QuickRuleKind.Weather] = "weather",
         [QuickRuleKind.WeatherTomorrow] = "weather",
         [QuickRuleKind.WeatherWeek] = "weather",
+        [QuickRuleKind.AgendaToday] = "calendar_list",
+        [QuickRuleKind.AgendaTomorrow] = "calendar_list",
+        [QuickRuleKind.AgendaWeek] = "calendar_list",
     };
 
     /// <param name="progress">Each order when it is done (any thread).</param>

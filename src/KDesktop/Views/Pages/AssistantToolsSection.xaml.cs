@@ -332,6 +332,7 @@ public partial class AssistantToolsSection : UserControl
     {
         ["run_command"] = "commands", ["find_command"] = "commands", ["describe_command"] = "commands", ["diagnose_command"] = "commands", ["query_log"] = "commands", ["usage_stats"] = "commands", ["add_voice_phrase"] = "commands", ["run_event"] = "commands", ["create_event"] = "commands", ["stop_countdown"] = "commands",
         ["get_time"] = "time", ["set_timer"] = "time", ["cancel_timer"] = "time", ["schedule"] = "time", ["list_scheduled"] = "time", ["cancel_scheduled"] = "time", ["notify_when"] = "time", ["stop_watching"] = "time", ["date_math"] = "time", ["calculate"] = "time",
+        ["calendar_list"] = "calendar", ["calendar_add"] = "calendar", ["calendar_change"] = "calendar", ["calendar_delete"] = "calendar",
         ["save_note"] = "notes", ["find_notes"] = "notes", ["edit_note"] = "notes", ["delete_note"] = "notes", ["remember"] = "notes", ["forget"] = "notes",
         ["find_files"] = "files", ["open_file"] = "files", ["read_file"] = "files", ["transcribe_audio"] = "files", ["delete_file"] = "files", ["move_file"] = "files", ["write_file"] = "files", ["copy_file"] = "files", ["create_folder"] = "files", ["zip_files"] = "files", ["unzip"] = "files", ["search_knowledge"] = "files",
         ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web", ["network_check"] = "web", ["send_to_phone"] = "web",
@@ -357,6 +358,7 @@ public partial class AssistantToolsSection : UserControl
         "pc" => SymbolRegular.Desktop24,
         "media" => SymbolRegular.MusicNote224,
         "weather" => SymbolRegular.WeatherPartlyCloudyDay24,
+        "calendar" => SymbolRegular.CalendarLtr24,
         _ => SymbolRegular.Toolbox24,
     };
 

@@ -54,6 +54,9 @@ public partial class App
             case ScheduleMessage schedule:
                 OnSchedule(supervisor, schedule);
                 return true;
+            case CalendarMessage calendar:
+                OnCalendar(supervisor, calendar);
+                return true;
             case MakeEventMessage makeEvent:
                 OnMakeEvent(supervisor, makeEvent);
                 return true;

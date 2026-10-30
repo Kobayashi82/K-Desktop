@@ -1,0 +1,16 @@
+{
+  "t": "calendar",
+  "id": "c-51",
+  "request": {
+    "op": "change",
+    "text": "dentista",
+    "from": "2026-11-06",
+    "scope": "this",
+    "cita": {
+      "start": "2026-11-06 18:00",
+      "minutes": 30,
+      "reminder": 10
+    }
+  },
+  "assistant": "kobii"
+}

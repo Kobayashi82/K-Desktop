@@ -73,6 +73,25 @@ public partial class App
         Ui.ShowOsd(text, OsdKind.Info, TimeSpan.FromSeconds(10), OsdLook.Of("CalendarClock24"));
     }
 
+    /// <summary>An assistant's request to the calendar (calendar_*), answered off the UI thread: a server may be slow.</summary>
+    private void OnCalendar(Core.Assistant.AssistantSupervisor supervisor, Core.Assistant.Pipe.CalendarMessage request) =>
+        _ = Task.Run(async () =>
+        {
+            CalendarAnswer answer;
+            try
+            {
+                answer = await CalendarAssistant.HandleAsync(Calendar, request.Request, DateTime.Now).ConfigureAwait(false);
+                if (answer.Ok && request.Request.Op is "add" or "change" or "delete")
+                    Log.Info($"Asistente: calendario «{request.Request.Op}» ({request.Assistant ?? "módulo"})");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Asistente: error en el calendario", ex);
+                answer = new CalendarAnswer(false, Reason: "error", Message: ex.Message);
+            }
+            supervisor.Send(new Core.Assistant.Pipe.CalendarDoneMessage(request.Id, answer));
+        });
+
     /// <summary>Opens the link of an online meeting (Teams, Meet, Zoom) in its program or the browser.</summary>
     public static void OpenMeeting(string url)
     {

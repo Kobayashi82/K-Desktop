@@ -1,0 +1,18 @@
+{
+  "t": "calendarDone",
+  "id": "c-51",
+  "answer": {
+    "ok": true,
+    "item": {
+      "key": "local/3f2c9a@k-desktop",
+      "title": "Dentista",
+      "start": "2026-11-06 18:00",
+      "end": "2026-11-06 18:30",
+      "allDay": false,
+      "calendar": "Personal",
+      "repeats": false,
+      "location": "Consulta 3"
+    },
+    "undo": "{\"before\":[]}"
+  }
+}

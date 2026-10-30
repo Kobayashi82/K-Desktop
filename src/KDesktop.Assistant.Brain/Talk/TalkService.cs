@@ -528,7 +528,8 @@ public sealed class TalkService
         // «A las siete vacía la papelera», «mañana a las 9 mira el tiempo y mándamelo»: for later. The user's commands and the
         // rules about programs would do it now: the AI programs it (schedule), with the commands it names at hand.
         if (ScheduledOrder.Current is null && rule is null or { Kind: QuickRuleKind.Act or QuickRuleKind.OpenApp or QuickRuleKind.OpenWeb
-                or QuickRuleKind.Weather or QuickRuleKind.WeatherTomorrow or QuickRuleKind.WeatherWeek or QuickRuleKind.WhatsPlaying }
+                or QuickRuleKind.Weather or QuickRuleKind.WeatherTomorrow or QuickRuleKind.WeatherWeek or QuickRuleKind.WhatsPlaying
+                or QuickRuleKind.AgendaToday or QuickRuleKind.AgendaTomorrow or QuickRuleKind.AgendaWeek }
             && _tools.Registry.Find(ScheduleTool) is not null && QuickRules.IsForLater(said, [persona.Name]))
         {
             Log.Info($"Asistente: «{said}» es para más tarde: a la IA, para programarlo");
@@ -593,6 +594,10 @@ public sealed class TalkService
                 return await ToolAsync(persona, "whats_playing", new JsonObject(), context, said, acknowledge: false, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Weather or QuickRuleKind.WeatherTomorrow or QuickRuleKind.WeatherWeek } weather:
                 return await ToolAsync(persona, "weather", WeatherArguments(weather), context, said, acknowledge: false, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.AgendaToday or QuickRuleKind.AgendaTomorrow or QuickRuleKind.AgendaWeek } agenda when _tools.Registry.Find("calendar_list") is not null:
+                // «¿Qué tengo mañana?»: the agenda read and said without the AI (calendar, phase 4.3).
+                var range = agenda.Kind switch { QuickRuleKind.AgendaTomorrow => "tomorrow", QuickRuleKind.AgendaWeek => "this_week", _ => "today" };
+                return await ToolAsync(persona, "calendar_list", new JsonObject { ["range"] = range }, context, said, acknowledge: false, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Dictate }:
                 return new TalkAnswer(Phrase(persona, "dictating"), Remember: false) { Dictates = true };
             case { Kind: QuickRuleKind.ThinkHard } think:
