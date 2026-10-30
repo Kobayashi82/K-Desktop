@@ -1290,8 +1290,10 @@ public sealed record MediaMessage(string Order, int? Value = null, string? Run =
 /// <param name="Profile">The test said with this profile (the schema's JSON; one being edited, stage 9.4); null: the speaker's.</param>
 /// <param name="Engine">The test said by this engine (<c>kokoro</c>, <c>piper</c>, <c>windows</c>) with the general voices and
 /// language, plain, by nobody (Options → Voz → Voces, 5.0.280); null: as the speaker speaks.</param>
+/// <param name="Turn"><c>render</c> (telegram, phase 5.2): <paramref name="Text"/> in <paramref name="Assistant"/>'s voice, sent back
+/// as <see cref="SpeechAudioMessage"/> and <see cref="SpeechEndMessage"/> with this turn, without sounding (a voice note).</param>
 public sealed record VoiceMessage(string Op, string? Text = null, string? Assistant = null, string? Mood = null, System.Text.Json.Nodes.JsonObject? Profile = null,
-    string? Engine = null) : PipeMessage
+    string? Engine = null, string? Turn = null) : PipeMessage
 {
     public override string Type => "voice";
 }

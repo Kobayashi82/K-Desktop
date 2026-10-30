@@ -169,6 +169,9 @@ public sealed class TelegramContact
     /// <summary>Who answers them (an assistant's id); null: the one of «Quién contesta» for everybody.</summary>
     public string? Assistant { get; set; }
 
+    /// <summary>How the assistant answers them (phase 5.2); null: as for everybody.</summary>
+    public TelegramAnswerKind? Answer { get; set; }
+
     public DateTimeOffset Added { get; set; }
 
     /// <summary>The last time they wrote (null: never; then writing to them counts in the hourly limit).</summary>
@@ -252,6 +255,22 @@ public sealed class TelegramSettings
 
     /// <summary>Under an answer, what it did («✓ Abrió Spotify»).</summary>
     public bool ShowDid { get; set; } = true;
+
+    /// <summary>How the assistant answers (phase 5.2), unless a contact has their own.</summary>
+    public TelegramAnswerKind Answer { get; set; } = TelegramAnswerKind.Same;
+
+    /// <summary>A voice note is answered first with what was understood of it («🎤 …»).</summary>
+    public bool ShowHeard { get; set; } = true;
+}
+
+/// <summary>How the assistant answers by Telegram (phase 5.2): as it was written to, in text, with its voice or both.</summary>
+public enum TelegramAnswerKind
+{
+    /// <summary>A voice note is answered with voice, a text with text.</summary>
+    Same,
+    Text,
+    Voice,
+    Both,
 }
 
 /// <summary>How the connection is now.</summary>

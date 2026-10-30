@@ -263,10 +263,13 @@ public sealed class TelegramService : IDisposable
         }
     }
 
-    /// <summary>«Escribiendo…» in a chat (it lasts about 5 s, or until the bot writes).</summary>
-    public void Typing(long chat)
+    /// <summary>
+    /// «Escribiendo…» in a chat (it lasts about 5 s, or until the bot writes); with <paramref name="voice"/>, «Grabando un
+    /// audio…».
+    /// </summary>
+    public void Typing(long chat, bool voice = false)
     {
-        if (_connection is { } connection) _ = Quiet(() => connection.SendChatActionAsync(chat, "typing", _life.Token));
+        if (_connection is { } connection) _ = Quiet(() => connection.SendChatActionAsync(chat, voice ? "record_voice" : "typing", _life.Token));
     }
 
     // ── what was said lately (telegram_read) ─────────────────────────────

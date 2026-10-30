@@ -75,6 +75,27 @@ public sealed class RemoteTurnTests : IDisposable
     }
 
     [Fact]
+    public async Task WhatTheyGaveMayBeLookedAtEvenOnlyTalking()
+    {
+        // Phase 5.3: the photo someone who may only talk sent is read (vision); nothing else of the PC is.
+        var registry = new ToolRegistry();
+        registry.Add(new Fake(ToolRunner.ReadGivenTool, ToolRisk.Safe, readsOnly: true));
+        var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), _ => { }, Path.Combine(_folder, "undo.json"), () => AskPolicy.Never);
+        var photo = Path.Combine(_folder, "foto.jpg");
+        async Task<bool> Reads(string? path, IReadOnlyList<string> given)
+        {
+            using var _ = TurnOrigin.Enter(Origin(scope: HeardOrigin.ScopeNone));
+            var arguments = JsonDocument.Parse(path is null ? "{}" : JsonSerializer.Serialize(new { path })).RootElement;
+            return (await runner.RunAsync(ToolRunner.ReadGivenTool, arguments, new ToolContext("lander", "x") { Files = given }, "x", "ai", default)).Ran;
+        }
+        Assert.True(await Reads(photo, [photo]));
+        Assert.True(await Reads(null, [photo]));
+        Assert.True(await Reads("foto.jpg", [photo]));
+        Assert.False(await Reads(@"C:\Users\secreto.txt", [photo]));
+        Assert.False(await Reads(photo, []));
+    }
+
+    [Fact]
     public async Task SomeoneElsesOrderAsksTheOwnerForWhatIsNotSafe()
     {
         // The user never asks and trusts change_it: for them nothing asks; for Ana (even «Como tú») it does, with the turn's key.

@@ -5,6 +5,7 @@ using Concentus.Enums;
 using KDesktop.Core.Model;
 using NAudio.MediaFoundation;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace KDesktop.Core.Platform;
 
@@ -73,18 +74,83 @@ public static class AudioEncoders
         if (reader.WaveFormat.Encoding != WaveFormatEncoding.Pcm || reader.WaveFormat.BitsPerSample != 16 || reader.WaveFormat.SampleRate != 48000)
             throw new NotSupportedException(reader.WaveFormat.ToString());
         var channels = reader.WaveFormat.Channels;
-        var encoder = OpusCodecFactory.CreateEncoder(48000, channels, OpusApplication.OPUS_APPLICATION_AUDIO);
-        encoder.Bitrate = OpusBitrate;
+        var bytes = new byte[Frame * channels * 2];
+        using var file = File.Create(output);
+        WriteOpus(file, channels, OpusBitrate, OpusApplication.OPUS_APPLICATION_AUDIO, pcm =>
+        {
+            var read = Math.Max(0, reader.Read(bytes, 0, bytes.Length));
+            var frames = read / (2 * channels);
+            for (var i = 0; i < frames * channels; i++) pcm[i] = BinaryPrimitives.ReadInt16LittleEndian(bytes.AsSpan(i * 2));
+            return frames;
+        });
+    }
+
+    /// <summary>A voice note's bitrate: speech, mono.</summary>
+    private const int VoiceBitrate = 32_000;
+
+    /// <summary>
+    /// A voice note (telegram, phase 5.2): mono pieces of speech, each at its rate, one after another as Opus in Ogg at
+    /// 48 kHz (what Telegram plays as a voice note and draws its wave of). Returns how long it lasts.
+    /// </summary>
+    public static TimeSpan VoiceNote(IEnumerable<(float[] Samples, int Rate)> pieces, Stream output)
+    {
+        var all = new List<float>();
+        var buffer = new float[4800];
+        foreach (var (samples, rate) in pieces)
+        {
+            if (samples.Length == 0 || rate <= 0) continue;
+            if (rate == 48000)
+            {
+                all.AddRange(samples);
+                continue;
+            }
+            var resampled = new WdlResamplingSampleProvider(new FloatSamples(samples, rate), 48000);
+            int read;
+            while ((read = resampled.Read(buffer)) > 0) all.AddRange(buffer.AsSpan(0, read));
+        }
+        var at = 0;
+        var written = WriteOpus(output, 1, VoiceBitrate, OpusApplication.OPUS_APPLICATION_VOIP, pcm =>
+        {
+            var frames = Math.Min(Frame, all.Count - at);
+            for (var i = 0; i < frames; i++) pcm[i] = (short)Math.Round(Math.Clamp(all[at + i], -1f, 1f) * short.MaxValue);
+            at += frames;
+            return frames;
+        });
+        return TimeSpan.FromSeconds(written / 48000d);
+    }
+
+    /// <summary>Samples in memory as NAudio reads them (to resample them).</summary>
+    private sealed class FloatSamples(float[] samples, int rate) : ISampleProvider
+    {
+        private int _at;
+
+        public WaveFormat WaveFormat { get; } = WaveFormat.CreateIeeeFloatWaveFormat(rate, 1);
+
+        public int Read(Span<float> buffer)
+        {
+            var n = Math.Min(buffer.Length, samples.Length - _at);
+            samples.AsSpan(_at, n).CopyTo(buffer);
+            _at += n;
+            return n;
+        }
+    }
+
+    /// <summary>
+    /// Opus in Ogg (RFC 7845) at 48 kHz: <paramref name="fill"/> gives each 20 ms frame (how many samples per channel it
+    /// put; fewer than a frame, the end). Returns the samples per channel written.
+    /// </summary>
+    private static long WriteOpus(Stream output, int channels, int bitrate, OpusApplication application, Func<short[], int> fill)
+    {
+        var encoder = OpusCodecFactory.CreateEncoder(48000, channels, application);
+        encoder.Bitrate = bitrate;
         // 6 of 10: about twice as fast as the most, and sounds the same at this bitrate.
         encoder.Complexity = 6;
         var preSkip = encoder.Lookahead;
 
-        using var file = File.Create(output);
-        var ogg = new OggWriter(file);
+        var ogg = new OggWriter(output);
         ogg.Packet(Head(channels, preSkip), 0, last: false, flush: true);
         ogg.Packet(Tags(), 0, last: false, flush: true);
 
-        var bytes = new byte[Frame * channels * 2];
         var pcm = new short[Frame * channels];
         var packet = new byte[4000];
         long packets = 0, samples = 0;
@@ -93,10 +159,8 @@ public static class AudioEncoders
         do
         {
             // After the end, silence: the encoder runs pre-skip samples behind, and an Ogg Opus file needs a packet.
-            var read = ended ? 0 : Math.Max(0, reader.Read(bytes, 0, bytes.Length));
-            ended = read == 0 || reader.Position >= reader.Length;
-            var frames = read / (2 * channels);
-            for (var i = 0; i < frames * channels; i++) pcm[i] = BinaryPrimitives.ReadInt16LittleEndian(bytes.AsSpan(i * 2));
+            var frames = ended ? 0 : Math.Clamp(fill(pcm), 0, Frame);
+            ended = frames < Frame;
             Array.Clear(pcm, frames * channels, pcm.Length - frames * channels);
             var length = encoder.Encode(pcm, Frame, packet, packet.Length);
             packets++;
@@ -106,6 +170,7 @@ public static class AudioEncoders
             ogg.Packet(packet.AsSpan(0, length), last ? preSkip + samples : packets * Frame, last, flush: last);
         }
         while (!last);
+        return samples;
     }
 
     private static byte[] Head(int channels, int preSkip)

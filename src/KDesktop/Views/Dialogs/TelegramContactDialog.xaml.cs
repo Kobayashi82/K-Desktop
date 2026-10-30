@@ -21,6 +21,7 @@ public partial class TelegramContactDialog : FluentWindow
     private readonly TextBlock _levelHint;
     private readonly CheckBox _mayWrite;
     private readonly ComboBox _assistant;
+    private readonly ComboBox _answer;
     private readonly StackPanel _assistantPanel = new();
     private readonly StackPanel _commandsPanel = new();
     private readonly StackPanel _toolsPanel = new();
@@ -58,6 +59,17 @@ public partial class TelegramContactDialog : FluentWindow
         };
         _assistantPanel.Children.Add(_assistant);
         _assistantPanel.Children.Add(CalendarUi.Caption(Loc.T("telegram.contact.assistantHint"), new Thickness(0, 4, 0, 12)));
+        // How: text, voice or both (telegram, phase 5.2); empty, as to everybody.
+        _assistantPanel.Children.Add(CalendarUi.Label(Loc.T("telegram.contact.answer")));
+        _answer = new ComboBox
+        {
+            DisplayMemberPath = "Name", SelectedValuePath = "Value", HorizontalAlignment = HorizontalAlignment.Stretch,
+            ItemsSource = (List<NamedChoice<string>>)[new(string.Empty, Loc.T("telegram.contact.answerDefault")),
+                .. AccountsSection.TelegramAnswerChoices().Select(k => new NamedChoice<string>(k.Value.ToString(), k.Name))],
+            SelectedValue = c.Answer?.ToString() ?? string.Empty,
+        };
+        _assistantPanel.Children.Add(_answer);
+        _assistantPanel.Children.Add(CalendarUi.Caption(Loc.T("telegram.talk.answerHint"), new Thickness(0, 4, 0, 12)));
         Form.Children.Add(_assistantPanel);
 
         // The commands, by name (kept by id: renaming one does not lose it).
@@ -120,6 +132,7 @@ public partial class TelegramContactDialog : FluentWindow
         var level = Level;
         var mayWrite = _mayWrite.IsChecked == true;
         var assistant = _assistant.SelectedValue is string { Length: > 0 } id ? id : null;
+        TelegramAnswerKind? answer = Enum.TryParse<TelegramAnswerKind>(_answer.SelectedValue as string, out var kind) ? kind : null;
         List<string> commands = [.. _commands.Where(x => x.Box.IsChecked == true).Select(x => x.Id)];
         List<string> tools = [.. _tools.Where(x => x.Box.IsChecked == true).Select(x => x.Name), .. _unknownTools];
         Telegram.Update(s =>
@@ -130,6 +143,7 @@ public partial class TelegramContactDialog : FluentWindow
             contact.Commands = commands;
             contact.Tools = tools;
             contact.Assistant = assistant;
+            contact.Answer = answer;
         });
         DialogResult = true;
     }

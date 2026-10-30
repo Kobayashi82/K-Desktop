@@ -57,7 +57,8 @@ public partial class AccountsSection
 
     /// <summary>
     /// Talking to the assistant by Telegram (telegram, phase 4.4): who answers (the one on the screen, or one of them; each
-    /// contact may have their own) and whether what it did goes under the answer.
+    /// contact may have their own), how (text, its voice as a voice note or both; phase 5.2), whether a voice note is
+    /// answered first with what was understood, and whether what it did goes under the answer.
     /// </summary>
     private void BuildTalk()
     {
@@ -73,11 +74,30 @@ public partial class AccountsSection
             if (who.SelectedValue is string id) Telegram.Update(s => s.Assistant = id.Length == 0 ? null : id);
         };
         card.Children.Add(CalendarUi.Row(Loc.T("telegram.talk.who"), Loc.T("telegram.talk.whoHint"), who, 240));
+        // Text, its voice as a voice note, or both (telegram, phase 5.2).
+        var answer = new ComboBox
+        {
+            DisplayMemberPath = "Name", SelectedValuePath = "Value",
+            ItemsSource = TelegramAnswerChoices(),
+            SelectedValue = Telegram.Settings.Answer,
+        };
+        answer.SelectionChanged += (_, _) =>
+        {
+            if (answer.SelectedValue is TelegramAnswerKind kind) Telegram.Update(s => s.Answer = kind);
+        };
+        card.Children.Add(CalendarUi.Row(Loc.T("telegram.talk.answer"), Loc.T("telegram.talk.answerHint"), answer, 240));
+        var heard = new ToggleSwitch { IsChecked = Telegram.Settings.ShowHeard };
+        heard.Click += (_, _) => Telegram.Update(s => s.ShowHeard = heard.IsChecked == true);
+        card.Children.Add(CalendarUi.Row(Loc.T("telegram.talk.heard"), Loc.T("telegram.talk.heardHint"), heard, 0));
         var did = new ToggleSwitch { IsChecked = Telegram.Settings.ShowDid };
         did.Click += (_, _) => Telegram.Update(s => s.ShowDid = did.IsChecked == true);
         card.Children.Add(CalendarUi.Row(Loc.T("telegram.talk.did"), Loc.T("telegram.talk.didHint"), did, 0));
         if (App.Current.Assistant is null) card.Children.Add(CalendarUi.Status(Loc.T("telegram.talk.moduleOff"), "Kd.Warning"));
     }
+
+    /// <summary>How the assistant may answer by Telegram (as it was written to, text, voice, both).</summary>
+    internal static IReadOnlyList<NamedChoice<TelegramAnswerKind>> TelegramAnswerChoices() =>
+        [.. Enum.GetValues<TelegramAnswerKind>().Select(k => new NamedChoice<TelegramAnswerKind>(k, Loc.T("telegram.answer." + k)))];
 
     /// <summary>The assistants that may answer by Telegram, after a first choice with an empty id.</summary>
     internal static IReadOnlyList<AssistantChoice> TelegramAssistantChoices(string first) =>

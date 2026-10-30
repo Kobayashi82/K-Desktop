@@ -147,6 +147,13 @@ public sealed class ToolRunner
         }
     }
 
+    /// <summary>The tool that reads what was given (telegram, phase 5.3): even someone who may only talk may have it look at what they sent.</summary>
+    public const string ReadGivenTool = "read_file";
+
+    /// <summary>read_file on one of the files given in this turn (the photo that person sent), not on anything else of the PC.</summary>
+    private static bool ReadsGiven(string name, JsonElement arguments, ToolContext context) =>
+        name == ReadGivenTool && Builtin.GivenFiles.Resolve(arguments, context) is { } path && context.Files.Contains(path, StringComparer.OrdinalIgnoreCase);
+
     private async Task<ToolOutcome> RunCoreAsync(ITool tool, string intent, string? fingerprint, bool unseen, bool shared, JsonElement arguments, ToolContext context,
         string heard, string route, CancellationToken cancellationToken)
     {
@@ -154,7 +161,7 @@ public sealed class ToolRunner
         var risk = _registry.RiskOf(tool, arguments);
         // An order from another channel (telegram, phase 4.2): only what that person may use runs (the rest was not even offered).
         var origin = shared ? null : TurnOrigin.Current;
-        if (origin is not null && !origin.Allows(name, tool.ReadsOnly))
+        if (origin is not null && !origin.Allows(name, tool.ReadsOnly) && !ReadsGiven(name, arguments, context))
         {
             Log.Info($"Asistente: {name} no está permitida a {origin.Who} ({origin.Channel}): no se ejecuta");
             return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.notAllowedRemote", intent), ok: false));

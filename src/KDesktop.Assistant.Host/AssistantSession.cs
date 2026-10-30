@@ -167,6 +167,9 @@ internal sealed class AssistantSession : IDisposable
                     case VoiceMessage { Op: "stop" } when Voice is { } voice:
                         voice.StopTest();
                         return;
+                    case VoiceMessage { Op: "render", Turn: { Length: > 0 } turn } render when Voice is { } voice:
+                        voice.Render(turn, render.Assistant, render.Text ?? string.Empty);
+                        return;
                     case ConfigMessage { Section: "tools" } config when Tools is { } tools:
                         tools.Configure(config.Value as JsonObject);
                         return;

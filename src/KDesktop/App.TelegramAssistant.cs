@@ -69,20 +69,8 @@ public partial class App
             return;
         }
 
-        // «Escribiendo…» lasts about 5 s: again every 4 while it thinks.
         using var typing = new CancellationTokenSource();
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                while (!typing.IsCancellationRequested)
-                {
-                    Telegram.Typing(m.ChatId);
-                    await Task.Delay(TimeSpan.FromSeconds(4), typing.Token).ConfigureAwait(false);
-                }
-            }
-            catch (OperationCanceledException) { }
-        });
+        KeepTyping(m.ChatId, false, typing.Token);
         RepliedMessage? answer;
         try
         {
@@ -109,7 +97,12 @@ public partial class App
         var whole = answer.Written is { Length: > 0 } written ? written : answer.Text;
         string lines;
         lock (did) lines = Telegram.Settings.ShowDid ? TelegramTalk.DidLines(did) : string.Empty;
-        Telegram.Post(m.ChatId, lines.Length > 0 ? whole + "\n\n" + lines : whole);
+        // With its voice (phase 5.2): what it says, as a voice note; the whole text of a long answer goes written too.
+        var (asText, asVoice) = TelegramVoice.AnswerWith(Telegram.Settings, m.From.Id, m.Content == TelegramContent.Voice);
+        var note = asVoice && answer.Text.Trim().Length > 0 ? await VoiceForTelegramAsync(id!, answer.Text, m.ChatId) : null;
+        var withText = note is null || asText || answer.Written is { Length: > 0 };
+        if (withText) Telegram.Post(m.ChatId, lines.Length > 0 ? whole + "\n\n" + lines : whole);
+        if (note is not null) await Telegram.SendAsync(m.ChatId, withText ? string.Empty : lines, note, TelegramFileKind.Voice);
         Log.Info($"Telegram: respuesta de «{id}» ({whole.Length} letras{(did.Count > 0 ? $", {did.Count} acciones" : "")})");
 
         void Forget()
@@ -121,6 +114,72 @@ public partial class App
             });
             _telegramTurns.TryRemove(turn.Origin.Key, out _);
             _telegramLatest.TryRemove(new KeyValuePair<long, string>(m.ChatId, turn.Origin.Key));
+        }
+    }
+
+    /// <summary>«Escribiendo…» (or «Grabando un audio…») lasts about 5 s: again every 4 until <paramref name="stop"/>.</summary>
+    private void KeepTyping(long chat, bool voice, CancellationToken stop) =>
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                while (!stop.IsCancellationRequested)
+                {
+                    Telegram.Typing(chat, voice);
+                    await Task.Delay(TimeSpan.FromSeconds(4), stop).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) { }
+        }, CancellationToken.None);
+
+    /// <summary>How long the voice of an answer is waited for.</summary>
+    private static readonly TimeSpan TelegramVoiceTime = TimeSpan.FromMinutes(2);
+
+    /// <summary>The voice notes being made for Telegram, by their turn.</summary>
+    private readonly ConcurrentDictionary<string, TelegramVoice> _telegramVoices = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// <paramref name="text"/> as a voice note in the voice of <paramref name="id"/> (phase 5.2): asked to the assistants'
+    /// process (<c>voice</c> <c>render</c>), which sends it back as for the phone. Its path, or null (no voice, too slow).
+    /// </summary>
+    private async Task<string?> VoiceForTelegramAsync(string id, string text, long chat)
+    {
+        var turn = "telegram-" + Guid.NewGuid().ToString("N")[..12];
+        var voice = new TelegramVoice(TelegramCommands.CleanVoiceFolder(TelegramCommands.VoiceFolder()));
+        _telegramVoices[turn] = voice;
+        using var recording = new CancellationTokenSource();
+        try
+        {
+            if (!await Dispatcher.InvokeAsync(() => _assistant?.Send(new VoiceMessage("render", text, ProcessIdOf(id), Turn: turn)) == true)) return null;
+            KeepTyping(chat, true, recording.Token);
+            return await voice.File.WaitAsync(TelegramVoiceTime);
+        }
+        catch (TimeoutException)
+        {
+            Log.Warn("Telegram: la voz de la respuesta no llegó a tiempo: va escrita");
+            return null;
+        }
+        finally
+        {
+            await recording.CancelAsync();
+            _telegramVoices.TryRemove(turn, out _);
+        }
+    }
+
+    /// <summary>A piece of a voice note for Telegram (any thread); false: not one (it is for the phone).</summary>
+    private bool OnTelegramVoice(PipeMessage message)
+    {
+        switch (message)
+        {
+            case SpeechAudioMessage piece when _telegramVoices.TryGetValue(piece.Turn, out var voice):
+                try { voice.Add(piece.Index, piece.Rate, Convert.FromBase64String(piece.Pcm)); }
+                catch (FormatException) { /* a broken piece: left out */ }
+                return true;
+            case SpeechEndMessage end when _telegramVoices.TryRemove(end.Turn, out var voice):
+                voice.End(!end.Stopped);
+                return true;
+            default:
+                return false;
         }
     }
 

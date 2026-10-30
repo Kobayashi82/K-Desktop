@@ -277,6 +277,58 @@ internal sealed class ModuleVoice : IDisposable
         speaker?.Stop();
     }
 
+    /// <summary>
+    /// <c>voice</c> <c>render</c> (telegram, phase 5.2): <paramref name="text"/> in <paramref name="assistant"/>'s voice, as it
+    /// is set but without moods, back to K-Desktop as <see cref="SpeechAudioMessage"/> with <paramref name="turn"/> and then
+    /// <see cref="SpeechEndMessage"/> (<c>stopped</c> when there is no voice). Nothing sounds and nobody moves.
+    /// </summary>
+    public void Render(string turn, string? assistant, string text)
+    {
+        if (Send is not { } send) return;
+        var who = assistant ?? string.Empty;
+        _ = Task.Run(async () =>
+        {
+            var index = 0;
+            var ok = false;
+            try
+            {
+                var language = LanguageOf(who);
+                var settings = SettingsFor(who, []);
+                if (Speech.Resolve(language, settings) != SpeechEngineKind.Off)
+                {
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    foreach (var sentence in new SentenceSplitter().Finish(text, out _))
+                        await foreach (var chunk in Speech.StreamAsync(sentence, language, settings, CancellationToken.None).ConfigureAwait(false))
+                        {
+                            var piece = (int)(chunk.SampleRate * MaxPieceSeconds);
+                            for (var start = 0; start < chunk.Samples.Length; start += piece)
+                                send(new SpeechAudioMessage(turn, index++, chunk.SampleRate, Pcm16(chunk.Samples, start, Math.Min(piece, chunk.Samples.Length - start)), assistant));
+                        }
+                    ok = index > 0;
+                    Log.Info($"Asistente: voz de «{(who.Length > 0 ? who : "K-Desktop")}» para mandar ({index} trozos en {watch.ElapsedMilliseconds} ms)");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Asistente: no se ha podido hacer la voz para mandar", ex);
+            }
+            send(new SpeechEndMessage(turn, !ok, assistant));
+        });
+    }
+
+    /// <summary>Samples as 16-bit PCM in base64 (what <see cref="SpeechAudioMessage"/> carries).</summary>
+    private static string Pcm16(float[] samples, int start, int count)
+    {
+        var bytes = new byte[count * 2];
+        for (var i = 0; i < count; i++)
+        {
+            var value = (short)Math.Round(Math.Clamp(samples[start + i], -1f, 1f) * short.MaxValue);
+            bytes[2 * i] = (byte)value;
+            bytes[2 * i + 1] = (byte)(value >> 8);
+        }
+        return Convert.ToBase64String(bytes);
+    }
+
     /// <summary>The speaker of that assistant for that turn (a new one, stopping the old one, for another turn).</summary>
     private Speaker For(string assistant, string turn)
     {
@@ -460,15 +512,7 @@ internal sealed class ModuleVoice : IDisposable
             var piece = (int)(line.SampleRate * MaxPieceSeconds);
             for (var start = 0; start < samples.Length; start += piece)
             {
-                var count = Math.Min(piece, samples.Length - start);
-                var bytes = new byte[count * 2];
-                for (var i = 0; i < count; i++)
-                {
-                    var value = (short)Math.Round(Math.Clamp(samples[start + i], -1f, 1f) * short.MaxValue);
-                    bytes[2 * i] = (byte)value;
-                    bytes[2 * i + 1] = (byte)(value >> 8);
-                }
-                send(new SpeechAudioMessage(Turn, _sent++, line.SampleRate, Convert.ToBase64String(bytes), _assistant.Length > 0 ? _assistant : null));
+                send(new SpeechAudioMessage(Turn, _sent++, line.SampleRate, Pcm16(samples, start, Math.Min(piece, samples.Length - start)), _assistant.Length > 0 ? _assistant : null));
             }
         }
 

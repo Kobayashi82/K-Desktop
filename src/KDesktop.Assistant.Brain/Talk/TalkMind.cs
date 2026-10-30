@@ -137,7 +137,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         if (aboutMemory) hidden.UnionWith(NoteTools);
         var available = hidden.Count > 0 ? [.. tools.Registry.All.Where(t => !hidden.Contains(t.Name))] : tools.Registry.All;
         // An order from another channel (telegram, phase 4.2): what that person may not use is not even offered.
-        if (origin is { Restricted: true }) available = [.. available.Where(t => origin.Allows(t.Name, t.ReadsOnly))];
+        // What they gave in this turn (a photo) may be looked at anyway: read_file runs only on those files.
+        if (origin is { Restricted: true })
+            available = [.. available.Where(t => origin.Allows(t.Name, t.ReadsOnly) || (t.Name == ToolRunner.ReadGivenTool && context.Files.Count > 0))];
         var always = new List<string>(WithTheirServer(recentTools).Where(t => !hidden.Contains(t)));
         if (commands is { Count: > 0 }) always.Add(RunCommandTool);
         if (capable) always.AddRange(CommandToolNames.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));

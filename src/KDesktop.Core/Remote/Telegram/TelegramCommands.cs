@@ -48,6 +48,18 @@ public sealed class TelegramCommands
     /// <summary>Where the files that arrive are kept (Downloads).</summary>
     public Func<string?> DownloadFolder { get; set; } = () => Platform.KnownFolders.Downloads;
 
+    /// <summary>
+    /// What is said in a voice note (phase 5.1, Parakeet): its text, empty when nobody speaks in it, null when it cannot be
+    /// heard (no voice models). Null: voice notes are not heard.
+    /// </summary>
+    public Func<string, CancellationToken, Task<string?>>? Transcribe { get; set; }
+
+    /// <summary>Where the voice notes go (orders, not files to keep): a folder of their own, emptied of the old ones.</summary>
+    public Func<string> VoiceFolder { get; set; } = () => Path.Combine(Path.GetTempPath(), "K-Desktop", "Telegram");
+
+    /// <summary>How long a voice note that arrived (or an answer's) stays in <see cref="VoiceFolder"/>.</summary>
+    public static readonly TimeSpan VoiceKept = TimeSpan.FromDays(1);
+
     /// <summary>How long a confirmation by Telegram waits.</summary>
     public TimeSpan ConfirmFor { get; set; } = TimeSpan.FromMinutes(5);
 
@@ -86,9 +98,16 @@ public sealed class TelegramCommands
             return;
         }
 
-        // Its file is kept first (the owner's and the contacts', not someone new's).
+        // A voice note (phase 5.1) is an order said: what is said in it is its text (for the events and the assistant).
         string? path = null;
-        if (m.File is not null && v.Route is TelegramRoute.Owner or TelegramRoute.Contact && DownloadFolder() is { } folder)
+        if (m is { Content: TelegramContent.Voice, File: not null } && v.Served)
+        {
+            path = await _telegram.DownloadAsync(m, CleanVoiceFolder(VoiceFolder())).ConfigureAwait(false);
+            if (path is null) _telegram.Post(m.ChatId, Loc.T("telegram.voice.cannot"));
+            else if (await HearAsync(m, path).ConfigureAwait(false) is { } heard) m = m with { Text = heard };
+        }
+        // Its file is kept first (the owner's and the contacts', not someone new's).
+        else if (m.File is not null && v.Route is TelegramRoute.Owner or TelegramRoute.Contact && DownloadFolder() is { } folder)
         {
             path = await _telegram.DownloadAsync(m, folder).ConfigureAwait(false);
             _telegram.Post(m.ChatId, path is null ? Loc.T("telegram.file.notSaved") : Loc.T("telegram.file.saved", Path.GetFileName(path)));
@@ -96,10 +115,13 @@ public sealed class TelegramCommands
         Arrived?.Invoke(m, v, path);
 
         var text = m.ChatKind == TelegramChatKind.Group ? TelegramInbox.WithoutMention(m.Text, _telegram.Bot?.Username ?? string.Empty) : m.Text.Trim();
-        if (!text.StartsWith('/'))
+        // A photo alone (phase 5.3): for the assistant to look at it.
+        if (text.Length == 0 && m.Content == TelegramContent.Photo && path is not null) text = Loc.T("telegram.talk.photo");
+        if (!text.StartsWith('/') || m.Content == TelegramContent.Voice)
         {
-            // Not a command: for the assistant (phase 4), if that person may talk to it.
+            // Not a command: for the assistant (phase 4), if that person may talk to it. A voice note is never a command.
             if (text.Length == 0 || Talk is not { } talk) return;
+            if (m.Content == TelegramContent.Voice) path = null;
             if (v.Level == TelegramLevel.ChosenCommands)
             {
                 _telegram.Post(m.ChatId, Loc.T("telegram.talk.onlyCommands", "/" + Loc.T("telegram.cmd.word")));
@@ -121,6 +143,49 @@ public sealed class TelegramCommands
         var allowed = Allowed(m, v);
         if (allowed.FirstOrDefault(c => Key(c.Name) == key) is { } command) await RunAsync(m, v, command).ConfigureAwait(false);
         else _telegram.Post(m.ChatId, Loc.T(allowed.Count == 0 ? "telegram.cmd.none" : "telegram.cmd.unknown", "/" + Loc.T("telegram.cmd.word")));
+    }
+
+    /// <summary>
+    /// What is said in a voice note, or null when nothing (then the chat is told why). With «Decir lo que entendió», the
+    /// text goes back first («🎤 …»).
+    /// </summary>
+    private async Task<string?> HearAsync(TelegramIncoming m, string path)
+    {
+        _telegram.Typing(m.ChatId);
+        string? heard = null;
+        try
+        {
+            if (Transcribe is { } transcribe) heard = await transcribe(path, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or FileNotFoundException or NotSupportedException)
+        {
+            Log.Warn($"Telegram: no se ha podido escuchar una nota de voz: {ex.Message}");
+        }
+        heard = heard?.Trim();
+        if (heard is not { Length: > 0 })
+        {
+            _telegram.Post(m.ChatId, Loc.T(heard is null ? "telegram.voice.cannot" : "telegram.voice.empty"));
+            return null;
+        }
+        Log.Info($"Telegram: nota de voz de {_telegram.NameOf(m.From.Id)} ({heard.Length} letras)");
+        if (_telegram.Read(s => s.ShowHeard)) _telegram.Post(m.ChatId, "🎤 " + heard);
+        return heard;
+    }
+
+    /// <summary>The folder of the voice notes, without the ones older than <see cref="VoiceKept"/>.</summary>
+    public static string CleanVoiceFolder(string folder)
+    {
+        try
+        {
+            Directory.CreateDirectory(folder);
+            foreach (var file in new DirectoryInfo(folder).EnumerateFiles())
+                if (DateTime.UtcNow - file.LastWriteTimeUtc > VoiceKept) file.Delete();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Telegram: no se ha podido limpiar {folder}: {ex.Message}");
+        }
+        return folder;
     }
 
     /// <summary>The name as it is compared: without case, accents, spaces or «_» («/modo_juego» is «Modo juego»).</summary>

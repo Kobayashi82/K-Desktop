@@ -106,10 +106,10 @@ public partial class App
                     return;
                 }
                 if (OnAssistantCommandRequest(supervisor, message)) return;
-                // The voice of an answer for the phone: straight to the web server, without the UI thread.
+                // The voice of an answer for the phone: straight to the web server, without the UI thread (or a voice note for Telegram).
                 if (message is SpeechAudioMessage or SpeechEndMessage)
                 {
-                    AssistantSpeech?.Invoke(message);
+                    if (!OnTelegramVoice(message)) AssistantSpeech?.Invoke(message);
                     return;
                 }
                 Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
