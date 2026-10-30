@@ -259,7 +259,7 @@ public partial class CalendarsSection : UserControl
         card.Children.Add(urlBox);
         card.Children.Add(error);
         card.Children.Add(add);
-        card.Children.Add(CalendarUi.Caption(Loc.T("calendars.subscriptionGuide"), new Thickness(0, 10, 0, 0)));
+        card.Children.Add(CalendarUi.GuideButton(this, "calendars.subscriptionGuide", Dialogs.GuideDialog.Ics, new Thickness(0, 10, 0, 0)));
     }
 
     private static void ChangeUrl(IcsSubscriptionSettings settings)

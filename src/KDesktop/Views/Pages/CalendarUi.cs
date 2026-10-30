@@ -69,6 +69,15 @@ internal static class CalendarUi
         return button;
     }
 
+    /// <summary>A button that opens a step-by-step guide (<see cref="Dialogs.GuideDialog"/>) of what is done outside K-Desktop.</summary>
+    public static UiButton GuideButton(FrameworkElement from, string textKey, string guide, Thickness margin)
+    {
+        var button = Button(Loc.T(textKey), SymbolRegular.BookQuestionMark24, () => Dialogs.GuideDialog.Show(Window.GetWindow(from), guide));
+        button.Margin = margin;
+        button.HorizontalAlignment = HorizontalAlignment.Left;
+        return button;
+    }
+
     public static UiButton IconButton(SymbolRegular icon, string tip, Action click, bool danger = false)
     {
         var button = new UiButton { Icon = new SymbolIcon { Symbol = icon }, ToolTip = tip, Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };

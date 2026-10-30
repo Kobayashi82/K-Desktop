@@ -133,7 +133,7 @@ public partial class AccountsSection : UserControl
         card.Children.Add(CalendarUi.Label(Loc.T("accounts.googleSecret")));
         var googleSecret = new UiPasswordBox { PlaceholderText = Accounts.HasGoogleSecret ? Loc.T("accounts.secretKept") : "GOCSPX-…", Margin = new Thickness(0, 0, 0, 8) };
         card.Children.Add(googleSecret);
-        card.Children.Add(CalendarUi.Caption(Loc.T("accounts.googleGuide"), new Thickness(0, 0, 0, 12)));
+        card.Children.Add(CalendarUi.GuideButton(this, "accounts.googleGuide", Dialogs.GuideDialog.Google, new Thickness(0, 0, 0, 12)));
         card.Children.Add(CalendarUi.Label(Loc.T("accounts.microsoftClientId")));
         var microsoftId = new UiTextBox
         {
@@ -142,7 +142,7 @@ public partial class AccountsSection : UserControl
             Margin = new Thickness(0, 0, 0, 8), ClearButtonEnabled = false,
         };
         card.Children.Add(microsoftId);
-        card.Children.Add(CalendarUi.Caption(Loc.T("accounts.microsoftGuide"), new Thickness(0, 0, 0, 8)));
+        card.Children.Add(CalendarUi.GuideButton(this, "accounts.microsoftGuide", Dialogs.GuideDialog.Microsoft, new Thickness(0, 0, 0, 12)));
         card.Children.Add(CalendarUi.Button(Loc.T("accounts.saveApps"), SymbolRegular.Save24, () =>
         {
             Accounts.SetApps(googleId.Text, googleSecret.Password, microsoftId.Text);

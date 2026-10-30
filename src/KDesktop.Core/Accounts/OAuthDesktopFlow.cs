@@ -154,25 +154,48 @@ public sealed class OAuthDesktopFlow(HttpClient http)
 
     private static async Task<LoopbackAnswer> WaitForAnswerAsync(TcpListener v4, TcpListener? v6, string state, CancellationToken cancel)
     {
-        while (true)
+        // One accept per listener at a time: the one that did not answer keeps waiting for the next round, and whatever is
+        // left is observed when the listeners stop (an unobserved failed accept was logged as an error).
+        Task<TcpClient>? on4 = null, on6 = null;
+        try
         {
-            var accepts = new List<Task<TcpClient>> { v4.AcceptTcpClientAsync(cancel).AsTask() };
-            if (v6 is not null) accepts.Add(v6.AcceptTcpClientAsync(cancel).AsTask());
-            var first = await Task.WhenAny(accepts).ConfigureAwait(false);
-            using var client = await first.ConfigureAwait(false);
-            client.ReceiveTimeout = 10_000;
-            var stream = client.GetStream();
-            var line = await ReadRequestLineAsync(stream, cancel).ConfigureAwait(false);
-            var answer = ParseRequest(line, state);
-            var body = answer is null ? "<!doctype html><title>K-Desktop</title>" : DonePage.Replace("{0}",
-                WebUtility.HtmlEncode(answer.Error is null ? Localization.Loc.T("accounts.browserDone") : Localization.Loc.T("accounts.browserFailed")), StringComparison.Ordinal);
-            var bytes = Encoding.UTF8.GetBytes(body);
-            var head = Encoding.ASCII.GetBytes($"HTTP/1.1 {(answer is null ? "404 Not Found" : "200 OK")}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {bytes.Length}\r\nConnection: close\r\nCache-Control: no-store\r\n\r\n");
-            await stream.WriteAsync(head, cancel).ConfigureAwait(false);
-            await stream.WriteAsync(bytes, cancel).ConfigureAwait(false);
-            await stream.FlushAsync(cancel).ConfigureAwait(false);
-            if (answer is not null) return answer;
+            while (true)
+            {
+                on4 ??= v4.AcceptTcpClientAsync(cancel).AsTask();
+                if (v6 is not null) on6 ??= v6.AcceptTcpClientAsync(cancel).AsTask();
+                Task<TcpClient>[] waiting = on6 is null ? [on4] : [on4, on6];
+                var first = await Task.WhenAny(waiting).ConfigureAwait(false);
+                if (first == on4) on4 = null;
+                else on6 = null;
+                if (await AnswerAsync(first, state, cancel).ConfigureAwait(false) is { } answer) return answer;
+            }
         }
+        finally
+        {
+            Observe(on4);
+            Observe(on6);
+        }
+    }
+
+    private static void Observe(Task? task) =>
+        task?.ContinueWith(t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+    /// <summary>One request to the redirect: the answer when it is the one sent back, and a page for the browser either way.</summary>
+    private static async Task<LoopbackAnswer?> AnswerAsync(Task<TcpClient> accepted, string state, CancellationToken cancel)
+    {
+        using var client = await accepted.ConfigureAwait(false);
+        client.ReceiveTimeout = 10_000;
+        var stream = client.GetStream();
+        var line = await ReadRequestLineAsync(stream, cancel).ConfigureAwait(false);
+        var answer = ParseRequest(line, state);
+        var body = answer is null ? "<!doctype html><title>K-Desktop</title>" : DonePage.Replace("{0}",
+            WebUtility.HtmlEncode(answer.Error is null ? Localization.Loc.T("accounts.browserDone") : Localization.Loc.T("accounts.browserFailed")), StringComparison.Ordinal);
+        var bytes = Encoding.UTF8.GetBytes(body);
+        var head = Encoding.ASCII.GetBytes($"HTTP/1.1 {(answer is null ? "404 Not Found" : "200 OK")}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {bytes.Length}\r\nConnection: close\r\nCache-Control: no-store\r\n\r\n");
+        await stream.WriteAsync(head, cancel).ConfigureAwait(false);
+        await stream.WriteAsync(bytes, cancel).ConfigureAwait(false);
+        await stream.FlushAsync(cancel).ConfigureAwait(false);
+        return answer;
     }
 
     private static async Task<string> ReadRequestLineAsync(Stream stream, CancellationToken cancel)
