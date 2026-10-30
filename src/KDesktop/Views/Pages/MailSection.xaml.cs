@@ -12,7 +12,7 @@ namespace KDesktop.Views.Pages;
 
 /// <summary>
 /// Options › Correo (mail, phases 1–4): the accounts (with an app password, servers found by themselves; or with a
-/// connected Google or Microsoft account), «Probar» that says what fails in words, which mails are important, what is
+/// connected Google account), «Probar» that says what fails in words, which mails are important, what is
 /// told, and what the assistants may do.
 /// </summary>
 public partial class MailSection : UserControl

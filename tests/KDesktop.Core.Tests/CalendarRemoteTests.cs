@@ -5,7 +5,7 @@ using KDesktop.Core.Calendar;
 
 namespace KDesktop.Core.Tests;
 
-/// <summary>Google and Graph translated both ways with answers as the servers give them, and the queue without connection.</summary>
+/// <summary>Google translated both ways with answers as the servers give them, and the queue without connection.</summary>
 public sealed class CalendarRemoteTests : IDisposable
 {
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "kd-remote-" + Guid.NewGuid().ToString("N")[..8]);
@@ -78,47 +78,6 @@ public sealed class CalendarRemoteTests : IDisposable
         var allDay = new CalendarEvent { Id = "d", Title = "Fiesta", Start = new DateTime(2026, 5, 1), End = new DateTime(2026, 5, 2), AllDay = true };
         Assert.Equal("2026-05-01", GoogleCalendar.ToGoogle(allDay)["start"]!["date"]!.GetValue<string>());
         Assert.Equal("d_20260501", GoogleCalendar.InstanceId(allDay with { Recurrence = "FREQ=YEARLY" }, new DateTime(2026, 5, 1)));
-    }
-
-    [Fact]
-    public void GraphRecurrenceBothWays()
-    {
-        var start = new DateTime(2026, 1, 13, 18, 0, 0); // second Tuesday
-        string Rule(string json) => GraphRecurrence.ToRule(Json(json), start)!;
-        Assert.Equal("FREQ=WEEKLY;BYDAY=MO,WE;WKST=SU", Rule("""{"pattern":{"type":"weekly","interval":1,"daysOfWeek":["monday","wednesday"],"firstDayOfWeek":"sunday"},"range":{"type":"noEnd","startDate":"2026-01-12"}}"""));
-        Assert.Equal("FREQ=MONTHLY;COUNT=10;BYDAY=2TU", Rule("""{"pattern":{"type":"relativeMonthly","interval":1,"daysOfWeek":["tuesday"],"index":"second"},"range":{"type":"numbered","numberOfOccurrences":10}}"""));
-        Assert.Equal("FREQ=MONTHLY;BYDAY=-1FR", Rule("""{"pattern":{"type":"relativeMonthly","interval":1,"daysOfWeek":["friday"],"index":"last"},"range":{"type":"noEnd"}}"""));
-        Assert.Equal("FREQ=YEARLY;BYMONTHDAY=13;BYMONTH=1", Rule("""{"pattern":{"type":"absoluteYearly","interval":1,"month":1,"dayOfMonth":13},"range":{"type":"noEnd"}}"""));
-        Assert.StartsWith("FREQ=DAILY;INTERVAL=2;UNTIL=20260301T180000", Rule("""{"pattern":{"type":"daily","interval":2},"range":{"type":"endDate","endDate":"2026-03-01"}}"""), StringComparison.Ordinal);
-
-        var graph = GraphRecurrence.ToGraph("FREQ=MONTHLY;BYDAY=2TU;COUNT=5", start, "Romance Standard Time", false);
-        Assert.Equal("relativeMonthly", graph["pattern"]!["type"]!.GetValue<string>());
-        Assert.Equal("second", graph["pattern"]!["index"]!.GetValue<string>());
-        Assert.Equal(5, graph["range"]!["numberOfOccurrences"]!.GetValue<int>());
-        Assert.Equal("2026-01-13", graph["range"]!["startDate"]!.GetValue<string>());
-        Assert.Equal("noEnd", GraphRecurrence.ToGraph("FREQ=WEEKLY;BYDAY=TU", start, "UTC", false)["range"]!["type"]!.GetValue<string>());
-        Assert.Throws<CalendarException>(() => GraphRecurrence.ToGraph("FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1", start, "UTC", false));
-    }
-
-    [Fact]
-    public void GraphToKDesktop()
-    {
-        var item = Json("""
-            {"id":"AAMk1","@odata.etag":"W/\"DwAAABYA\"","subject":"Comité","type":"seriesMaster","isAllDay":false,"originalStartTimeZone":"Romance Standard Time",
-             "start":{"dateTime":"2026-01-13T17:00:00.0000000","timeZone":"UTC"},"end":{"dateTime":"2026-01-13T18:00:00.0000000","timeZone":"UTC"},
-             "location":{"displayName":"Sala 3"},"body":{"contentType":"text","content":"Orden del día"},"isReminderOn":true,"reminderMinutesBeforeStart":15,
-             "onlineMeeting":{"joinUrl":"https://teams.microsoft.com/l/meetup-join/abc"},
-             "recurrence":{"pattern":{"type":"relativeMonthly","interval":1,"daysOfWeek":["tuesday"],"index":"second"},"range":{"type":"noEnd","startDate":"2026-01-13"}}}
-            """);
-        var e = OutlookCalendar.ToEvent(item, "acc-y", "cal1")!;
-        Assert.Equal(new DateTime(2026, 1, 13, 18, 0, 0), e.Start);
-        Assert.Equal("FREQ=MONTHLY;BYDAY=2TU", e.Recurrence);
-        Assert.Equal([15], e.Reminders);
-        Assert.Equal("https://teams.microsoft.com/l/meetup-join/abc", e.MeetingUrl);
-        Assert.Equal("W/\"DwAAABYA\"", e.Etag);
-        var body = OutlookCalendar.ToGraph(e, withRecurrence: true);
-        Assert.Equal("2026-01-13T18:00:00", body["start"]!["dateTime"]!.GetValue<string>());
-        Assert.Equal("relativeMonthly", body["recurrence"]!["pattern"]!["type"]!.GetValue<string>());
     }
 
     [Fact]

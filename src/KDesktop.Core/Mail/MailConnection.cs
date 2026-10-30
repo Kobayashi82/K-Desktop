@@ -80,7 +80,7 @@ public sealed class MailConnection(MailAccountSettings account, Func<string, str
         if (Account.Auth == MailAuth.OAuth)
         {
             if (accounts is null || Account.OAuthAccountId is null) throw new MailException(Loc.T("mail.error.noAccount"));
-            var token = await accounts.AccessTokenAsync(Account.OAuthAccountId, AccountService.Resource.Mail, cancel).ConfigureAwait(false);
+            var token = await accounts.AccessTokenAsync(Account.OAuthAccountId, cancel).ConfigureAwait(false);
             await client.AuthenticateAsync(new SaslMechanismOAuth2(User, token), cancel).ConfigureAwait(false);
             return;
         }

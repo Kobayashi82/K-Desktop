@@ -21,7 +21,6 @@ internal sealed record GuideStep(string? Url = null, params (string Label, strin
 public partial class GuideDialog : FluentWindow
 {
     public const string Google = "google";
-    public const string Microsoft = "microsoft";
     public const string AppPassword = "appPassword";
     public const string Ics = "ics";
 
@@ -37,13 +36,6 @@ public partial class GuideDialog : FluentWindow
                 ("guide.copy.domain", "github.com")),
             new("https://console.cloud.google.com/auth/audience"),
             new("https://console.cloud.google.com/auth/clients"),
-            new(),
-        ],
-        [Microsoft] =
-        [
-            new("https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade"),
-            new(null, ("guide.copy.redirect", "http://localhost")),
-            new(),
             new(),
         ],
         [AppPassword] =

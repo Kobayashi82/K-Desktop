@@ -99,11 +99,11 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 
 ### Calendar and mail
 
-- **Agenda**: your appointments by days from your own calendar, `.ics` subscriptions (holidays, a shared calendar…),
-  Google Calendar and Outlook, each in its colour. Create, edit and delete with repetition (every day, weekdays, the
+- **Agenda**: your appointments by days from your own calendar, `.ics` subscriptions (holidays, a shared calendar,
+  Outlook read-only…) and Google Calendar, each in its colour. Create, edit and delete with repetition (every day, weekdays, the
   second Tuesday, the last Friday…), reminders and an online-meeting link; "Join" opens Teams, Meet or Zoom. Import and
   export `.ics`. Also on the phone, in its own tab.
-- **Mail**: IMAP/SMTP accounts (Gmail, Outlook, iCloud, Yahoo or any other) watched with IDLE; a notice for every new
+- **Mail**: IMAP/SMTP accounts (Gmail, iCloud, Yahoo or any other that takes an app password; not Outlook or Hotmail) watched with IDLE; a notice for every new
   mail, only the important ones or none; an invitation in a mail goes to the calendar with one click.
 - **Events and actions**: "An appointment" (minutes before, when it starts or ends) and "A mail arrives" (by sender,
   subject or importance) as triggers; "Create appointment", "Join the meeting" and "Send mail" as actions.

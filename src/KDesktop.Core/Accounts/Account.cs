@@ -2,7 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace KDesktop.Core.Accounts;
 
-public enum AccountProvider { Google, Microsoft }
+/// <summary>Who an account is from: only Google (Microsoft was dropped in 5.0.429: a personal account cannot register the application).</summary>
+public enum AccountProvider { Google }
 
 /// <summary>What an account is used for in K-Desktop (the permissions asked when it was connected).</summary>
 [Flags]
@@ -18,7 +19,7 @@ public enum AccountUse
 }
 
 /// <summary>
-/// A Google or Microsoft account connected with OAuth (Accounts\accounts.json): who it is, what it was allowed and its
+/// A Google account connected with OAuth (Accounts\accounts.json): who it is, what it was allowed and its
 /// refresh token encrypted with DPAPI (only this user on this PC can use it; a backup restored elsewhere has to connect it
 /// again). The access tokens live only in memory.
 /// </summary>
@@ -43,7 +44,7 @@ public sealed class Account
     /// <summary>The refresh token, encrypted (<see cref="Platform.Secrets"/>).</summary>
     public string? RefreshTokenProtected { get; set; }
 
-    /// <summary>The application it was connected with (Google: the user's own Client ID; Microsoft: K-Desktop's or the user's).</summary>
+    /// <summary>The application it was connected with (the user's own Client ID).</summary>
     public string ClientId { get; set; } = string.Empty;
 
     /// <summary>The server said no more («revoked», a changed password…): «Desconectada — volver a conectar».</summary>
@@ -62,9 +63,6 @@ public sealed class AccountApps
 
     /// <summary>Its secret (Google gives one to desktop apps too; it is not really secret, but it is kept encrypted).</summary>
     public string GoogleClientSecretProtected { get; set; } = string.Empty;
-
-    /// <summary>A Microsoft application of the user's own (Entra ID); empty: K-Desktop's.</summary>
-    public string MicrosoftClientId { get; set; } = string.Empty;
 }
 
 /// <summary>Something went wrong with an account: the message says it in the user's words.</summary>

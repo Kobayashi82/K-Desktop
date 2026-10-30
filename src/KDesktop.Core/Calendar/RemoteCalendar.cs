@@ -11,7 +11,7 @@ namespace KDesktop.Core.Calendar;
 public sealed record PendingChange(string Op, CalendarEvent Event, CalendarEvent? Before = null);
 
 /// <summary>
-/// The common part of the calendars of an account (Google, Outlook): everything is kept in Calendar\Cache (reading never
+/// The common part of the calendars of an account (Google): everything is kept in Calendar\Cache (reading never
 /// waits for the network), the changes go to the server at once and, without connection, are kept in a queue and sent
 /// when it comes back. A conflict (someone changed it elsewhere: HTTP 412) never overwrites: online it is said
 /// (<see cref="CalendarConflictException"/>) and the server's version is read again; from the queue the server's wins
@@ -27,18 +27,12 @@ public abstract class RemoteCalendar : ICalendarSource, IDisposable
         /// <summary>The citas, as the server keeps them: series, single ones and changed appearances (with <see cref="CalendarEvent.SeriesId"/>).</summary>
         public List<CalendarEvent> Events { get; set; } = [];
 
-        /// <summary>Per calendar: what the server gave to ask only for what changed (Google's syncToken, Graph's deltaLink).</summary>
+        /// <summary>Per calendar: what the server gave to ask only for what changed (Google's syncToken).</summary>
         public Dictionary<string, string> SyncTokens { get; set; } = [];
-
-        /// <summary>Per calendar: when it was read whole last (Graph's window moves once a day).</summary>
-        public Dictionary<string, DateTimeOffset> FullSync { get; set; } = [];
 
         public List<PendingChange> Pending { get; set; } = [];
 
         public DateTimeOffset? LastSync { get; set; }
-
-        /// <summary>The source's own extra data (Graph: the appearances of each series in the window).</summary>
-        public Dictionary<string, JsonElement> Extra { get; set; } = [];
     }
 
     protected AccountService Accounts { get; }
@@ -74,7 +68,7 @@ public abstract class RemoteCalendar : ICalendarSource, IDisposable
 
     public abstract CalendarSourceKind Kind { get; }
 
-    public string Name => (Kind == CalendarSourceKind.Google ? "Google" : "Outlook") + " · " + (Account?.Email ?? Settings.AccountId);
+    public string Name => "Google · " + (Account?.Email ?? Settings.AccountId);
 
     public CalendarCapabilities Capabilities => Account?.Uses.HasFlag(AccountUse.CalendarWrite) == true
         ? CalendarCapabilities.Write | CalendarCapabilities.Recurrence | CalendarCapabilities.Overrides | CalendarCapabilities.Reminders | CalendarCapabilities.Colors
@@ -174,7 +168,7 @@ public abstract class RemoteCalendar : ICalendarSource, IDisposable
     {
         for (var attempt = 0; ; attempt++)
         {
-            var token = await Accounts.AccessTokenAsync(Settings.AccountId, AccountService.Resource.Main, cancel).ConfigureAwait(false);
+            var token = await Accounts.AccessTokenAsync(Settings.AccountId, cancel).ConfigureAwait(false);
             using var request = make();
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await Http.SendAsync(request, cancel).ConfigureAwait(false);

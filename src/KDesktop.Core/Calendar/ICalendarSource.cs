@@ -4,10 +4,10 @@ using System.Text.Json.Serialization;
 
 namespace KDesktop.Core.Calendar;
 
-public enum CalendarSourceKind { Local, Subscription, Google, Outlook }
+public enum CalendarSourceKind { Local, Subscription, Google }
 
 /// <summary>
-/// Where citas come from: the own calendar, a .ics subscription, a Google or Microsoft account. Each keeps all its
+/// Where citas come from: the own calendar, a .ics subscription, a Google account. Each keeps all its
 /// citas in memory (and in a file of its own), so reading never waits for the network; changes go to the source.
 /// </summary>
 public interface ICalendarSource

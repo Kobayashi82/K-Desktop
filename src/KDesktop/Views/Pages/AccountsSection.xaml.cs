@@ -9,10 +9,9 @@ using UiTextBox = Wpf.Ui.Controls.TextBox;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options › Cuentas (calendar, phase 6): the connected Google and Microsoft accounts with what each one is used for,
-/// connecting one (the browser opens; cancellable), connecting it again when the server forgot it, disconnecting it
-/// (Google: revoked in the server), and the applications they connect with (the user's own Google Client ID; a
-/// Microsoft one of their own, optional).
+/// Options › Cuentas (calendar, phase 6): the connected Google accounts with what each one is used for, connecting one
+/// (the browser opens; cancellable), connecting it again when the server forgot it, disconnecting it (revoked in the
+/// server), and the application they connect with (the user's own Google Client ID).
 /// </summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "The token source lives only while a connection is under way, and is disposed then.")]
 public partial class AccountsSection : UserControl
@@ -70,7 +69,7 @@ public partial class AccountsSection : UserControl
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var texts = new StackPanel();
-            texts.Children.Add(new TextBlock { Text = (account.Provider == AccountProvider.Google ? "Google · " : "Microsoft · ") + account.Display, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+            texts.Children.Add(new TextBlock { Text = "Google · " + account.Display, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
             var uses = new List<string>();
             if (account.Uses.HasFlag(AccountUse.CalendarWrite)) uses.Add(Loc.T("accounts.use.calendarWrite"));
             else if (account.Uses.HasFlag(AccountUse.CalendarRead)) uses.Add(Loc.T("accounts.use.calendarRead"));
@@ -114,13 +113,9 @@ public partial class AccountsSection : UserControl
         var buttons = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
         var google = CalendarUi.Button(Loc.T("accounts.connectGoogle"), SymbolRegular.PersonAdd24, () => _ = ConnectAsync(AccountProvider.Google, Chosen(), null), primary: true);
         google.IsEnabled = Accounts.CanConnect(AccountProvider.Google);
-        var microsoft = CalendarUi.Button(Loc.T("accounts.connectMicrosoft"), SymbolRegular.PersonAdd24, () => _ = ConnectAsync(AccountProvider.Microsoft, Chosen(), null), primary: true);
-        microsoft.IsEnabled = Accounts.CanConnect(AccountProvider.Microsoft);
         buttons.Children.Add(google);
-        buttons.Children.Add(microsoft);
         card.Children.Add(buttons);
         if (!Accounts.CanConnect(AccountProvider.Google)) card.Children.Add(CalendarUi.Caption(Loc.T("accounts.googleNeedsApp"), new Thickness(0, 8, 0, 0)));
-        if (!Accounts.CanConnect(AccountProvider.Microsoft)) card.Children.Add(CalendarUi.Caption(Loc.T("accounts.microsoftNeedsApp"), new Thickness(0, 8, 0, 0)));
         card.Children.Add(CalendarUi.Caption(Loc.T("accounts.alternative"), new Thickness(0, 8, 0, 0)));
     }
 
@@ -134,18 +129,9 @@ public partial class AccountsSection : UserControl
         var googleSecret = new UiPasswordBox { PlaceholderText = Accounts.HasGoogleSecret ? Loc.T("accounts.secretKept") : "GOCSPX-…", Margin = new Thickness(0, 0, 0, 8) };
         card.Children.Add(googleSecret);
         card.Children.Add(CalendarUi.GuideLink(this, "accounts.googleGuide", Dialogs.GuideDialog.Google, new Thickness(0, 0, 0, 12)));
-        card.Children.Add(CalendarUi.Label(Loc.T("accounts.microsoftClientId")));
-        var microsoftId = new UiTextBox
-        {
-            Text = Accounts.MicrosoftClientId == Core.Accounts.OAuthProvider.MicrosoftBuiltInClientId ? string.Empty : Accounts.MicrosoftClientId,
-            PlaceholderText = Core.Accounts.OAuthProvider.MicrosoftBuiltInClientId.Length > 0 ? Loc.T("accounts.microsoftBuiltIn") : "00000000-0000-0000-0000-000000000000",
-            Margin = new Thickness(0, 0, 0, 8), ClearButtonEnabled = false,
-        };
-        card.Children.Add(microsoftId);
-        card.Children.Add(CalendarUi.GuideLink(this, "accounts.microsoftGuide", Dialogs.GuideDialog.Microsoft, new Thickness(0, 0, 0, 12)));
         card.Children.Add(CalendarUi.Button(Loc.T("accounts.saveApps"), SymbolRegular.Save24, () =>
         {
-            Accounts.SetApps(googleId.Text, googleSecret.Password, microsoftId.Text);
+            Accounts.SetApps(googleId.Text, googleSecret.Password);
             App.Current.Ui.ShowOsd(Loc.T("accounts.appsSaved"), Core.Engine.OsdKind.Success);
             Build();
         }));
@@ -192,7 +178,7 @@ public partial class AccountsSection : UserControl
         var box = new Wpf.Ui.Controls.MessageBox
         {
             Title = Loc.T("accounts.disconnectTitle"),
-            Content = Loc.T(account.Provider == AccountProvider.Google ? "accounts.disconnectGoogle" : "accounts.disconnectMicrosoft", account.Email),
+            Content = Loc.T("accounts.disconnectGoogle", account.Email),
             PrimaryButtonText = Loc.T("accounts.disconnect"),
             CloseButtonText = Loc.T("common.cancel"),
         };

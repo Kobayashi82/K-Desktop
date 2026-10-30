@@ -77,7 +77,7 @@ public sealed class CalendarService : IDisposable
     /// <summary>A reminder is due (a timer thread).</summary>
     public event Action<CalendarReminder>? ReminderDue;
 
-    /// <summary>Makes the source of an account (Google, Outlook) from its settings; set by K-Desktop when the accounts are ready.</summary>
+    /// <summary>Makes the source of an account (Google) from its settings; set by K-Desktop when the accounts are ready.</summary>
     public Func<CalendarAccountSettings, ICalendarSource?>? AccountSources { get; set; }
 
     public IReadOnlyList<ICalendarSource> Sources
@@ -194,7 +194,6 @@ public sealed class CalendarService : IDisposable
         var partial = all.Where(c => Fold(c.Name) is var n && (n.Contains(wanted, StringComparison.Ordinal) || (words.Count > 0 && words.Any(w => n.Contains(w, StringComparison.Ordinal))))).ToList();
         if (partial.Count == 1) return partial[0];
         var kind = wanted.Contains("google", StringComparison.Ordinal) || wanted.Contains("gmail", StringComparison.Ordinal) ? CalendarSourceKind.Google
-            : wanted.Contains("outlook", StringComparison.Ordinal) || wanted.Contains("microsoft", StringComparison.Ordinal) || wanted.Contains("hotmail", StringComparison.Ordinal) ? CalendarSourceKind.Outlook
             : wanted.Contains("k-desktop", StringComparison.Ordinal) || wanted.Contains("kdesktop", StringComparison.Ordinal) || wanted.Contains("propio", StringComparison.Ordinal) ? CalendarSourceKind.Local
             : (CalendarSourceKind?)null;
         if (kind is { } k)
@@ -396,7 +395,7 @@ public sealed class CalendarService : IDisposable
     }
 
     /// <summary>
-    /// Undoes a change: the added go, the removed come back (with the same UID in the own calendar; in Google and Outlook
+    /// Undoes a change: the added go, the removed come back (with the same UID in the own calendar; in Google
     /// as a copy) and the changed are as they were.
     /// </summary>
     public async Task RevertAsync(CalendarChange change, CancellationToken cancel = default)
@@ -585,7 +584,7 @@ public sealed class CalendarService : IDisposable
         foreach (var o in Upcoming())
         {
             var source = Source(o.Series.SourceId);
-            if (source is null || (source.Kind is CalendarSourceKind.Google or CalendarSourceKind.Outlook && !Settings.AccountReminders)) continue;
+            if (source is null || (source.Kind is CalendarSourceKind.Google && !Settings.AccountReminders)) continue;
             foreach (var minutes in o.Event.Reminders)
             {
                 var at = o.Start - TimeSpan.FromMinutes(minutes);

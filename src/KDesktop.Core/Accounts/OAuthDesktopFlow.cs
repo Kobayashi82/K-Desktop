@@ -11,40 +11,21 @@ namespace KDesktop.Core.Accounts;
 public sealed record OAuthProvider(AccountProvider Provider, string AuthorizeUrl, string TokenUrl, string? RevokeUrl, string RedirectHost,
     IReadOnlyList<string> BaseScopes)
 {
-    /// <summary>K-Desktop's application registered in Microsoft Entra ID (tenant «common»: personal and work accounts). Empty until it is registered: then the user's own is needed.</summary>
-    public const string MicrosoftBuiltInClientId = "";
-
     public static OAuthProvider Google { get; } = new(AccountProvider.Google,
         "https://accounts.google.com/o/oauth2/v2/auth", "https://oauth2.googleapis.com/token", "https://oauth2.googleapis.com/revoke",
         "127.0.0.1", ["openid", "email", "profile"]);
 
-    public static OAuthProvider Microsoft { get; } = new(AccountProvider.Microsoft,
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize", "https://login.microsoftonline.com/common/oauth2/v2.0/token", null,
-        "localhost", ["openid", "email", "profile", "offline_access", "User.Read"]);
-
-    public static OAuthProvider Of(AccountProvider provider) => provider == AccountProvider.Google ? Google : Microsoft;
+    public static OAuthProvider Of(AccountProvider provider) => Google;
 
     /// <summary>The permissions for what an account is used for.</summary>
     public IReadOnlyList<string> ScopesFor(AccountUse uses)
     {
         var scopes = new List<string>(BaseScopes);
-        if (Provider == AccountProvider.Google)
-        {
-            if (uses.HasFlag(AccountUse.CalendarWrite)) scopes.AddRange(["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.calendarlist.readonly"]);
-            else if (uses.HasFlag(AccountUse.CalendarRead)) scopes.Add("https://www.googleapis.com/auth/calendar.readonly");
-            if (uses.HasFlag(AccountUse.Mail)) scopes.Add("https://mail.google.com/");
-        }
-        else
-        {
-            if (uses.HasFlag(AccountUse.CalendarWrite)) scopes.Add("Calendars.ReadWrite");
-            else if (uses.HasFlag(AccountUse.CalendarRead)) scopes.Add("Calendars.Read");
-            if (uses.HasFlag(AccountUse.Mail)) scopes.AddRange([MicrosoftImap, MicrosoftSmtp]);
-        }
+        if (uses.HasFlag(AccountUse.CalendarWrite)) scopes.AddRange(["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.calendarlist.readonly"]);
+        else if (uses.HasFlag(AccountUse.CalendarRead)) scopes.Add("https://www.googleapis.com/auth/calendar.readonly");
+        if (uses.HasFlag(AccountUse.Mail)) scopes.Add("https://mail.google.com/");
         return scopes;
     }
-
-    public const string MicrosoftImap = "https://outlook.office.com/IMAP.AccessAsUser.All";
-    public const string MicrosoftSmtp = "https://outlook.office.com/SMTP.Send";
 }
 
 /// <summary>The tokens a server gave.</summary>
@@ -52,7 +33,7 @@ public sealed record OAuthTokens(string AccessToken, DateTimeOffset Expires, str
 
 /// <summary>
 /// Signing in from a desktop program (RFC 8252): PKCE, the system's browser and the answer back on
-/// <c>http://127.0.0.1:{free port}</c> (Microsoft: <c>localhost</c>), with a page «Ya puedes cerrar esta pestaña». It can
+/// <c>http://127.0.0.1:{free port}</c>, with a page «Ya puedes cerrar esta pestaña». It can
 /// be cancelled and gives up after a while. No password ever goes through K-Desktop.
 /// </summary>
 public sealed class OAuthDesktopFlow(HttpClient http)
@@ -83,14 +64,10 @@ public sealed class OAuthDesktopFlow(HttpClient http)
         q["state"] = state;
         q["code_challenge"] = pkce.Challenge;
         q["code_challenge_method"] = "S256";
-        if (provider.Provider == AccountProvider.Google)
-        {
-            // A refresh token every time (otherwise only the first consent gives one) and the permissions it already had.
-            q["access_type"] = "offline";
-            q["prompt"] = "consent";
-            q["include_granted_scopes"] = "true";
-        }
-        else q["prompt"] = "select_account";
+        // A refresh token every time (otherwise only the first consent gives one) and the permissions it already had.
+        q["access_type"] = "offline";
+        q["prompt"] = "consent";
+        q["include_granted_scopes"] = "true";
         if (!string.IsNullOrWhiteSpace(loginHint)) q["login_hint"] = loginHint;
         return provider.AuthorizeUrl + "?" + q;
     }
@@ -99,9 +76,8 @@ public sealed class OAuthDesktopFlow(HttpClient http)
     /// Signs in: opens <paramref name="openBrowser"/> and waits for the answer. Returns the tokens (the code already
     /// exchanged). Throws <see cref="AccountException"/> when the user says no or it takes too long.
     /// </summary>
-    /// <param name="tokenScopes">What the code is exchanged for (Microsoft: one resource at a time; null: all).</param>
     public async Task<OAuthTokens> SignInAsync(OAuthProvider provider, string clientId, string? clientSecret, IReadOnlyList<string> scopes,
-        Action<string> openBrowser, string? loginHint, IReadOnlyList<string>? tokenScopes, CancellationToken cancel)
+        Action<string> openBrowser, string? loginHint, CancellationToken cancel)
     {
         using var v4 = new TcpListener(IPAddress.Loopback, 0);
         v4.Start();
@@ -137,7 +113,7 @@ public sealed class OAuthDesktopFlow(HttpClient http)
                 ["code"] = answer.Code!,
                 ["redirect_uri"] = redirect,
                 ["code_verifier"] = pkce.Verifier,
-            }, tokenScopes, cancel).ConfigureAwait(false);
+            }, cancel).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancel.IsCancellationRequested)
         {
@@ -232,16 +208,15 @@ public sealed class OAuthDesktopFlow(HttpClient http)
         return new LoopbackAnswer(code, null, null);
     }
 
-    /// <summary>A new access token from the refresh token (for <paramref name="scopes"/>: Microsoft gives one resource at a time).</summary>
-    public Task<OAuthTokens> RefreshAsync(OAuthProvider provider, string clientId, string? clientSecret, string refreshToken, IReadOnlyList<string>? scopes, CancellationToken cancel) =>
-        RedeemAsync(provider, clientId, clientSecret, new Dictionary<string, string> { ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken }, scopes, cancel);
+    /// <summary>A new access token from the refresh token.</summary>
+    public Task<OAuthTokens> RefreshAsync(OAuthProvider provider, string clientId, string? clientSecret, string refreshToken, CancellationToken cancel) =>
+        RedeemAsync(provider, clientId, clientSecret, new Dictionary<string, string> { ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken }, cancel);
 
     private async Task<OAuthTokens> RedeemAsync(OAuthProvider provider, string clientId, string? clientSecret, Dictionary<string, string> form,
-        IReadOnlyList<string>? scopes, CancellationToken cancel)
+        CancellationToken cancel)
     {
         form["client_id"] = clientId;
         if (!string.IsNullOrEmpty(clientSecret)) form["client_secret"] = clientSecret;
-        if (scopes is { Count: > 0 }) form["scope"] = string.Join(' ', scopes);
         using var content = new FormUrlEncodedContent(form);
         using var response = await http.PostAsync(provider.TokenUrl, content, cancel).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
@@ -290,7 +265,7 @@ public sealed class OAuthDesktopFlow(HttpClient http)
         }
     }
 
-    /// <summary>Tells the server to forget a token (Google). Microsoft has no such thing for desktop programs: the account is only forgotten here.</summary>
+    /// <summary>Tells the server to forget a token.</summary>
     public async Task<bool> RevokeAsync(OAuthProvider provider, string token, CancellationToken cancel)
     {
         if (provider.RevokeUrl is null) return false;

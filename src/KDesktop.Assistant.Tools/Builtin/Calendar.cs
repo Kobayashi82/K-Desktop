@@ -95,7 +95,7 @@ public sealed class CalendarListTool(ICommandBridge bridge) : ITool
 {
     public string Name => "calendar_list";
 
-    public string Description => "Reads the user's calendar (their own, Google, Outlook and subscriptions): the citas of some days, or finds one by its words (when is the dentist?). Says the calendar of each.";
+    public string Description => "Reads the user's calendar (their own, Google and subscriptions): the citas of some days, or finds one by its words (when is the dentist?). Says the calendar of each.";
 
     public string ParametersSchemaJson { get; } =
         """{"type":"object","properties":{"range":{"type":"string","description":"Which days: """ + CalendarTools.Ranges + """. Empty with text: from a month ago to a year ahead; empty without: the next 7 days"},"from":{"type":"string","description":"YYYY-MM-DD (instead of range)"},"to":{"type":"string","description":"YYYY-MM-DD, the last day"},"text":{"type":"string","description":"Words of the cita to look for (dentist)"},"calendar":{"type":"string","description":"Only this calendar, as the user calls it"}}}""";

@@ -101,11 +101,11 @@ https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 
 ### Calendario y correo
 
-- **Agenda**: tus citas por días de tu propio calendario, suscripciones `.ics` (festivos, un calendario compartido…),
-  Google Calendar y Outlook, cada una de su color. Crear, editar y borrar con repetición (cada día, laborables, el
+- **Agenda**: tus citas por días de tu propio calendario, suscripciones `.ics` (festivos, un calendario compartido,
+  Outlook en solo lectura…) y Google Calendar, cada una de su color. Crear, editar y borrar con repetición (cada día, laborables, el
   segundo martes, el último viernes…), avisos y enlace de la reunión en línea; «Unirse» abre Teams, Meet o Zoom.
   Importar y exportar `.ics`. También en el móvil, en su propia pestaña.
-- **Correo**: cuentas IMAP/SMTP (Gmail, Outlook, iCloud, Yahoo o cualquier otra) vigiladas con IDLE; aviso de cada
+- **Correo**: cuentas IMAP/SMTP (Gmail, iCloud, Yahoo o cualquier otra que admita contraseña de aplicación; Outlook y Hotmail no) vigiladas con IDLE; aviso de cada
   correo nuevo, solo de los importantes o de ninguno; una invitación que llega por correo pasa al calendario con un clic.
 - **Eventos y acciones**: «Cita del calendario» (minutos antes, al empezar o al acabar) y «Llega un correo» (por
   remitente, asunto o importancia) como eventos; «Crear cita», «Abrir la reunión» y «Enviar correo» como acciones.

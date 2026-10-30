@@ -4,8 +4,8 @@ namespace KDesktop.Core.Mail;
 
 /// <summary>The servers of a mail account.</summary>
 /// <param name="Provider">«gmail», «outlook», «icloud»…; null: found by autoconfiguration.</param>
-/// <param name="OAuth">The OAuth provider it can use (Microsoft needs it: its normal password no longer works for IMAP).</param>
-/// <param name="NeedsOAuth">The password does not work any more (Outlook.com, Microsoft 365).</param>
+/// <param name="OAuth">The OAuth provider it can use.</param>
+/// <param name="NeedsOAuth">The password does not work any more and K-Desktop cannot connect it (Outlook.com, Hotmail).</param>
 public sealed record MailServers(string ImapHost, int ImapPort, string SmtpHost, int SmtpPort, string? Provider = null,
     Accounts.AccountProvider? OAuth = null, bool NeedsOAuth = false);
 
@@ -19,7 +19,7 @@ public static class MailAutoConfig
     [
         (["gmail.com", "googlemail.com"], new("imap.gmail.com", 993, "smtp.gmail.com", 465, "gmail", Accounts.AccountProvider.Google)),
         (["outlook.com", "hotmail.com", "hotmail.es", "live.com", "live.es", "msn.com", "outlook.es"],
-            new("outlook.office365.com", 993, "smtp-mail.outlook.com", 587, "outlook", Accounts.AccountProvider.Microsoft, NeedsOAuth: true)),
+            new("outlook.office365.com", 993, "smtp-mail.outlook.com", 587, "outlook", NeedsOAuth: true)),
         (["icloud.com", "me.com", "mac.com"], new("imap.mail.me.com", 993, "smtp.mail.me.com", 587, "icloud")),
         (["yahoo.com", "yahoo.es", "ymail.com"], new("imap.mail.yahoo.com", 993, "smtp.mail.yahoo.com", 465, "yahoo")),
         (["aol.com"], new("imap.aol.com", 993, "smtp.aol.com", 465, "aol")),

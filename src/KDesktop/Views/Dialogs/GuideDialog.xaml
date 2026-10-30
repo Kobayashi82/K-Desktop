@@ -10,7 +10,7 @@
                  WindowBackdropType="Mica"
                  ResizeMode="NoResize"
                  ShowInTaskbar="False">
-    <!-- Step-by-step guide for something done once outside K-Desktop (an app of Google or Microsoft, an app password, a
+    <!-- Step-by-step guide for something done once outside K-Desktop (an app of Google, an app password, a
          secret .ics address): numbered steps, each with its page and what to paste there. The steps are made in code. -->
     <DockPanel Margin="20,0,20,20">
         <ui:TitleBar x:Name="TitleBar" DockPanel.Dock="Top" ShowMinimize="False" ShowMaximize="False" Margin="-20,0,-20,4" />

@@ -24,7 +24,7 @@ public partial class App
         CreateMail();
     }
 
-    /// <summary>The accounts of Google and Microsoft (Opciones › Cuentas): the calendar and the mail use them.</summary>
+    /// <summary>The Google accounts (Opciones › Cuentas): the calendar and the mail use them.</summary>
     public Core.Accounts.AccountService Accounts { get; private set; } = null!;
 
     private void CreateAccounts()
@@ -35,10 +35,8 @@ public partial class App
             OpenBrowser = url => ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false),
         };
         var http = CalendarService.CreateHttp();
-        Calendar.AccountSources = settings => Accounts.Get(settings.AccountId) is not { } account ? null
-            : account.Provider == Core.Accounts.AccountProvider.Google
-                ? new GoogleCalendar(Accounts, settings, Calendar.CacheFile(CalendarService.AccountSourceId(settings.AccountId)), http)
-                : new OutlookCalendar(Accounts, settings, Calendar.CacheFile(CalendarService.AccountSourceId(settings.AccountId)), http);
+        Calendar.AccountSources = settings => Accounts.Get(settings.AccountId) is null ? null
+            : new GoogleCalendar(Accounts, settings, Calendar.CacheFile(CalendarService.AccountSourceId(settings.AccountId)), http);
         // An account disconnected or connected again: its calendars say it.
         Accounts.Changed += () => Calendar.NotifyChanged();
     }

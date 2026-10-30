@@ -13,9 +13,6 @@ public sealed class AccountService : IDisposable
 {
     public static string DefaultFolder => Path.Combine(AppPaths.DataDir, "Accounts");
 
-    /// <summary>The kinds of token an account may need: Microsoft gives one per resource (Graph, Outlook's mail).</summary>
-    public enum Resource { Main, Mail }
-
     private sealed class Data
     {
         public List<Account> Accounts { get; set; } = [];
@@ -27,7 +24,7 @@ public sealed class AccountService : IDisposable
     private readonly Func<string, string?> _unprotect;
     private readonly OAuthDesktopFlow _flow;
     private readonly Lock _gate = new();
-    private readonly Dictionary<(string, Resource), OAuthTokens> _tokens = [];
+    private readonly Dictionary<string, OAuthTokens> _tokens = [];
     private readonly SemaphoreSlim _refreshing = new(1, 1);
     private Data _data;
 
@@ -68,26 +65,17 @@ public sealed class AccountService : IDisposable
         get { lock (_gate) return _data.Apps.GoogleClientId; }
     }
 
-    public string MicrosoftClientId
-    {
-        get
-        {
-            lock (_gate) return _data.Apps.MicrosoftClientId.Trim().Length > 0 ? _data.Apps.MicrosoftClientId.Trim() : OAuthProvider.MicrosoftBuiltInClientId;
-        }
-    }
+    /// <summary>Whether accounts can be connected: the user put their Client ID.</summary>
+    public bool CanConnect(AccountProvider provider) => GoogleClientId.Trim().Length > 0;
 
-    /// <summary>Whether accounts of this provider can be connected (Google: the user put their Client ID; Microsoft: K-Desktop's or theirs).</summary>
-    public bool CanConnect(AccountProvider provider) => provider == AccountProvider.Google ? GoogleClientId.Trim().Length > 0 : MicrosoftClientId.Length > 0;
-
-    /// <summary>Saves the user's own applications (Opciones › Cuentas). An empty secret keeps the one there.</summary>
-    public void SetApps(string googleClientId, string? googleClientSecret, string microsoftClientId)
+    /// <summary>Saves the user's own application (Opciones › Cuentas). An empty secret keeps the one there.</summary>
+    public void SetApps(string googleClientId, string? googleClientSecret)
     {
         lock (_gate)
         {
             _data.Apps.GoogleClientId = googleClientId.Trim();
             if (!string.IsNullOrWhiteSpace(googleClientSecret)) _data.Apps.GoogleClientSecretProtected = _protect(googleClientSecret.Trim());
             if (googleClientId.Trim().Length == 0) _data.Apps.GoogleClientSecretProtected = string.Empty;
-            _data.Apps.MicrosoftClientId = microsoftClientId.Trim();
             Save();
         }
         Changed?.Invoke();
@@ -98,11 +86,10 @@ public sealed class AccountService : IDisposable
         get { lock (_gate) return _data.Apps.GoogleClientSecretProtected.Length > 0; }
     }
 
-    private (string Id, string? Secret) App(AccountProvider provider, string? accountClient = null)
+    private (string Id, string? Secret) App(string? accountClient = null)
     {
         lock (_gate)
         {
-            if (provider == AccountProvider.Microsoft) return (accountClient is { Length: > 0 } c ? c : MicrosoftClientId, null);
             var id = accountClient is { Length: > 0 } g ? g : _data.Apps.GoogleClientId;
             return (id, _data.Apps.GoogleClientSecretProtected.Length > 0 ? _unprotect(_data.Apps.GoogleClientSecretProtected) : null);
         }
@@ -116,13 +103,11 @@ public sealed class AccountService : IDisposable
     /// </summary>
     public async Task<Account> ConnectAsync(AccountProvider provider, AccountUse uses, string? loginHint = null, CancellationToken cancel = default)
     {
-        if (!CanConnect(provider)) throw new AccountException(Loc.T(provider == AccountProvider.Google ? "accounts.error.noGoogleApp" : "accounts.error.noMicrosoftApp"));
+        if (!CanConnect(provider)) throw new AccountException(Loc.T("accounts.error.noGoogleApp"));
         var oauth = OAuthProvider.Of(provider);
-        var (clientId, secret) = App(provider);
+        var (clientId, secret) = App();
         var scopes = oauth.ScopesFor(uses);
-        // Microsoft: the code buys a token of one resource; the mail's (Outlook) is asked with the refresh token.
-        var first = provider == AccountProvider.Microsoft ? MicrosoftScopes(scopes, Resource.Main) : null;
-        var tokens = await _flow.SignInAsync(oauth, clientId, secret, scopes, OpenBrowser, loginHint, first, cancel).ConfigureAwait(false);
+        var tokens = await _flow.SignInAsync(oauth, clientId, secret, scopes, OpenBrowser, loginHint, cancel).ConfigureAwait(false);
         if (tokens.RefreshToken is null) throw new AccountException(Loc.T("accounts.error.noRefresh"));
         var (email, name) = OAuthDesktopFlow.Identity(tokens.IdToken);
         Account account;
@@ -139,8 +124,7 @@ public sealed class AccountService : IDisposable
             account.Disconnected = false;
             account.Connected = DateTimeOffset.UtcNow;
             if (!_data.Accounts.Contains(account)) _data.Accounts.Add(account);
-            _tokens[(account.Id, Resource.Main)] = tokens;
-            _tokens.Remove((account.Id, Resource.Mail));
+            _tokens[account.Id] = tokens;
             Save();
         }
         Log.Info($"Cuentas: conectada {provider} {email} ({uses})");
@@ -148,18 +132,8 @@ public sealed class AccountService : IDisposable
         return account;
     }
 
-    /// <summary>Microsoft's scopes of one resource (plus offline_access): Graph's, or Outlook's for the mail.</summary>
-    private static List<string> MicrosoftScopes(IEnumerable<string> scopes, Resource resource)
-    {
-        var mail = resource == Resource.Mail;
-        var list = scopes.Where(s => s.StartsWith("https://outlook.office.com/", StringComparison.OrdinalIgnoreCase) == mail
-                                     && s is not ("openid" or "email" or "profile" or "offline_access")).ToList();
-        list.Add("offline_access");
-        return list;
-    }
-
     /// <summary>
-    /// Forgets an account here (and in Google, revokes its token). What used it (calendars, mail) stops; nothing is
+    /// Forgets an account here and revokes its token in Google. What used it (calendars, mail) stops; nothing is
     /// deleted in the server.
     /// </summary>
     public async Task DisconnectAsync(string id, CancellationToken cancel = default)
@@ -172,8 +146,7 @@ public sealed class AccountService : IDisposable
             if (account is null) return;
             refresh = account.RefreshTokenProtected is { } p ? _unprotect(p) : null;
             _data.Accounts.Remove(account);
-            _tokens.Remove((id, Resource.Main));
-            _tokens.Remove((id, Resource.Mail));
+            _tokens.Remove(id);
             Save();
         }
         if (refresh is not null) await _flow.RevokeAsync(OAuthProvider.Of(account.Provider), refresh, cancel).ConfigureAwait(false);
@@ -187,31 +160,29 @@ public sealed class AccountService : IDisposable
     /// A valid access token for an account (renewed when it is about to expire). A revoked account is marked
     /// «Desconectada» and <see cref="AccountDisconnectedException"/> is thrown; no network: the error as it comes.
     /// </summary>
-    public async Task<string> AccessTokenAsync(string accountId, Resource resource = Resource.Main, CancellationToken cancel = default)
+    public async Task<string> AccessTokenAsync(string accountId, CancellationToken cancel = default)
     {
         var account = Get(accountId) ?? throw new AccountDisconnectedException(Loc.T("accounts.error.gone"));
         if (account.Disconnected) throw new AccountDisconnectedException(Loc.T("accounts.error.reconnect", account.Email));
-        if (account.Provider == AccountProvider.Google) resource = Resource.Main;
         lock (_gate)
         {
-            if (_tokens.TryGetValue((accountId, resource), out var t) && t.Expires > DateTimeOffset.UtcNow) return t.AccessToken;
+            if (_tokens.TryGetValue(accountId, out var t) && t.Expires > DateTimeOffset.UtcNow) return t.AccessToken;
         }
         await _refreshing.WaitAsync(cancel).ConfigureAwait(false);
         try
         {
             lock (_gate)
             {
-                if (_tokens.TryGetValue((accountId, resource), out var t) && t.Expires > DateTimeOffset.UtcNow) return t.AccessToken;
+                if (_tokens.TryGetValue(accountId, out var t) && t.Expires > DateTimeOffset.UtcNow) return t.AccessToken;
             }
             var refresh = account.RefreshTokenProtected is { } p ? _unprotect(p) : null;
             if (refresh is null) throw Disconnect(account, Loc.T("accounts.error.otherPc"));
             var oauth = OAuthProvider.Of(account.Provider);
-            var (clientId, secret) = App(account.Provider, account.ClientId);
-            var scopes = account.Provider == AccountProvider.Microsoft ? MicrosoftScopes(account.Scopes, resource) : null;
+            var (clientId, secret) = App(account.ClientId);
             OAuthTokens tokens;
             try
             {
-                tokens = await _flow.RefreshAsync(oauth, clientId, secret, refresh, scopes, cancel).ConfigureAwait(false);
+                tokens = await _flow.RefreshAsync(oauth, clientId, secret, refresh, cancel).ConfigureAwait(false);
             }
             catch (AccountDisconnectedException ex)
             {
@@ -219,8 +190,8 @@ public sealed class AccountService : IDisposable
             }
             lock (_gate)
             {
-                _tokens[(accountId, resource)] = tokens;
-                // Microsoft turns its refresh tokens over: the new one is kept.
+                _tokens[accountId] = tokens;
+                // A server that turns its refresh tokens over: the new one is kept.
                 if (tokens.RefreshToken is { } rotated && rotated != refresh)
                 {
                     account.RefreshTokenProtected = _protect(rotated);
@@ -240,8 +211,7 @@ public sealed class AccountService : IDisposable
     {
         lock (_gate)
         {
-            _tokens.Remove((accountId, Resource.Main));
-            _tokens.Remove((accountId, Resource.Mail));
+            _tokens.Remove(accountId);
         }
     }
 
