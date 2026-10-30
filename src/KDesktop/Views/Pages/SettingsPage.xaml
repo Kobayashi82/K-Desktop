@@ -2462,6 +2462,10 @@
                 </StackPanel>
             </Border>
 
+            <!-- Calendar and accounts -->
+            <local:CalendarsSection Tag="calendars" />
+            <local:AccountsSection Tag="accounts" />
+
             <!-- Assistant -->
             <local:AssistantGeneralSection Tag="assistant" />
             <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />

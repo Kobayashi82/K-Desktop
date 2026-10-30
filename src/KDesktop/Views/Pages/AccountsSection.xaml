@@ -1,0 +1,6 @@
+<UserControl x:Class="KDesktop.Views.Pages.AccountsSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Options › Cuentas: the Google and Microsoft accounts (OAuth) the calendar and the mail use. Made in code. -->
+    <StackPanel x:Name="Root" />
+</UserControl>

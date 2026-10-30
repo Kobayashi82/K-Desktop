@@ -50,6 +50,11 @@ public partial class SettingsPage
             new("screen", "Video24", "settings.nav.screen"),
             new("recording", "Record24", "settings.nav.recording"),
         ]),
+        new("calendar", "settings.nav.group.calendar",
+        [
+            new("calendars", "CalendarLtr24", "settings.nav.calendars"),
+            new("accounts", "PersonAccounts24", "settings.nav.accounts"),
+        ]),
         new("connections", "settings.nav.group.connections",
         [
             new("remote", "PlugConnected24", "settings.nav.remote"),

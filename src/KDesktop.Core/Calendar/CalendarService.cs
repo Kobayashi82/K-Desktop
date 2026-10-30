@@ -109,6 +109,9 @@ public sealed class CalendarService : IDisposable
         OnSourceChanged();
     }
 
+    /// <summary>Something around the calendar changed (an account disconnected): whoever shows it looks again.</summary>
+    public void NotifyChanged() => OnSourceChanged();
+
     private void OnSourceChanged()
     {
         lock (_gate) _upcoming = null;

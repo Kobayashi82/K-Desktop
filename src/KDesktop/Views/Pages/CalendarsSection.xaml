@@ -1,0 +1,6 @@
+<UserControl x:Class="KDesktop.Views.Pages.CalendarsSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Options › Calendarios: the calendars (own and of the accounts), the .ics subscriptions and the reminders. Made in code. -->
+    <StackPanel x:Name="Root" />
+</UserControl>

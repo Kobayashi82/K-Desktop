@@ -20,6 +20,22 @@ public partial class App
     {
         Calendar = new CalendarService(CalendarService.DefaultFolder, Secrets.Protect, Secrets.Unprotect);
         Calendar.ReminderDue += r => Dispatcher.BeginInvoke(() => ShowCalendarReminder(r));
+        CreateAccounts();
+    }
+
+    /// <summary>The accounts of Google and Microsoft (Opciones › Cuentas): the calendar and the mail use them.</summary>
+    public Core.Accounts.AccountService Accounts { get; private set; } = null!;
+
+    private void CreateAccounts()
+    {
+        Accounts = new Core.Accounts.AccountService(Core.Accounts.AccountService.DefaultFolder, Secrets.Protect, Secrets.Unprotect);
+        var http = CalendarService.CreateHttp();
+        Calendar.AccountSources = settings => Accounts.Get(settings.AccountId) is not { } account ? null
+            : account.Provider == Core.Accounts.AccountProvider.Google
+                ? new GoogleCalendar(Accounts, settings, Calendar.CacheFile(CalendarService.AccountSourceId(settings.AccountId)), http)
+                : new OutlookCalendar(Accounts, settings, Calendar.CacheFile(CalendarService.AccountSourceId(settings.AccountId)), http);
+        // An account disconnected or connected again: its calendars say it.
+        Accounts.Changed += () => Calendar.NotifyChanged();
     }
 
     private void StartCalendar()
@@ -43,6 +59,9 @@ public partial class App
         var place = string.IsNullOrWhiteSpace(o.Event.Location) ? string.Empty : ", " + o.Event.Location;
         return $"{o.Event.Title} · {lead} ({when}{place})";
     }
+
+    /// <summary>«Probar»: a reminder shown as the options say.</summary>
+    public void ShowCalendarReminderPreview(CalendarReminder r) => ShowCalendarReminder(r);
 
     private void ShowCalendarReminder(CalendarReminder r)
     {

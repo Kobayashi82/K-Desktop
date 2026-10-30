@@ -60,6 +60,12 @@ public sealed record CalendarEvent
     /// <summary>In an override: the wall-clock start (in the series' zone) of the appearance it replaces.</summary>
     public DateTime? RecurrenceId { get; init; }
 
+    /// <summary>
+    /// In a server's own list (Google, Outlook keep each changed appearance apart): the id of the series this override
+    /// belongs to. The source puts it inside its series before anyone sees it.
+    /// </summary>
+    public string? SeriesId { get; init; }
+
     /// <summary>An override that deletes its appearance.</summary>
     public bool Cancelled { get; init; }
 
