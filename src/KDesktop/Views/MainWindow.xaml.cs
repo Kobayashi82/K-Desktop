@@ -301,6 +301,7 @@ public partial class MainWindow : FluentWindow
             {
                 "quickmenus" => new Pages.QuickMenusPage(),
                 "events" => new Pages.EventsPage(),
+                "agenda" => new Pages.AgendaPage(),
                 "macros" => new Pages.MacrosPage(),
                 "snippets" => new Pages.SnippetsPage(),
                 "arrangements" => new Pages.ArrangementsPage(),

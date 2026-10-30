@@ -133,6 +133,9 @@ public partial class App : Application
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync(Config.Settings.ExitSound)) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantAskFor = AskForAnswerFromCommand, AnswerSheet = ShowAnswerSheetFromCommand, AssistantAskScheduled = AskScheduledFromEvent, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand, AssistantChatter = ChatWindowFromCommand, AssistantToolUser = UseToolFromCommandAsync, Dictator = mode => _ = Voice.DictateAsync(mode) };
         Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
+        CreateCalendar();
+        Events.Calendar = Calendar;
+        Engine.Calendar = Calendar;
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.History = Engine.History;
@@ -351,6 +354,7 @@ public partial class App : Application
 
         // Startup feedback and the «Al iniciar K-Desktop» events; a restart after an update is not a new start.
         Events.Start(afterUpdate: UpdatedFrom is not null);
+        StartCalendar();
         var s = Config.Settings;
         if (UpdatedFrom is null)
         {
@@ -830,6 +834,7 @@ public partial class App : Application
         StopAssistant();
         SaveAssistantPanels();
         Events?.Dispose();
+        Calendar?.Dispose();
         ClipboardUi?.Dispose();
         Router.Dispose();
         _zoneSnapper?.Dispose();

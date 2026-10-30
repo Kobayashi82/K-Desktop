@@ -12,7 +12,7 @@ namespace KDesktop.Core.Engine.Events;
 /// threads. «Al iniciar / Al salir de K-Desktop» are not here: <see cref="CommandEngine.RunStartupCommandsAsync"/> and
 /// <see cref="CommandEngine.RunExitCommandsAsync"/> run them at those moments.
 /// </summary>
-public sealed class EventService : IDisposable
+public sealed partial class EventService : IDisposable
 {
     private static readonly TimeSpan ProcessPoll = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan IdlePoll = TimeSpan.FromSeconds(5), IdlePollActive = TimeSpan.FromSeconds(1);

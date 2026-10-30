@@ -1,0 +1,49 @@
+<UserControl x:Class="KDesktop.Views.Pages.AgendaPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization"
+             AllowDrop="True" Drop="OnDrop" DragOver="OnDragOver">
+    <!-- «Agenda»: the citas of every calendar by days (the own one, the .ics subscriptions and the accounts), to see,
+         create, change and delete them without the assistant. The rows are made in code. -->
+    <DockPanel Margin="24,12,24,16">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.agenda}" />
+                    <Border Margin="10,6,0,0" Padding="8,1" CornerRadius="10" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
+                        <TextBlock x:Name="CountText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <ui:Button x:Name="SyncButton" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr agenda.sync}" AutomationProperties.Name="{l:Tr agenda.sync}" Click="OnSync" Margin="0,0,6,0" />
+                    <ui:Button Icon="{ui:SymbolIcon ArrowImport24}" ToolTip="{l:Tr agenda.import}" AutomationProperties.Name="{l:Tr agenda.import}" Click="OnImport" Margin="0,0,6,0" />
+                    <ui:Button x:Name="ExportButton" Icon="{ui:SymbolIcon ArrowExport24}" ToolTip="{l:Tr agenda.export}" AutomationProperties.Name="{l:Tr agenda.export}" Click="OnExport" Margin="0,0,6,0" />
+                    <ui:Button Icon="{ui:SymbolIcon Settings24}" ToolTip="{l:Tr agenda.options}" AutomationProperties.Name="{l:Tr agenda.options}" Click="OnOptions" Margin="0,0,6,0" />
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon CalendarAdd24}" Content="{l:Tr agenda.new}" Click="OnNew" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr agenda.hint}" />
+            <ui:TextBox x:Name="SearchBox" Margin="0,0,0,8" PlaceholderText="{l:Tr agenda.search}" Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True"
+                        TextChanged="OnSearchChanged" />
+            <!-- One button per calendar, in its colour: shown or hidden in the agenda -->
+            <WrapPanel x:Name="CalendarChips" Margin="0,0,0,8" />
+            <StackPanel x:Name="Problems" />
+        </StackPanel>
+
+        <Grid>
+            <ScrollViewer x:Name="Scroll" VerticalScrollBarVisibility="Auto" Padding="0,0,14,0">
+                <StackPanel>
+                    <ui:Button x:Name="EarlierButton" HorizontalAlignment="Center" Margin="0,0,0,8" Icon="{ui:SymbolIcon ArrowUp24}" Content="{l:Tr agenda.earlier}" Click="OnEarlier" />
+                    <StackPanel x:Name="Rows" />
+                    <ui:Button x:Name="LaterButton" HorizontalAlignment="Center" Margin="0,8,0,0" Icon="{ui:SymbolIcon ArrowDown24}" Content="{l:Tr agenda.later}" Click="OnLater" />
+                </StackPanel>
+            </ScrollViewer>
+            <StackPanel x:Name="Empty" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False">
+                <ui:SymbolIcon Symbol="CalendarLtr24" FontSize="48" Foreground="{DynamicResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                <TextBlock x:Name="EmptyText" Margin="0,12,0,0" FontSize="15" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{l:Tr agenda.empty}" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>
