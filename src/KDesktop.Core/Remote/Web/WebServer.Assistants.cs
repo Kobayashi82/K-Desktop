@@ -28,6 +28,7 @@ public sealed partial class WebServer
         assistants.Changed += () => Broadcast("assistants");
         assistants.Line += (id, line) => Broadcast("chat", new { assistant = id, line });
         assistants.Speech += OnSpeech;
+        assistants.Did += (id, did) => Broadcast("did", new { assistant = id, did });
     }
 
     private void OnSpeech(WebSpeech speech)
@@ -102,7 +103,8 @@ public sealed partial class WebServer
                 break;
             case ("GET", "/api/assistants/chat"):
                 var id = context.Request.QueryString["id"] ?? string.Empty;
-                await WriteJsonAsync(response, new { lines = _host.Invoke(() => assistants.Chat(id)) }).ConfigureAwait(false);
+                var (lines, did) = _host.Invoke(() => (assistants.Chat(id), assistants.Activity(id)));
+                await WriteJsonAsync(response, new { lines, did }).ConfigureAwait(false);
                 break;
             case ("GET", "/api/assistants/audio"):
                 await SpeechAudioAsync(context, device).ConfigureAwait(false);

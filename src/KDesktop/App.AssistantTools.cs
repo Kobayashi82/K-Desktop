@@ -41,6 +41,9 @@ public partial class App
     /// <summary>Raised (UI thread) when the activity changes.</summary>
     public event Action? AssistantActivityChanged;
 
+    /// <summary>One more line of the activity (the phone shows it under the answer).</summary>
+    internal event Action<ActivityItem>? AssistantDid;
+
     /// <summary>The activity, newest first.</summary>
     public IReadOnlyList<ActivityItem> AssistantActivity => [.. Activity().AsEnumerable().Reverse()];
 
@@ -137,10 +140,12 @@ public partial class App
     {
         var activity = Activity();
         if (log.Entry.Undid is { } undid && activity.FirstOrDefault(a => a.Entry.Undo == undid) is { } original) original.Undone = true;
-        activity.Add(new ActivityItem(log.Entry, log.Assistant));
+        var item = new ActivityItem(log.Entry, log.Assistant);
+        activity.Add(item);
         if (activity.Count > KeptActivity) activity.RemoveRange(0, activity.Count - KeptActivity);
         SaveActivity();
         AssistantActivityChanged?.Invoke();
+        AssistantDid?.Invoke(item);
     }
 
     /// <summary>Panel → Assistant → Activity → «Undo».</summary>

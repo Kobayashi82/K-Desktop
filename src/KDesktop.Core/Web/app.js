@@ -3,7 +3,7 @@
 import { searchKey, tokens, score } from './fuzzy.js';
 import { setupPad, padActive, padTexts, padSettings } from './pad.js';
 import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
-import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, chatAsked, chatTexts } from './chat.js';
+import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, onDid, chatAsked, chatTexts } from './chat.js';
 import { setupInbox, fetchInbox } from './inbox.js';
 import { setupMedia, mediaActive, onMediaEvent, renderApps } from './media.js';
 import { setupSpeech, speakWhere, speechSettings, onSpeech, onSpeechEnd, stopSpeech } from './speech.js';
@@ -1420,6 +1420,9 @@ function startEvents() {
   });
   events.addEventListener('catalog', () => loadCatalog());
   events.addEventListener('media', () => onMediaEvent());
+  events.addEventListener('did', e => {
+    try { onDid(JSON.parse(e.data)); } catch { /* not for us */ }
+  });
   events.addEventListener('speech', e => {
     try { onSpeech(JSON.parse(e.data)); } catch { /* not for us */ }
   });

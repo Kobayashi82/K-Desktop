@@ -822,3 +822,19 @@ body.pad-full .keys { grid-column: 1 / 3; grid-row: 3; }
   .view[data-view="audio"].active > .volume-card { grid-column: 2; grid-row: 1 / span 4; position: sticky; top: 76px; }
   .view[data-view="audio"].active > .now-card { margin-bottom: 0; }
 }
+
+/* ── the chat: the assistant's picture by its answers, and what it did as chips ── */
+
+.chat-row { align-self: flex-start; display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+.chat-row .bubble { max-width: min(78vw, 560px); }
+.chat-avatar { flex: none; width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
+.chat-avatar:not(:empty) { background: var(--accent-soft); }
+.chat-avatar img { width: 24px; height: 24px; object-fit: contain; }
+.did { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.did-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600;
+  background: var(--accent-soft); color: var(--accent-text); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.did-chip::before { content: "✓"; font-weight: 800; }
+.did-chip.failed { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+.did-chip.failed::before { content: "✕"; }

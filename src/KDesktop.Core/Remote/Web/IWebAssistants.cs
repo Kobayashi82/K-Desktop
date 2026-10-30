@@ -14,6 +14,9 @@ public sealed record WebChatLine(string Role, string Turn, string Text, bool Fin
 /// A piece of an answer's voice for the phone that asked (16-bit mono PCM at <paramref name="Rate"/>), or, with
 /// <paramref name="End"/>, the end of that turn's voice (<paramref name="Stopped"/>: cut).
 /// </summary>
+/// <summary>Something an assistant did (Panel → Assistant → Activity), in words for people: a chip under its answer.</summary>
+public sealed record WebDid(string Text, bool Ok, DateTimeOffset At);
+
 public sealed record WebSpeech(string Device, string Assistant, string Turn, int Index, int Rate, byte[]? Pcm, bool End = false, bool Stopped = false);
 
 /// <summary>
@@ -32,6 +35,9 @@ public interface IWebAssistants
     /// <summary>The conversation with one this session, oldest first.</summary>
     IReadOnlyList<WebChatLine> Chat(string id);
 
+    /// <summary>What it did lately (its activity), oldest first.</summary>
+    IReadOnlyList<WebDid> Activity(string id);
+
     /// <summary>Sends it an order as written on the phone: null when it went, else why not (<c>notActive</c>, <c>notRunning</c>).</summary>
     /// <param name="device">The phone that wrote it: its answer's voice goes there with <paramref name="speak"/>
     /// (<c>phone</c> or <c>both</c>; null: on the PC).</param>
@@ -48,6 +54,9 @@ public interface IWebAssistants
 
     /// <summary>A line of a conversation is new or grew (null: the conversation was cleared).</summary>
     event Action<string, WebChatLine?>? Line;
+
+    /// <summary>It did something (UI thread).</summary>
+    event Action<string, WebDid>? Did;
 
     /// <summary>The voice of an answer for the phone that asked (any thread).</summary>
     event Action<WebSpeech>? Speech;

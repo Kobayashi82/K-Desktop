@@ -26,7 +26,20 @@ internal sealed class WebAssistants : IWebAssistants
         app.AssistantChanged += () => Changed?.Invoke();
         app.AssistantChatChanged += id => Line?.Invoke(id, app.AssistantChat(id) is { Count: > 0 } chat ? LineOf(chat[^1]) : null);
         app.AssistantSpeech += OnSpeech;
+        app.AssistantDid += item =>
+        {
+            if (DidOf(item) is { } did) Did?.Invoke(App.FromProcess(item.Assistant), did);
+        };
     }
+
+    public event Action<string, WebDid>? Did;
+
+    /// <summary>Its last 60 lines of activity, oldest first.</summary>
+    public IReadOnlyList<WebDid> Activity(string id) =>
+        [.. _app.AssistantActivity.Where(item => App.IsActivityOf(item, id)).Take(60).Select(DidOf).OfType<WebDid>().Reverse()];
+
+    private static WebDid? DidOf(ActivityItem item) =>
+        string.IsNullOrWhiteSpace(item.Entry.Did) ? null : new WebDid(item.Entry.Did.Trim(), item.Entry.Ok, item.Entry.At);
 
     public event Action<WebSpeech>? Speech;
 

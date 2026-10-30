@@ -9,6 +9,7 @@ const c = {
   list: [],
   id: null,            // the chosen assistant
   chats: new Map(),    // id → lines [{ role, turn, text, final, at }]
+  did: new Map(),      // id → what it did [{ text, ok, at }]: chips under the answer of that moment
   loaded: new Set(),   // conversations read from the PC (the rest only have what came by events)
   asked: new Map(),    // id → when this phone last asked it something
   sending: false,
@@ -94,6 +95,34 @@ export function onAssistants() {
   }, 250);
 }
 
+/** Event "did": it did something (opened a program, set the volume…): a chip under its answer. */
+export function onDid(data) {
+  const id = data?.assistant;
+  if (!id || !data.did) return;
+  const list = c.did.get(id) ?? [];
+  list.push(data.did);
+  if (list.length > 60) list.splice(0, list.length - 60);
+  c.did.set(id, list);
+  if (c.active && id === c.id) render();
+}
+
+/** Each answer gets what was done between the order before it and the next one. */
+function attach(lines, did) {
+  let from = -Infinity;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (l.role === 'user') {
+      from = Date.parse(l.at);
+      continue;
+    }
+    const next = lines.slice(i + 1).find(x => x.role === 'user');
+    const until = next ? Date.parse(next.at) : Infinity;
+    // Several answers to one order: only the last one shows them.
+    const later = lines.slice(i + 1).find(x => x.role !== 'user' || x === next);
+    l.did = later && later.role !== 'user' ? [] : did.filter(d => Date.parse(d.at) >= from - 1000 && Date.parse(d.at) < until);
+  }
+}
+
 /** Event "chat": a line is new or grew; null = the conversation was cleared. */
 export function onChatLine(data) {
   const id = data?.assistant;
@@ -152,6 +181,7 @@ async function loadChat(id) {
   try {
     const r = await ctx.api('assistants/chat?id=' + encodeURIComponent(id));
     c.chats.set(id, r.lines ?? []);
+    c.did.set(id, r.did ?? []);
     c.loaded.add(id);
   } catch { /* keep what came by events */ }
   if (id === c.id) render();
@@ -206,12 +236,13 @@ function render(line) {
   list.hidden = lines.length === 0;
   if (!lines.length) empty.textContent = ctx.t('pwa.chat.empty', assistant.name);
 
+  attach(lines, c.did.get(c.id) ?? []);
   const existing = line && list.querySelector(`[data-key="${CSS.escape(keyOf(line))}"]`);
   if (existing) fill(existing, line);
   else {
     list.replaceChildren();
     let day = '';
-    for (const l of lines) {
+    lines.forEach((l, index) => {
       const d = new Date(l.at).toLocaleDateString(ctx.lang());
       if (d !== day) {
         day = d;
@@ -223,8 +254,23 @@ function render(line) {
       const b = document.createElement('div');
       b.dataset.key = keyOf(l);
       fill(b, l);
-      list.append(b);
-    }
+      if (l.role === 'user') list.append(b);
+      else {
+        // Its picture by the last of its answers in a row, like a chat app.
+        const row = document.createElement('div');
+        row.className = 'chat-row';
+        const avatar = document.createElement('span');
+        avatar.className = 'chat-avatar';
+        if (lines[index + 1]?.role !== 'assistant' && assistant.icon) {
+          const img = new Image();
+          img.alt = '';
+          img.src = 'api/icon/' + assistant.icon + '.png';
+          avatar.append(img);
+        }
+        row.append(avatar, b);
+        list.append(row);
+      }
+    });
   }
   if (near || !line) list.scrollTop = list.scrollHeight;
   updateBar();
@@ -301,6 +347,17 @@ function fill(b, l) {
     body.className = 'md';
     body.innerHTML = markdown(l.written);
     b.append(body);
+  }
+  if (l.did?.length) {
+    const chips = document.createElement('div');
+    chips.className = 'did';
+    for (const d of l.did) {
+      const chip = document.createElement('span');
+      chip.className = 'did-chip' + (d.ok ? '' : ' failed');
+      chip.textContent = d.text;
+      chips.append(chip);
+    }
+    b.append(chips);
   }
   if (l.final) {
     const time = document.createElement('small');

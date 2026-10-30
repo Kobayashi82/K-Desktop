@@ -35,6 +35,7 @@ public sealed class WebServerTests : IDisposable
         public bool Enabled => true;
         public IReadOnlyList<WebAssistantInfo> List() => [new WebAssistantInfo("kobii", "Kobii", false, null)];
         public IReadOnlyList<WebChatLine> Chat(string id) => [];
+        public IReadOnlyList<WebDid> Activity(string id) => [new WebDid("Abrió Spotify", true, DateTimeOffset.Now)];
         public string? Send(string id, string text, string? device = null, string? speak = null)
         {
             Sent.Add((id, text, device, speak));
@@ -45,11 +46,13 @@ public sealed class WebServerTests : IDisposable
         public event Action? Changed;
         public event Action<string, WebChatLine?>? Line;
         public event Action<WebSpeech>? Speech;
+        public event Action<string, WebDid>? Did;
         public void Say(WebSpeech speech) => Speech?.Invoke(speech);
         public void Quiet()
         {
             Changed?.Invoke();
             Line?.Invoke("kobii", null);
+            Did?.Invoke("kobii", new WebDid("", true, DateTimeOffset.Now));
         }
     }
 
@@ -252,6 +255,8 @@ public sealed class WebServerTests : IDisposable
         using (var said = await _http.SendAsync(Request(HttpMethod.Post, "api/assistants/say", asker, new { id = "kobii", text = "hola", speak = "phone" })))
             Assert.Equal(HttpStatusCode.OK, said.StatusCode);
         Assert.Equal(("kobii", "hola", askerId, "phone"), _assistants.Sent.Single());
+        var chat = await ReadAsync(await _http.SendAsync(Request(HttpMethod.Get, "api/assistants/chat?id=kobii", asker)));
+        Assert.Equal("Abrió Spotify", chat.GetProperty("did")[0].GetProperty("text").GetString());
 
         using var events = await OpenEventsAsync(asker);
         await Task.Delay(200);
