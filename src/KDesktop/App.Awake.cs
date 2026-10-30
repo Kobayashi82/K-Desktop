@@ -33,8 +33,8 @@ public partial class App
             menu.Items.Add(more);
             menu.Items.Add(TrayItem(Loc.T("tray.awakeStop"), (_, _) => Engine.Awake.Stop()));
             _awakeTray = new TaskbarIcon { ContextMenu = menu, NoLeftClickDelay = true, MenuActivation = H.NotifyIcon.Core.PopupActivationMode.LeftOrRightClick };
-            // Its own id (another icon of the same exe), per data folder like the main one.
-            _awakeTray.CustomName = "KDesktopAwake" + Core.AppPaths.InstanceSuffix;
+            // Its own id (another icon of the same exe); with another data folder, one fixed name, like the main one.
+            _awakeTray.CustomName = Core.AppPaths.InstanceSuffix.Length > 0 ? "KDesktopAwakeData" : "KDesktopAwake";
             if (TrayIcons.Custom("kd:DrinkCoffee24:orange") is { } cup) _awakeTray.Icon = cup;
             else _awakeTray.IconSource = TrayIcons.Default();
             try { _awakeTray.ForceCreate(false); }

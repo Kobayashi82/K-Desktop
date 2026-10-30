@@ -690,9 +690,10 @@ public partial class App : Application
             ContextMenu = menu,
             NoLeftClickDelay = true,
         };
-        // The icon's id comes from the name; Windows ties it to the exe path, so another data folder run from the same
-        // exe needs its own (or its icon cannot be added).
-        if (AppPaths.InstanceSuffix.Length > 0) _tray.CustomName = "KDesktop" + AppPaths.InstanceSuffix;
+        // The icon's id comes from the name; Windows ties it to the exe path, so a run with another data folder needs a
+        // name of its own (or its icon cannot be added). Always the same one (5.0.432): one per data folder left Windows
+        // a new entry in «Otros iconos de la bandeja» for every test folder. Two such runs at once: the second has no icon.
+        if (AppPaths.InstanceSuffix.Length > 0) _tray.CustomName = "KDesktopData";
         _tray.TrayLeftMouseUp += (_, _) => ShowMainWindow();
         _appliedTrayIcon = null;
         ApplyTrayIcon();
