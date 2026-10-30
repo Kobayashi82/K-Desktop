@@ -5851,5 +5851,7 @@
   "accounts.error.noRefresh": "Der Server hat keine dauerhafte Berechtigung erteilt; versuche es erneut.",
   "accounts.error.otherPc": "die Berechtigung wurde auf einem anderen PC oder Benutzer gespeichert",
   "accounts.error.noGoogleApp": "Gib zuerst deine Google-Client-ID unter Optionen › Konten › Anwendungen ein.",
-  "accounts.error.noMicrosoftApp": "Gib zuerst die ID deiner Microsoft-Anwendung unter Optionen › Konten › Anwendungen ein."
+  "accounts.error.noMicrosoftApp": "Gib zuerst die ID deiner Microsoft-Anwendung unter Optionen › Konten › Anwendungen ein.",
+
+  "pwa.tab.agenda": "Kalender"
 }

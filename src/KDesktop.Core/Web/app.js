@@ -5,6 +5,7 @@ import { setupPad, padActive, padTexts, padSettings } from './pad.js';
 import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
 import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, onDid, chatAsked, chatTexts, chatTalk } from './chat.js';
 import { setupInbox, fetchInbox } from './inbox.js';
+import { setupAgenda, agendaActive, onCalendarEvent } from './agenda.js';
 import { setupMedia, mediaActive, onMediaEvent, renderApps } from './media.js';
 import { setupSpeech, speakWhere, speechSettings, onSpeech, onSpeechEnd, stopSpeech } from './speech.js';
 
@@ -63,6 +64,8 @@ const ICONS = {
   speakerOff: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
   minus: '<path d="M6 12h12"/>',
   plus: '<path d="M12 6v12M6 12h12"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  video: '<rect x="3" y="6.5" width="12.5" height="11" rx="2.5"/><path d="M15.5 11l5-3v8l-5-3"/>',
   previous: '<path d="M7 6v12"/><path d="M18 6l-8 6 8 6z"/>',
   next: '<path d="M17 6v12"/><path d="M6 6l8 6-8 6z"/>',
   playPause: '<path d="M4.5 6l7 6-7 6z"/><path d="M15 6v12M19.5 6v12"/>',
@@ -252,13 +255,13 @@ function movePill(pill, target) {
 // ── tabs ───────────────────────────────────────────────────────────
 
 /** The tab bar (five at most: the assistant only with the module on). Settings is a page of its own, from the header. */
-const TABS = ['all', 'menus', 'pad', 'audio', 'assistant'];
+const TABS = ['all', 'menus', 'pad', 'audio', 'agenda', 'assistant'];
 
 /** The assistant tab only while the module is on. */
 function showAssistantTab(on) {
   const button = $('tabbar').querySelector('[data-tab="assistant"]');
   button.hidden = !on;
-  $('tabbar').style.setProperty('--tabs', on ? 5 : 4);
+  $('tabbar').style.setProperty('--tabs', on ? 6 : 5);
   if (!on && state.tab === 'assistant') setTab('all');
   else requestAnimationFrame(() => movePill($('tabPill'), $('tabbar').querySelector('button.active')));
 }
@@ -287,6 +290,7 @@ function showView(view, back = false) {
   mediaActive(view === 'audio');
   padActive(view === 'pad', state.session?.input !== false);
   chatActive(view === 'assistant');
+  agendaActive(view === 'agenda');
 }
 
 function setTab(tab) {
@@ -1442,6 +1446,7 @@ function startEvents() {
     try { onSpeechEnd(JSON.parse(e.data)); } catch { /* not for us */ }
   });
   events.addEventListener('inbox', () => fetchInbox());
+  events.addEventListener('calendar', () => onCalendarEvent());
   events.addEventListener('session', () => loadSession());
   events.addEventListener('assistants', () => onAssistants());
   events.addEventListener('chat', e => {
@@ -1824,6 +1829,7 @@ function wire() {
   setupPad({ t, store, pcStore, svg, toast, openSheet, online: setOnline, onUnpaired: () => showPair() });
   setupVoice({ t, toast, post: postBinary, updateApp, speak: () => speakWhere() });
   setupInbox({ $, el, svg, t, api, store, toast, lang: () => state.texts?.lang ?? navigator.language });
+  setupAgenda({ $, el, svg, t, api, store, toast, openSheet, lang: () => state.texts?.lang ?? navigator.language });
   setupSpeech({
     t, store,
     local: () => !!state.session?.local,

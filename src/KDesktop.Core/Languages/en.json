@@ -5851,5 +5851,7 @@
   "accounts.error.noRefresh": "The server didn’t give a lasting permission; try again.",
   "accounts.error.otherPc": "the permission was saved on another PC or user",
   "accounts.error.noGoogleApp": "First enter your Google Client ID in Options › Accounts › Applications.",
-  "accounts.error.noMicrosoftApp": "First enter your Microsoft application ID in Options › Accounts › Applications."
+  "accounts.error.noMicrosoftApp": "First enter your Microsoft application ID in Options › Accounts › Applications.",
+
+  "pwa.tab.agenda": "Agenda"
 }

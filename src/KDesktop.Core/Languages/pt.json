@@ -5851,5 +5851,7 @@
   "accounts.error.noRefresh": "O servidor não deu uma autorização duradoura; tenta outra vez.",
   "accounts.error.otherPc": "a autorização foi guardada noutro PC ou utilizador",
   "accounts.error.noGoogleApp": "Põe antes o teu Client ID do Google em Opções › Contas › Aplicações.",
-  "accounts.error.noMicrosoftApp": "Põe antes o ID da tua aplicação Microsoft em Opções › Contas › Aplicações."
+  "accounts.error.noMicrosoftApp": "Põe antes o ID da tua aplicação Microsoft em Opções › Contas › Aplicações.",
+
+  "pwa.tab.agenda": "Agenda"
 }

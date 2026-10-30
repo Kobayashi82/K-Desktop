@@ -40,6 +40,8 @@ public partial class App
 
     private void StartCalendar()
     {
+        Web.Calendar = Calendar;
+        Calendar.Changed += () => Web?.NotifyCalendarChanged();
         try
         {
             Calendar.Start();

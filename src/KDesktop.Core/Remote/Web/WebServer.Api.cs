@@ -59,6 +59,7 @@ public sealed partial class WebServer
         }
         if (await AssistantsAsync(request, context, device).ConfigureAwait(false)) return;
         if (await InboxAsync(request, context, device).ConfigureAwait(false)) return;
+        if (await CalendarAsync(request, context).ConfigureAwait(false)) return;
 
         switch (request.Method, request.Path)
         {
@@ -264,7 +265,8 @@ public sealed partial class WebServer
         {
             lang = code,
             languages = available.Select(l => new { l.Code, l.Name }),
-            strings = Loc.Strings(code, "pwa."),
+            // The agenda (calendar, phase 9) shares the texts of the PC's.
+            strings = new[] { "pwa.", "agenda.", "calendar.", "common." }.SelectMany(prefix => Loc.Strings(code, prefix)).ToDictionary(p => p.Key, p => p.Value),
         };
     }
 

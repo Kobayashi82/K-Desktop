@@ -198,6 +198,14 @@
       </section>
 
       <!-- The assistants: the same conversations as Panel → Assistant on the PC; write or talk to one -->
+      <section class="view" data-view="agenda">
+        <div class="agenda-actions">
+          <button class="btn small primary" id="agendaNew"><span data-icon="plus"></span><span data-i18n="agenda.new"></span></button>
+        </div>
+        <p class="muted center" id="agendaEmpty" data-i18n="agenda.empty" hidden></p>
+        <div id="agendaList"></div>
+        <button class="btn wide" id="agendaMore" data-i18n="agenda.later"></button>
+      </section>
       <section class="view chat-view" data-view="assistant">
         <nav class="chips assistant-chips" id="assistantChips"></nav>
         <div class="chat" id="chatList" aria-live="polite"></div>
@@ -372,6 +380,7 @@
       <button data-tab="menus"><span data-icon="menus"></span><b data-i18n="pwa.tab.menus"></b></button>
       <button data-tab="pad"><span data-icon="touchpad"></span><b data-i18n="pwa.tab.pad"></b></button>
       <button data-tab="audio"><span data-icon="speaker"></span><b data-i18n="pwa.tab.audio"></b></button>
+      <button data-tab="agenda"><span data-icon="calendar"></span><b data-i18n="pwa.tab.agenda"></b></button>
       <button data-tab="assistant" hidden><span data-icon="chat"></span><b data-i18n="pwa.tab.assistant"></b></button>
     </nav>
   </div>

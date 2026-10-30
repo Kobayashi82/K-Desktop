@@ -5851,5 +5851,7 @@
   "accounts.error.noRefresh": "Le serveur n’a pas donné d’autorisation durable ; réessayez.",
   "accounts.error.otherPc": "l’autorisation a été enregistrée sur un autre PC ou utilisateur",
   "accounts.error.noGoogleApp": "Indiquez d’abord votre Client ID Google dans Options › Comptes › Applications.",
-  "accounts.error.noMicrosoftApp": "Indiquez d’abord l’ID de votre application Microsoft dans Options › Comptes › Applications."
+  "accounts.error.noMicrosoftApp": "Indiquez d’abord l’ID de votre application Microsoft dans Options › Comptes › Applications.",
+
+  "pwa.tab.agenda": "Agenda"
 }

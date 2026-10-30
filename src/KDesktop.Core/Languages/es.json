@@ -5851,5 +5851,7 @@
   "accounts.error.noRefresh": "El servidor no ha dado un permiso duradero; vuelve a intentarlo.",
   "accounts.error.otherPc": "el permiso se guardó en otro PC o con otro usuario",
   "accounts.error.noGoogleApp": "Pon antes tu Client ID de Google en Opciones › Cuentas › Aplicaciones.",
-  "accounts.error.noMicrosoftApp": "Pon antes el Id. de tu aplicación de Microsoft en Opciones › Cuentas › Aplicaciones."
+  "accounts.error.noMicrosoftApp": "Pon antes el Id. de tu aplicación de Microsoft en Opciones › Cuentas › Aplicaciones.",
+
+  "pwa.tab.agenda": "Agenda"
 }
