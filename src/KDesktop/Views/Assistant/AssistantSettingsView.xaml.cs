@@ -30,7 +30,6 @@ public partial class AssistantSettingsView : UserControl
             _app.AssistantChanged += UpdateLive;
             _app.AssistantPanelChanged += OnPanelChanged;
             UpdateLive();
-            FitWidth();
         };
         Unloaded += (_, _) =>
         {
@@ -39,31 +38,6 @@ public partial class AssistantSettingsView : UserControl
             _model?.Flush();
             PersonalView.Flush();
         };
-    }
-
-    private ScrollViewer? _page;
-
-    /// <summary>
-    /// As wide as the page lets it, up to the most of the sections (they are as wide as their content): the same on every tab,
-    /// and never wider than the window (it used to be 720 at least, and in a narrow window its right side was cut).
-    /// </summary>
-    private void FitWidth()
-    {
-        if (_page is not null) return;
-        DependencyObject? at = this;
-        while (at is not null and not ScrollViewer) at = System.Windows.Media.VisualTreeHelper.GetParent(at);
-        if (at is not ScrollViewer page || page.Content is not FrameworkElement content) return;
-        _page = page;
-        void Fit()
-        {
-            if (!content.IsAncestorOf(this)) return;
-            var most = double.IsInfinity(content.MaxWidth) ? double.MaxValue : content.MaxWidth;
-            var left = TransformToAncestor(content).Transform(new Point(0, 0)).X;
-            Width = Math.Max(0, Math.Min(most, page.ViewportWidth) - left);
-        }
-        page.SizeChanged += (_, _) => Fit();
-        page.ScrollChanged += (_, e) => { if (e.OriginalSource == page && e.ViewportWidthChange != 0) Fit(); };
-        Fit();
     }
 
     /// <summary>«Back» was pressed: the list shows again.</summary>

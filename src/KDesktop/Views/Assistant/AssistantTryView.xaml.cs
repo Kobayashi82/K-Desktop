@@ -144,7 +144,8 @@ public partial class AssistantTryView : UserControl
                 return;
             }
             var at = TransformToAncestor(content).Transform(new Point(0, 0));
-            var most = double.IsInfinity(content.MaxWidth) ? double.MaxValue : content.MaxWidth;
+            // The sections of Opciones have their width set (up to 980); otherwise, the most they may take.
+            var most = !double.IsNaN(content.Width) ? content.Width : double.IsInfinity(content.MaxWidth) ? double.MaxValue : content.MaxWidth;
             Width = Math.Max(0, Math.Min(most, _page.ViewportWidth) - at.X);
             if (_picture is null) return;
             Narrow(Width);

@@ -90,6 +90,29 @@ En PowerShell, cargar las rutas para usar las funciones (`Get-DemoPid`, `Send-De
 6. Cerrar todo: `Send-Demo --exit`, `.\desk.ps1 -Stop`, y `.\cleanup.ps1` (borra la carpeta de trabajo, `Documents\Manuals`,
    `Documents\MCP` y `E:\AI Models`; los enlaces duros no tocan los modelos).
 
+## Tanda del 30/10/2026 (portable 5.0.451, inglés)
+
+La tanda en español se hará más adelante con los mismos pasos; en ella las páginas del navegador de las capturas del
+escritorio (QuickMenu, lanzador, portapapeles) siguen en inglés. Fuera de las dos: la app/web del móvil y los
+asistentes en el escritorio.
+
+- Tras el primer arranque (la demo apunta los monitores en `knownMonitors`): `Send-Demo --exit`,
+  `node addarrangements.js $Data $Lang` y `.\run.ps1` otra vez, para tener Disposiciones. `mkdemo.js` ya trae Textos,
+  la Agenda (citas alrededor de hoy) y Telegram (bot apagado, con dueño, contactos, un pendiente y un grupo).
+- Instalar Lander, Kobii y Kumo desmarcando el atajo y «Put it on the desktop»; la casilla de grabar la palabra de Kumo
+  abre el asistente de la palabra: cerrarlo.
+- Páginas con `cap.ps1` (lista en la conversación del 30/10: commands, events, agenda, agenda-month (`ui.ps1 -Name Month`),
+  quickmenu-editor, kboard, macros, snippets, arrangements (`ui.ps1 -Name M34G5Q -Type RadioButton -Select`), history,
+  achievements, stats, settings-*, accounts*, telegram-*, settings-mail, settings-calendars, assistant-*, brain, voice-*,
+  memory, notes, knowledge, tools*, lander-settings, lander-try, assistant-panel).
+- Una acción se edita en su propia fila: `ui.ps1 -Name KDesktop.Core.Model.WindowAction -Type ListItem -Select`.
+- **Lo que abre una ventana modal** (guías, «Add word», «Add model»): `.\modal.ps1 -Name '…' -Type Button|Hyperlink`
+  (pulsa sin esperar) y `.\modal.ps1 -CloseOthers` para cerrarla. Con `ui.ps1` el Invoke se queda esperando a que se
+  cierre la modal y todo se para.
+- Campos y desplegables sin nombre: buscarlos por su posición en pantalla (escribir con ValuePattern o desplegar con
+  ExpandCollapsePattern en el elemento que contiene el punto).
+- El portapapeles se llena con `Set-Clipboard` (también entra en el historial del K-Desktop real).
+
 ## Trampas vistas
 
 - PowerShell no distingue mayúsculas: `$c` pisa a `$C`, `$s` a `$S`.

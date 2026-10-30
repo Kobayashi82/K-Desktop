@@ -168,6 +168,19 @@ const events = [
   ev(T('CPU above 90%', 'CPU por encima del 90 %'), 'kd:Gauge24:red', { type: 'load', resource: 'cpu', comparison: 'above', percent: 90, seconds: 120 }, ['landerHi'], { enabled: false }),
 ];
 
+// Textos: abbreviations that become text (typed after «;»)
+const snippet = (abbreviation, text, extra = {}) => ({ id: id(), abbreviation, text, enabled: true, created: '2026-10-12T10:00:00', processes: [], ...extra });
+const snippets = [
+  snippet('addr', T('42 Baker Street\nLondon NW1 6XE', 'Calle Mayor 42, 3.º B\n28013 Madrid')),
+  snippet('mail', 'alex.morgan@example.com'),
+  snippet('thx', T('Thanks a lot, I\'ll get back to you as soon as I can.', 'Muchas gracias, te contesto en cuanto pueda.')),
+  snippet('meet', T('Hi! Shall we have a quick call tomorrow at 10:00? Here is the link: https://meet.example.com/alex', '¡Hola! ¿Hacemos una llamada rápida mañana a las 10:00? Este es el enlace: https://meet.example.com/alex'),
+    { notes: T('For setting up calls with clients.', 'Para quedar en llamadas con clientes.') }),
+  snippet('sig', T('Best regards,\nAlex Morgan\nWeb developer', 'Un saludo,\nAlex Morgan\nDesarrollador web')),
+  snippet('log', 'console.log(\'%c\', \'color: orange\');', { processes: ['code'] }),
+  snippet('date', T('Friday, 30 October 2026', 'Viernes, 30 de octubre de 2026'), { enabled: false }),
+];
+
 const settings = {
   language: lang, theme: 'dark', updateMode: 'off', startWithWindows: false, showWindowOnStart: true,
   windowBounds: '-1920,278,1920,1080', windowPage: 'commands', commandsMenuFilter: 'all',
@@ -192,7 +205,61 @@ const settings = {
   assistantTrustedTools: ['living_room_light'],
   kDesktopWakeWords: ['9afe60f69a9f'], assistantWakeWords: { lander: '97495dda6ab0', kobii: '6b9368ae8811' },
 };
-fs.writeFileSync(path.join(data, 'config.json'), JSON.stringify({ schemaVersion: 3, settings, commands, quickMenus, macros, kBoards, events }, null, 2));
+fs.writeFileSync(path.join(data, 'config.json'), JSON.stringify({ schemaVersion: 3, settings, commands, quickMenus, macros, kBoards, events, snippets }, null, 2));
+
+// Agenda: two own calendars with citas around today (whatever the date), so both the list and the month have life
+{
+  const pad = x => String(x).padStart(2, '0');
+  const at = (days, h, m = 0) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + days); d.setHours(h, m);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`; };
+  const hour = new Date().getHours();
+  let e = 0;
+  const cita = (cal, title, start, end, extra = {}) => ({ id: 'demo' + (++e), uid: 'demo' + e + '@k-desktop', sourceId: 'local', calendarId: cal, title, start, end, ...extra });
+  const weekday = d => ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][new Date(Date.now() + d * 864e5).getDay()];
+  const citas = [
+    cita('personal', T('Dentist', 'Dentista'), at(0, Math.max(hour - 1, 0)), at(0, Math.min(hour + 1, 23), 30), { location: T('Smile Clinic', 'Clínica Sonrisa'), reminders: [30] }),
+    cita('personal', T('Buy a birthday present', 'Comprar el regalo de cumpleaños'), at(0, 8), at(0, 8, 30)),
+    cita('work', T('Team stand-up', 'Reunión de equipo'), at(1, 9, 30), at(1, 9, 45), { meetingUrl: 'https://meet.example.com/standup', recurrence: 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR' }),
+    cita('work', T('Client call: Atlas project', 'Llamada con el cliente: proyecto Atlas'), at(1, 12), at(1, 13), { meetingUrl: 'https://meet.example.com/atlas' }),
+    cita('personal', T('Gym', 'Gimnasio'), at(1, 19), at(1, 20), { recurrence: 'FREQ=WEEKLY;BYDAY=' + weekday(1) }),
+    cita('work', T('Atlas release', 'Entrega de Atlas'), at(3, 0), at(4, 0), { allDay: true }),
+    cita('personal', T('Dinner with Sam', 'Cena con Sam'), at(3, 21), at(3, 23), { location: T('The Green Fork', 'La Tagliatella') }),
+    cita('work', T('Code review', 'Revisión de código'), at(3, 16), at(3, 17)),
+    cita('personal', T('Japanese class', 'Clase de japonés'), at(2, 18), at(2, 19), { recurrence: 'FREQ=WEEKLY;BYDAY=' + weekday(2) }),
+    cita('personal', T('Holidays in Lisbon', 'Vacaciones en Lisboa'), at(9, 0), at(14, 0), { allDay: true }),
+    cita('work', T('Quarterly review', 'Revisión trimestral'), at(-2, 16), at(-2, 17)),
+    cita('personal', T('Mum\'s birthday', 'Cumpleaños de mamá'), at(17, 0), at(18, 0), { allDay: true, reminders: [1440] }),
+    cita('work', T('Sprint planning', 'Planificación del sprint'), at(7, 10), at(7, 11, 30)),
+    cita('personal', T('Car service', 'Revisión del coche'), at(11, 9), at(11, 10), { location: T('Main Street Garage', 'Taller Hermanos García') }),
+    cita('personal', T('Concert: Tycho', 'Concierto: Tycho'), at(20, 21), at(20, 23, 30)),
+  ];
+  fs.mkdirSync(path.join(data, 'Calendar'), { recursive: true });
+  fs.writeFileSync(path.join(data, 'Calendar', 'local.json'), JSON.stringify({
+    calendars: [
+      { id: 'personal', sourceId: 'local', name: T('Personal', 'Personal'), color: '#4F8EF7', visible: true },
+      { id: 'work', sourceId: 'local', name: T('Work', 'Trabajo'), color: '#E8A33D', visible: true, defaultReminder: 10 },
+    ],
+    events: citas,
+  }));
+}
+
+// Telegram: the bot switched off (no network, no token) with its owner, contacts and someone waiting, to show the lists
+{
+  const day = d => new Date(Date.now() - d * 864e5).toISOString();
+  const contact = (cid, name, username, level, extra = {}) => ({ id: cid, name, username, level, mayWrite: true, commands: [], tools: [], added: day(20), lastWrote: day(1), ...extra });
+  fs.mkdirSync(path.join(data, 'Telegram'), { recursive: true });
+  fs.writeFileSync(path.join(data, 'Telegram', 'settings.json'), JSON.stringify({
+    bot: { tokenProtected: '', id: 7700112233, name: T('Alex\'s PC', 'El PC de Alex'), username: 'alex_desk_bot', enabled: false },
+    owner: { id: 5511223344, name: 'Alex Morgan', username: 'alexm', linked: day(25) },
+    contacts: [
+      contact(5511000001, 'Sam Rivera', 'samr', 'chatOnly'),
+      contact(5511000002, T('Mum', 'Mamá'), null, 'chosenCommands', { commands: [ids.lights, ids.nas], phone: '+44 7700 900123' }),
+      contact(5511000003, 'Jordan Lee', 'jordanlee', 'readOnlyTools', { lastWrote: day(4) }),
+    ],
+    pending: [{ id: 5511000009, name: 'Chris P.', username: 'chrisp', when: day(0.1), text: T('Hi! Is this Alex\'s bot?', '¡Hola! ¿Es el bot de Alex?') }],
+    groups: [{ id: -1001122334455, title: T('Family', 'Familia'), ignore: false, seen: day(2) }],
+  }, null, 2));
+}
 
 // History: today's runs, spread between 8:30 and a few minutes ago (whatever the time)
 const now = new Date();

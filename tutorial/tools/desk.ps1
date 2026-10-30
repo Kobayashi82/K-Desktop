@@ -9,7 +9,8 @@ if ($Stop) { 'parado'; exit 0 }
 Start-Process powershell -ArgumentList '-NoProfile', '-STA', '-WindowStyle', 'Hidden', '-File', "`"$PSScriptRoot\backdrop.ps1`"" | Out-Null
 Start-Sleep 2
 $edge = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$common = @('--no-first-run', '--no-default-browser-check', '--hide-crash-restore-bubble')
+# Without extensions: the synced ones open their welcome or survey tabs in a new profile.
+$common = @('--no-first-run', '--no-default-browser-check', '--hide-crash-restore-bubble', '--disable-extensions')
 Start-Process $edge -ArgumentList (@("--user-data-dir=`"$Work\edge1`"") + $common + @('--window-position=-1830,340', '--window-size=1120,740', 'https://en.wikipedia.org/wiki/Apollo_Lunar_Module'))
 Start-Sleep 4
 Start-Process $edge -ArgumentList (@("--user-data-dir=`"$Work\edge2`"") + $common + @('--window-position=-800,440', '--window-size=740,600', 'https://news.ycombinator.com'))

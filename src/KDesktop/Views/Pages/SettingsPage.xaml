@@ -278,11 +278,12 @@
         </DockPanel>
 
         <!-- ── The chosen section ────────────────────────────────────── -->
-        <!-- Every section takes the window's width up to 980 (a left-aligned panel would shrink to each section's content) -->
-        <ScrollViewer x:Name="SectionScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,24,24">
-        <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="980" /></Grid.ColumnDefinitions>
-        <StackPanel x:Name="Sections">
+        <!-- Every section takes the window's width up to 980: its Width is set from the viewport in code (OnSectionViewport).
+             A left-aligned panel would shrink to each section's content, and a star column with MaxWidth measured the
+             sections wider than 980 in a wide window and cut the controls on the right of their rows. -->
+        <ScrollViewer x:Name="SectionScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,24,24"
+                      ScrollChanged="OnSectionViewport" SizeChanged="OnSectionViewport" Loaded="OnSectionViewport">
+        <StackPanel x:Name="Sections" HorizontalAlignment="Left">
             <StackPanel.RenderTransform>
                 <TranslateTransform x:Name="SectionShift" />
             </StackPanel.RenderTransform>
@@ -2491,7 +2492,6 @@
             <local:AssistantToolsSection Tag="tools/secrets" Part="tools/secrets" />
             <local:AssistantToolsSection Tag="tools/share" Part="tools/share" />
         </StackPanel>
-        </Grid>
     </ScrollViewer>
     </Grid>
 </UserControl>

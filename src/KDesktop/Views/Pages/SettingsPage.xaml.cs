@@ -154,6 +154,14 @@ public partial class SettingsPage : UserControl
         SectionShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
     }
 
+    /// <summary>The sections take the room there is, up to 980 (on load, on resize and when the scroll bar comes or goes).</summary>
+    private void OnSectionViewport(object sender, EventArgs e)
+    {
+        var room = SectionScroll.ViewportWidth > 0 ? SectionScroll.ViewportWidth : SectionScroll.ActualWidth - SectionScroll.Padding.Right;
+        var width = Math.Min(980, room);
+        if (width > 0 && (double.IsNaN(Sections.Width) || Math.Abs(Sections.Width - width) > 0.5)) Sections.Width = width;
+    }
+
     // ── multimedia ───────────────────────────────────────────────────────
 
     private sealed record StepOption(int Value, string Name);

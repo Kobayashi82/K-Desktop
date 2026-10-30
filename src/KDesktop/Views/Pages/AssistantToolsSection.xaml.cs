@@ -42,7 +42,6 @@ public partial class AssistantToolsSection : UserControl
         InitializeComponent();
         Loaded += (_, _) =>
         {
-            FitWidth();
             _app.AssistantToolsChanged += Refresh;
             _app.AssistantChanged += OnAssistantChanged;
             App.McpServersChanged += Refresh;
@@ -84,25 +83,6 @@ public partial class AssistantToolsSection : UserControl
 
     /// <summary>In alphabetical order, in the user's language.</summary>
     internal static StringComparer Alphabetical => StringComparer.Create(Loc.Instance.Culture, ignoreCase: true);
-
-    private ScrollViewer? _scroll;
-
-    /// <summary>
-    /// As wide as the page lets it (the sections are as wide as their content, up to their most): its pages have short
-    /// texts and each one came out of another width.
-    /// </summary>
-    private void FitWidth()
-    {
-        if (_scroll is not null) return;
-        DependencyObject? at = this;
-        while (at is not null and not ScrollViewer) at = System.Windows.Media.VisualTreeHelper.GetParent(at);
-        if (at is not ScrollViewer scroll || Parent is not FrameworkElement holder) return;
-        _scroll = scroll;
-        void Fit() => Width = Math.Max(0, Math.Min(double.IsInfinity(holder.MaxWidth) ? double.MaxValue : holder.MaxWidth, scroll.ViewportWidth));
-        scroll.SizeChanged += (_, _) => Fit();
-        scroll.ScrollChanged += (_, e) => { if (e.ViewportWidthChange != 0) Fit(); };
-        Fit();
-    }
 
     private void OnAssistantChanged()
     {

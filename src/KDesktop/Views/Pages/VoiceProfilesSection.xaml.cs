@@ -65,7 +65,7 @@ public partial class VoiceProfilesSection : UserControl
             _test.Stop();
             Test();
         };
-        Loaded += (_, _) => FitWidth();
+        Loaded += (_, _) => FindScroll();
         IsVisibleChanged += (_, _) =>
         {
             // Coming to the page: the list.
@@ -78,18 +78,13 @@ public partial class VoiceProfilesSection : UserControl
         };
     }
 
-    /// <summary>As wide as the page lets it (its sliders need the room; the sections are as wide as their content).</summary>
-    private void FitWidth()
+    /// <summary>The page's scroll (to go back to the top). Its width is the sections' own, set by Opciones.</summary>
+    private void FindScroll()
     {
         if (_scroll is not null) return;
         DependencyObject? at = this;
         while (at is not null and not ScrollViewer) at = VisualTreeHelper.GetParent(at);
-        if (at is not ScrollViewer scroll || Parent is not FrameworkElement holder) return;
-        _scroll = scroll;
-        void Fit() => Width = Math.Max(0, Math.Min(double.IsInfinity(holder.MaxWidth) ? double.MaxValue : holder.MaxWidth, scroll.ViewportWidth));
-        scroll.SizeChanged += (_, _) => Fit();
-        scroll.ScrollChanged += (_, e) => { if (e.ViewportWidthChange != 0) Fit(); };
-        Fit();
+        _scroll = at as ScrollViewer;
     }
 
     private bool IsBuiltIn => VoiceProfiles.IsBuiltIn(_draft.Id);
