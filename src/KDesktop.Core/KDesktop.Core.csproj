@@ -31,6 +31,9 @@
     <PackageReference Include="JsonSchema.Net" Version="8.0.5" PrivateAssets="compile" />
     <!-- The mail (Mail/): IMAP with IDLE and SMTP, with XOAUTH2 for Google and Microsoft. MIT (Jeffrey Stedfast). -->
     <PackageReference Include="MailKit" Version="4.18.2" />
+    <!-- Telegram with an account with a phone number (Remote/Telegram/TelegramUserConnection: MTProto). MIT (Wizou).
+         Only Core sees its types (TL.*): the rest of the projects only get its runtime. -->
+    <PackageReference Include="WTelegramClient" Version="4.4.9" PrivateAssets="compile" />
   </ItemGroup>
 
   <!-- Types shared with the assistant process: gestures for the choreography map (Assistant/). -->

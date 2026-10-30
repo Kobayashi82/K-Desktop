@@ -33,8 +33,10 @@ public partial class App
     /// <summary>A message for the assistant (any thread): sent, waited for, and its answer back to the chat.</summary>
     private async Task TalkFromTelegramAsync(TelegramIncoming m, TelegramVerdict v, string text, string? file)
     {
+        // It answers by where it was written to: the bot or the account (phase 6).
+        var telegram = TelegramOf(m.Via);
         var commands = await Dispatcher.InvokeAsync(() => Config.Commands.ToList());
-        var turn = TelegramTalk.TurnFor(m, v, Telegram.Settings, commands, TelegramCommands.ConfirmFor, file is not null);
+        var turn = TelegramTalk.TurnFor(m, v, telegram.Settings, commands, TelegramCommands.ConfirmFor, file is not null);
         var reply = Guid.NewGuid().ToString("N")[..12];
         var answered = new TaskCompletionSource<RepliedMessage?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var did = new List<(string Did, bool Ok)>();
@@ -47,7 +49,7 @@ public partial class App
         var why = await Dispatcher.InvokeAsync(() =>
         {
             if (_assistant is null) return "telegram.talk.off";
-            id = TelegramTalk.AssistantFor(Telegram.Settings, m.From.Id) is { } chosen && IsAssistant(chosen) ? chosen : PickAssistant() ?? AssistantTargeting.KDesktop;
+            id = TelegramTalk.AssistantFor(telegram.Settings, m.From.Id) is { } chosen && IsAssistant(chosen) ? chosen : PickAssistant() ?? AssistantTargeting.KDesktop;
             _telegramTurns[turn.Origin.Key] = turn;
             _telegramLatest[m.ChatId] = turn.Origin.Key;
             _replies[reply] = answered;
@@ -64,13 +66,13 @@ public partial class App
         });
         if (why is not null)
         {
-            Telegram.Post(m.ChatId, Loc.T(why));
+            telegram.Post(m.ChatId, Loc.T(why));
             Forget();
             return;
         }
 
         using var typing = new CancellationTokenSource();
-        KeepTyping(m.ChatId, false, typing.Token);
+        KeepTyping(telegram, m.ChatId, false, typing.Token);
         RepliedMessage? answer;
         try
         {
@@ -91,18 +93,18 @@ public partial class App
         if (answer is not { Ok: true })
         {
             // Replaced by a newer message of that chat: that one answers.
-            if (latest) Telegram.Post(m.ChatId, Loc.T(answer is null ? "telegram.talk.noAnswer" : "telegram.talk.failed"));
+            if (latest) telegram.Post(m.ChatId, Loc.T(answer is null ? "telegram.talk.noAnswer" : "telegram.talk.failed"));
             return;
         }
         var whole = answer.Written is { Length: > 0 } written ? written : answer.Text;
         string lines;
-        lock (did) lines = Telegram.Settings.ShowDid ? TelegramTalk.DidLines(did) : string.Empty;
+        lock (did) lines = telegram.Settings.ShowDid ? TelegramTalk.DidLines(did) : string.Empty;
         // With its voice (phase 5.2): what it says, as a voice note; the whole text of a long answer goes written too.
-        var (asText, asVoice) = TelegramVoice.AnswerWith(Telegram.Settings, m.From.Id, m.Content == TelegramContent.Voice);
-        var note = asVoice && answer.Text.Trim().Length > 0 ? await VoiceForTelegramAsync(id!, answer.Text, m.ChatId) : null;
+        var (asText, asVoice) = TelegramVoice.AnswerWith(telegram.Settings, m.From.Id, m.Content == TelegramContent.Voice);
+        var note = asVoice && answer.Text.Trim().Length > 0 ? await VoiceForTelegramAsync(telegram, id!, answer.Text, m.ChatId) : null;
         var withText = note is null || asText || answer.Written is { Length: > 0 };
-        if (withText) Telegram.Post(m.ChatId, lines.Length > 0 ? whole + "\n\n" + lines : whole);
-        if (note is not null) await Telegram.SendAsync(m.ChatId, withText ? string.Empty : lines, note, TelegramFileKind.Voice);
+        if (withText) telegram.Post(m.ChatId, lines.Length > 0 ? whole + "\n\n" + lines : whole);
+        if (note is not null) await telegram.SendAsync(m.ChatId, withText ? string.Empty : lines, note, TelegramFileKind.Voice);
         Log.Info($"Telegram: respuesta de «{id}» ({whole.Length} letras{(did.Count > 0 ? $", {did.Count} acciones" : "")})");
 
         void Forget()
@@ -118,14 +120,14 @@ public partial class App
     }
 
     /// <summary>«Escribiendo…» (or «Grabando un audio…») lasts about 5 s: again every 4 until <paramref name="stop"/>.</summary>
-    private void KeepTyping(long chat, bool voice, CancellationToken stop) =>
+    private static void KeepTyping(TelegramService telegram, long chat, bool voice, CancellationToken stop) =>
         _ = Task.Run(async () =>
         {
             try
             {
                 while (!stop.IsCancellationRequested)
                 {
-                    Telegram.Typing(chat, voice);
+                    telegram.Typing(chat, voice);
                     await Task.Delay(TimeSpan.FromSeconds(4), stop).ConfigureAwait(false);
                 }
             }
@@ -142,7 +144,7 @@ public partial class App
     /// <paramref name="text"/> as a voice note in the voice of <paramref name="id"/> (phase 5.2): asked to the assistants'
     /// process (<c>voice</c> <c>render</c>), which sends it back as for the phone. Its path, or null (no voice, too slow).
     /// </summary>
-    private async Task<string?> VoiceForTelegramAsync(string id, string text, long chat)
+    private async Task<string?> VoiceForTelegramAsync(TelegramService telegram, string id, string text, long chat)
     {
         var turn = "telegram-" + Guid.NewGuid().ToString("N")[..12];
         var voice = new TelegramVoice(TelegramCommands.CleanVoiceFolder(TelegramCommands.VoiceFolder()));
@@ -151,7 +153,7 @@ public partial class App
         try
         {
             if (!await Dispatcher.InvokeAsync(() => _assistant?.Send(new VoiceMessage("render", text, ProcessIdOf(id), Turn: turn)) == true)) return null;
-            KeepTyping(chat, true, recording.Token);
+            KeepTyping(telegram, chat, true, recording.Token);
             return await voice.File.WaitAsync(TelegramVoiceTime);
         }
         catch (TimeoutException)
@@ -196,14 +198,15 @@ public partial class App
             return "no";
         }
         var name = AssistantName(FromProcess(assistant));
-        if (!turn.Owner) Telegram.Post(turn.Message.ChatId, Loc.T("telegram.talk.waiting"));
+        var telegram = TelegramOf(turn.Message.Via);
+        if (!turn.Owner) telegram.Post(turn.Message.ChatId, Loc.T("telegram.talk.waiting"));
         if (TelegramCommands.OwnerPresent())
         {
             var here = turn.Owner ? text : Loc.T("telegram.talk.askPc", turn.Message.From.Shown, text);
             var choice = await Dispatcher.InvokeAsync(() => AskUserAsync(key, assistant, here, false, 30)).Task.Unwrap();
             if (choice is "yes" or "always" or "no") return choice == "no" ? "no" : "yes";
         }
-        var yes = await Telegram.AskOwnerAsync(TelegramTalk.Question(turn, name, text), TelegramCommands.ConfirmFor);
+        var yes = await telegram.AskOwnerAsync(TelegramTalk.Question(turn, name, text), TelegramCommands.ConfirmFor);
         Log.Info($"Telegram: «{text}» por Telegram → {(yes is null ? "sin respuesta" : yes.Value ? "sí" : "no")}");
         return yes switch
         {
@@ -247,7 +250,7 @@ public partial class App
                 long? only = turn is { Owner: false } ? turn.Message.ChatId : null;
                 answer = request.Origin is not null && turn is null
                     ? new TelegramAnswer(false, "notAllowed")
-                    : await TelegramAssistant.HandleAsync(Telegram, request.Request, only).ConfigureAwait(false);
+                    : await TelegramAssistant.HandleAsync(Telegram, TelegramAccount, request.Request, only, turn?.Message.Via).ConfigureAwait(false);
                 if (answer.Ok && request.Request.Do == "send") Log.Info($"Asistente: mensaje por Telegram ({request.Assistant ?? "módulo"})");
             }
             catch (Exception ex)

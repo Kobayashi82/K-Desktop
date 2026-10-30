@@ -56,18 +56,67 @@ public sealed class TelegramService : IDisposable
     private int _linkWrong;
     private bool _disposed;
 
-    /// <param name="connect">Makes the connection for a token (the tests give a fake one).</param>
-    public TelegramService(string folder, Func<string, string> protect, Func<string, string?> unprotect, Func<string, ITelegramConnection>? connect = null)
+    /// <param name="connect">
+    /// Makes the connection: for the bot, with its token; for the account, with its api_hash (the tests give a fake one).
+    /// </param>
+    /// <param name="kind">The bot (Telegram\) or the account with a number (Telegram\Account\, phase 6): each with its own owner, contacts and options.</param>
+    public TelegramService(string folder, Func<string, string> protect, Func<string, string?> unprotect, Func<string, ITelegramConnection>? connect = null,
+        TelegramVia kind = TelegramVia.Bot)
     {
         _folder = folder;
         _protect = protect;
         _unprotect = unprotect;
-        _connect = connect ?? (token => new TelegramBotConnection(token));
+        Kind = kind;
+        _connect = connect ?? (kind == TelegramVia.Bot ? token => new TelegramBotConnection(token) : OpenAccount);
         Settings = Load();
         _sender = Task.Run(SendLoopAsync);
     }
 
+    /// <summary>The folder of the account with a number (its settings and its session).</summary>
+    public static string AccountFolder => Path.Combine(DefaultFolder, "Account");
+
+    public TelegramVia Kind { get; }
+
     public TelegramSettings Settings { get; }
+
+    /// <summary>Whether there is a bot or an account, switched on.</summary>
+    public bool On
+    {
+        get
+        {
+            lock (_gate) return Kind == TelegramVia.Bot ? Settings.Bot is { Enabled: true } : Settings.Account is { Enabled: true, Id: > 0 };
+        }
+    }
+
+    /// <summary>Whether a bot or an account is set (on or off).</summary>
+    public bool Configured
+    {
+        get
+        {
+            lock (_gate) return Kind == TelegramVia.Bot ? Settings.Bot is not null : Settings.Account is { Id: > 0 };
+        }
+    }
+
+    /// <summary>Who it is in Telegram: the bot's or the account's id.</summary>
+    public long MeId
+    {
+        get
+        {
+            lock (_gate) return Kind == TelegramVia.Bot ? Settings.Bot?.Id ?? 0 : Settings.Account?.Id ?? 0;
+        }
+    }
+
+    /// <summary>Its @user (empty when it has none: an account may not have one).</summary>
+    public string MeUsername
+    {
+        get
+        {
+            lock (_gate) return (Kind == TelegramVia.Bot ? Settings.Bot?.Username : Settings.Account?.Username) ?? string.Empty;
+        }
+    }
+
+    /// <summary>Something to know that is not a failure: Telegram limits the account for a while (phase 6.5).</summary>
+    public string? Warning { get; private set; }
 
     public TelegramState State { get; private set; } = TelegramState.Off;
 
@@ -157,15 +206,173 @@ public sealed class TelegramService : IDisposable
     {
         lock (_gate)
         {
-            if (Settings.Bot is not { } bot || bot.Enabled == enabled) return;
-            bot.Enabled = enabled;
+            if (Kind == TelegramVia.Account)
+            {
+                if (Settings.Account is not { } account || account.Enabled == enabled) return;
+                account.Enabled = enabled;
+            }
+            else
+            {
+                if (Settings.Bot is not { } bot || bot.Enabled == enabled) return;
+                bot.Enabled = enabled;
+            }
             SaveSettings();
         }
         Restart();
     }
 
-    /// <summary>The address of the bot in Telegram («https://t.me/kdesktop_bot»); null without a bot.</summary>
-    public string? BotUrl => Bot is { Username.Length: > 0 } b ? "https://t.me/" + b.Username : null;
+    /// <summary>The address of the bot or the account in Telegram («https://t.me/kdesktop_bot»); null without an @user.</summary>
+    public string? BotUrl => MeUsername is { Length: > 0 } user ? "https://t.me/" + user : null;
+
+    // ── the account with a number (phase 6) ──────────────────────────────
+
+    private TelegramAccountLogin? _login;
+    private (int ApiId, string ApiHash, string Phone) _loginWith;
+
+    public TelegramAccountSettings? Account
+    {
+        get { lock (_gate) return Settings.Account; }
+    }
+
+    private string SessionFile => Path.Combine(_folder, "account.session");
+
+    /// <summary>Whether a login is under way (waiting for the code or the password).</summary>
+    public bool LoggingIn => _login is not null;
+
+    /// <summary>
+    /// Starts logging in an account (phase 6.2) with the application of my.telegram.org and the number: what it needs next
+    /// (<c>code</c>, <c>password</c>) or null when it is in. The account that was on stops meanwhile. Throws
+    /// <see cref="TelegramException"/> with what fails in words.
+    /// </summary>
+    public async Task<string?> LoginAsync(int apiId, string apiHash, string phone)
+    {
+        CancelLogin(restart: false);
+        Stop();
+        DeleteSession();
+        _loginWith = (apiId, apiHash.Trim(), new string(phone.Where(c => char.IsAsciiDigit(c) || c == '+').ToArray()));
+        _login = new TelegramAccountLogin(apiId, _loginWith.ApiHash, new TelegramSessionStore(SessionFile, _protect, _unprotect));
+        WriteLog($"iniciando sesión con {_loginWith.Phone}");
+        return await StepAsync(_loginWith.Phone).ConfigureAwait(false);
+    }
+
+    /// <summary>The code Telegram sent, or the password of the two-step verification: what it needs next, or null when it is in.</summary>
+    public Task<string?> LoginStepAsync(string value) =>
+        _login is null ? throw new TelegramException(Loc.T("telegram.account.error.step", "login")) : StepAsync(value);
+
+    private async Task<string?> StepAsync(string value)
+    {
+        var need = await _login!.StepAsync(value).ConfigureAwait(false);
+        if (need is not null) return need;
+        var me = _login.Me ?? throw new TelegramException(Loc.T("telegram.account.error.step", "user"));
+        _login.Dispose();
+        _login = null;
+        lock (_gate)
+        {
+            var fresh = Settings.Account is null;
+            // Another account: whoever was the owner has to link again (the same one keeps it).
+            if (Settings.Account?.Id != me.Id) Settings.Owner = null;
+            Settings.Account = new TelegramAccountSettings
+            {
+                ApiId = _loginWith.ApiId, ApiHashProtected = _protect(_loginWith.ApiHash), Phone = _loginWith.Phone,
+                Id = me.Id, Name = me.Name, Username = me.Username ?? string.Empty, Enabled = true,
+            };
+            if (fresh)
+            {
+                // An account with a number is more careful than a bot (phase 6.5), and the bot already tells the mails.
+                Settings.Limits.NewPerHour = 3;
+                Settings.Notices.ImportantMail = false;
+            }
+            SaveSettings();
+        }
+        WriteLog($"sesión iniciada: {me.Shown} [{me.Id}]");
+        Log.Info($"Telegram: sesión iniciada en la cuenta {me.Id}");
+        Restart();
+        return null;
+    }
+
+    /// <summary>Leaves a login half done; the account that was there (if any) goes on.</summary>
+    public void CancelLogin(bool restart = true)
+    {
+        if (_login is null) return;
+        _login.Dispose();
+        _login = null;
+        if (!restart) return;
+        // The session of the account that was there was replaced: it has to log in again.
+        if (Configured) SetState(TelegramState.Problem, Loc.T("telegram.account.loggedOut"));
+        else Restart();
+    }
+
+    /// <summary>Closes the session (in Telegram too, when it can) and forgets the account and its owner; the contacts stay.</summary>
+    public async Task LogOutAsync()
+    {
+        if (_connection is ITelegramAgenda agenda)
+        {
+            try { await agenda.LogOutAsync(_life.Token).ConfigureAwait(false); }
+            catch (Exception ex) when (ex is TelegramException or IOException or OperationCanceledException)
+            {
+                WriteLog($"no se ha podido cerrar la sesión en Telegram: {ex.Message}");
+            }
+        }
+        lock (_gate)
+        {
+            Settings.Account = null;
+            Settings.Owner = null;
+            _linkCode = null;
+            SaveSettings();
+        }
+        Stop();
+        DeleteSession();
+        WriteLog("sesión cerrada");
+        Restart();
+    }
+
+    private void DeleteSession()
+    {
+        try { File.Delete(SessionFile); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Log.Warn($"Telegram: no se ha podido borrar la sesión: {ex.Message}"); }
+    }
+
+    private ITelegramConnection OpenAccount(string apiHash)
+    {
+        var account = Account ?? throw new TelegramException(Loc.T("telegram.account.loggedOut"), 401);
+        return new TelegramUserConnection(account.ApiId, apiHash, account.Phone, new TelegramSessionStore(SessionFile, _protect, _unprotect));
+    }
+
+    /// <summary>The people in the account's contacts in Telegram (phase 6.4); null when it is not connected.</summary>
+    public async Task<IReadOnlyList<TelegramUser>?> AgendaAsync() =>
+        _connection is ITelegramAgenda agenda ? await agenda.AgendaAsync(_life.Token).ConfigureAwait(false) : null;
+
+    /// <summary>
+    /// Adds someone to the account's contacts in Telegram by their number; who it is, or null when that number has no
+    /// Telegram. Throws <see cref="TelegramException"/> when it is not connected.
+    /// </summary>
+    public async Task<TelegramUser?> AddToAgendaAsync(string phone, string firstName, string lastName)
+    {
+        if (_connection is not ITelegramAgenda agenda) throw new TelegramException(Loc.T("telegram.error.notReady"));
+        var user = await agenda.AddToAgendaAsync(phone, firstName, lastName, _life.Token).ConfigureAwait(false);
+        WriteLog(user is null ? $"{phone} no tiene Telegram" : $"añadido a la agenda: {user.Shown} [{user.Id}]");
+        return user;
+    }
+
+    /// <summary>
+    /// Makes someone a contact with <paramref name="level"/> (from the account's contacts, or added by their number); one
+    /// already there keeps what it had. False when it is the owner.
+    /// </summary>
+    public bool AddContact(TelegramUser user, TelegramLevel level)
+    {
+        lock (_gate)
+        {
+            if (Settings.Owner?.Id == user.Id) return false;
+            Settings.Pending.RemoveAll(p => p.Id == user.Id);
+            Settings.Blocked.RemoveAll(p => p.Id == user.Id);
+            if (Settings.Contacts.All(c => c.Id != user.Id))
+                Settings.Contacts.Add(new TelegramContact { Id = user.Id, Name = user.Name, Username = user.Username, Phone = user.Phone, Level = level, Added = Now() });
+            SaveSettings();
+        }
+        WriteLog($"contacto añadido: {user.Shown} [{user.Id}] ({level})");
+        Changed?.Invoke();
+        return true;
+    }
 
     // ── the owner ────────────────────────────────────────────────────────
 
@@ -179,7 +386,7 @@ public sealed class TelegramService : IDisposable
     }
 
     /// <summary>«https://t.me/kdesktop_bot?start=123456»: opening it in Telegram and pressing «Iniciar» links.</summary>
-    public string? LinkUrl => LinkCode is { } code && BotUrl is { } url ? $"{url}?start={code}" : null;
+    public string? LinkUrl => LinkCode is { } code && BotUrl is { } url ? Kind == TelegramVia.Bot ? $"{url}?start={code}" : url : null;
 
     /// <summary>A new 6-digit code, valid for <see cref="LinkLifetime"/>; whoever sends it to the bot becomes the owner.</summary>
     public string StartLinking()
@@ -230,7 +437,7 @@ public sealed class TelegramService : IDisposable
     /// </summary>
     public Task<bool> SendAsync(long chat, string text, string? file = null, TelegramFileKind kind = TelegramFileKind.Document)
     {
-        if (Bot is not { Enabled: true } || (string.IsNullOrWhiteSpace(text) && file is null)) return Task.FromResult(false);
+        if (!On || (string.IsNullOrWhiteSpace(text) && file is null)) return Task.FromResult(false);
         var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         return _queue.Writer.TryWrite(new Outgoing(chat, text, NameOf(chat), done, null, file, kind)) ? done.Task : Task.FromResult(false);
     }
@@ -238,7 +445,7 @@ public sealed class TelegramService : IDisposable
     /// <summary>As <see cref="SendAsync"/>, with the id of the (last) message sent, to delete it later; null when it was not sent.</summary>
     public async Task<int?> SendForIdAsync(long chat, string text, string? file = null, TelegramFileKind kind = TelegramFileKind.Document)
     {
-        if (Bot is not { Enabled: true } || (string.IsNullOrWhiteSpace(text) && file is null)) return null;
+        if (!On || (string.IsNullOrWhiteSpace(text) && file is null)) return null;
         var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var sent = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
         if (!_queue.Writer.TryWrite(new Outgoing(chat, text, NameOf(chat), done, null, file, kind, sent))) return null;
@@ -339,10 +546,16 @@ public sealed class TelegramService : IDisposable
         lock (_gate)
         {
             if (to.Length == 0) return Settings.Owner?.Id;
-            if (long.TryParse(to, CultureInfo.InvariantCulture, out var id))
-                return Settings.Owner?.Id == id || Settings.Contacts.Any(c => c.Id == id) ? id : null;
-            var found = Settings.Contacts.Where(c => string.Equals(c.Username, to, StringComparison.OrdinalIgnoreCase)
-                                                     || string.Equals(c.Name, to, StringComparison.OrdinalIgnoreCase)).ToList();
+            // An id; a number that is no id may be a phone number (below).
+            if (long.TryParse(to, CultureInfo.InvariantCulture, out var id) && (Settings.Owner?.Id == id || Settings.Contacts.Any(c => c.Id == id))) return id;
+            // By name, @user or number, without case or accents; else by a part of the name, when only one has it («Ana» → «Ana García»).
+            var key = Folded(to);
+            if (key.Length == 0) return null;
+            static string Digits(string? s) => new([.. (s ?? string.Empty).Where(char.IsAsciiDigit)]);
+            var found = Settings.Contacts.Where(c => Folded(c.Name) == key || Folded(c.Username ?? string.Empty) == key
+                                                     || (Digits(to).Length >= 6 && Digits(c.Phone).EndsWith(Digits(to), StringComparison.Ordinal))).ToList();
+            if (found.Count == 0)
+                found = [.. Settings.Contacts.Where(c => Mail.MailRules.Fold(c.Name).Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(word => Folded(word) == key))];
             return found.Count == 1 ? found[0].Id : null;
         }
     }
@@ -365,7 +578,7 @@ public sealed class TelegramService : IDisposable
     /// </summary>
     public async Task<bool?> AskOwnerAsync(string question, TimeSpan expire, CancellationToken cancel = default)
     {
-        if (Bot is not { Enabled: true } || Owner is not { } owner) return null;
+        if (!On || Owner is not { } owner) return null;
         var key = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
         var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var sent = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -437,7 +650,7 @@ public sealed class TelegramService : IDisposable
 
     private bool Enqueue(string text, TaskCompletionSource<bool>? done)
     {
-        if (Bot is not { Enabled: true } || Owner is not { } owner || string.IsNullOrWhiteSpace(text)) return false;
+        if (!On || Owner is not { } owner || string.IsNullOrWhiteSpace(text)) return false;
         return _queue.Writer.TryWrite(new Outgoing(owner.Id, text, "dueño", done));
     }
 
@@ -505,16 +718,20 @@ public sealed class TelegramService : IDisposable
                     if (ok) Keep(item.Chat, "K-Desktop", $"[{Path.GetFileName(file)}] {caption}", true);
                     text = caption is null ? text : string.Empty;
                 }
+                // Without buttons (an account), they go as numbered lines, answered with the number or the word.
+                var offered = item.Buttons is { Count: > 0 } && !Buttons ? item.Buttons.SelectMany(row => row).ToList() : null;
+                if (offered is not null) text = text.TrimEnd() + "\n\n" + ChoiceLines(offered);
                 var parts = ok ? Split(text) : [];
                 for (var i = 0; i < parts.Count; i++)
                 {
                     var part = parts[i];
-                    var buttons = i == parts.Count - 1 ? item.Buttons : null;
                     var last = i == parts.Count - 1;
+                    var buttons = last && offered is null ? item.Buttons : null;
                     if (!await SendPartAsync(item, part, async (c, t) =>
                         {
                             var id = await c.SendTextAsync(item.Chat, part, buttons, t).ConfigureAwait(false);
                             if (last) item.SentId?.TrySetResult(id);
+                            if (last && offered is not null) Offer(item.Chat, id, offered);
                             return id;
                         }, stop).ConfigureAwait(false))
                     {
@@ -540,7 +757,7 @@ public sealed class TelegramService : IDisposable
             var connection = _connection;
             if (connection is null)
             {
-                if (Bot is not { Enabled: true } || waited > TimeSpan.FromMinutes(2)) break;
+                if (!On || waited > TimeSpan.FromMinutes(2)) break;
                 await Task.Delay(TimeSpan.FromSeconds(1), stop).ConfigureAwait(false);
                 waited += TimeSpan.FromSeconds(1);
                 attempt--;
@@ -548,17 +765,33 @@ public sealed class TelegramService : IDisposable
             }
             try
             {
+                // An account goes slower than a bot (phase 6.5): never two messages in the same second.
+                if (Kind == TelegramVia.Account && Now() - _lastSent is { } since && since < AccountGap && since >= TimeSpan.Zero)
+                    await Task.Delay(AccountGap - since, stop).ConfigureAwait(false);
                 await send(connection, stop).ConfigureAwait(false);
+                _lastSent = Now();
                 WriteLog($"→ {item.To}: {Short(text)}");
+                if (Warning is not null && _lastSent - _warned > TimeSpan.FromHours(1))
+                {
+                    Warning = null;
+                    Changed?.Invoke();
+                }
                 return true;
             }
             catch (TelegramException ex) when (ex.RetryAfter is { } after)
             {
                 WriteLog($"Telegram pide esperar {after.TotalSeconds:0} s");
+                if (after > TimeSpan.FromMinutes(5))
+                {
+                    // A long wait: it is not kept waiting (it would hold everything else), and the page says so.
+                    Warn(Loc.T("telegram.account.waiting", Math.Ceiling(after.TotalMinutes)));
+                    return false;
+                }
                 await Task.Delay(after, stop).ConfigureAwait(false);
             }
             catch (TelegramException ex)
             {
+                if (ex.Limited) Warn(ex.Message);
                 WriteLog($"no enviado a {item.To}: {ex.Message}");
                 Log.Warn($"Telegram: no se ha podido enviar: {ex.Message}");
                 return false;
@@ -575,11 +808,82 @@ public sealed class TelegramService : IDisposable
         return false;
     }
 
+    /// <summary>The least time between two messages of an account.</summary>
+    private static readonly TimeSpan AccountGap = TimeSpan.FromSeconds(1.2);
+
+    private DateTimeOffset _lastSent = DateTimeOffset.MinValue;
+    private DateTimeOffset _warned;
+
+    private void Warn(string text)
+    {
+        _warned = Now();
+        Warning = text;
+        Log.Warn($"Telegram: {text}");
+        Changed?.Invoke();
+    }
+
+    // ── answering without buttons (an account) ───────────────────────────
+
+    /// <summary>How long the numbered lines of a message can be answered.</summary>
+    public static readonly TimeSpan OfferedFor = TimeSpan.FromMinutes(30);
+
+    private sealed record Offered(long Chat, int Message, IReadOnlyList<TelegramButton> Buttons, DateTimeOffset At);
+
+    private readonly List<Offered> _offered = [];
+
+    /// <summary>Whether the connection has buttons (an account has not; until it connects, by its kind).</summary>
+    private bool Buttons => _connection?.Capabilities.CanButtons ?? Kind == TelegramVia.Bot;
+
+    /// <summary>The buttons as lines: «1 · ✓ Sí», «2 · ✗ No» and how to answer.</summary>
+    public static string ChoiceLines(IReadOnlyList<TelegramButton> buttons) =>
+        string.Join("\n", buttons.Select((b, i) => string.Create(CultureInfo.InvariantCulture, $"{i + 1} · {b.Text}"))) + "\n" + Loc.T("telegram.choice.hint");
+
+    private void Offer(long chat, int message, IReadOnlyList<TelegramButton> buttons)
+    {
+        lock (_offered)
+        {
+            _offered.RemoveAll(o => Now() - o.At > OfferedFor);
+            _offered.Add(new Offered(chat, message, buttons, Now()));
+        }
+    }
+
+    private static string Folded(string text) => new([.. Mail.MailRules.Fold(text).Where(char.IsLetterOrDigit)]);
+
+    /// <summary>
+    /// An answer to numbered lines (the number, or what the line says: «sí», «permitir»…) as the button it stands for; the
+    /// one answered to, else the newest of that chat. Null: it is not one.
+    /// </summary>
+    private TelegramIncoming? Chosen(TelegramIncoming m)
+    {
+        var said = Folded(m.Text);
+        if (said.Length == 0 || said.Length > 40) return null;
+        var number = int.TryParse(m.Text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var n) ? n : 0;
+        lock (_offered)
+        {
+            _offered.RemoveAll(o => Now() - o.At > OfferedFor);
+            var candidates = _offered.Where(o => o.Chat == m.ChatId).Reverse().ToList();
+            if (m.ReplyToMessageId is { } replied && candidates.FirstOrDefault(o => o.Message == replied) is { } answered) candidates = [answered];
+            foreach (var offer in candidates)
+            {
+                var button = number > 0
+                    ? number <= offer.Buttons.Count ? offer.Buttons[number - 1] : null
+                    : offer.Buttons.FirstOrDefault(b => Folded(b.Text) == said);
+                // A number only counts for the newest lines.
+                if (button is null && number > 0) return null;
+                if (button is null) continue;
+                _offered.Remove(offer);
+                return m with { CallbackId = string.Empty, CallbackData = button.Data, MessageId = offer.Message, Text = string.Empty, Content = TelegramContent.Other, File = null };
+            }
+        }
+        return null;
+    }
+
     // ── the connection ───────────────────────────────────────────────────
 
     public void Start() => Restart();
 
-    private void Restart()
+    /// <summary>Stops the connection (it comes back with <see cref="Restart"/>).</summary>
+    private void Stop()
     {
         if (_run is { } old)
         {
@@ -588,8 +892,13 @@ public sealed class TelegramService : IDisposable
             _run = null;
         }
         _connection = null;
+    }
+
+    private void Restart()
+    {
+        Stop();
         if (_disposed) return;
-        if (Bot is not { Enabled: true })
+        if (!On)
         {
             SetState(TelegramState.Off, null);
             return;
@@ -604,21 +913,29 @@ public sealed class TelegramService : IDisposable
         var wait = RetryBase;
         while (!stop.IsCancellationRequested)
         {
-            if (Bot is not { Enabled: true } bot) return;
-            if (_unprotect(bot.TokenProtected) is not { } token)
+            if (!On) return;
+            string? kept;
+            lock (_gate) kept = Kind == TelegramVia.Bot ? Settings.Bot?.TokenProtected : Settings.Account?.ApiHashProtected;
+            if (kept is null || _unprotect(kept) is not { } secret)
             {
-                SetState(TelegramState.Problem, Loc.T("telegram.error.token"));
+                SetState(TelegramState.Problem, Loc.T(Kind == TelegramVia.Bot ? "telegram.error.token" : "telegram.account.loggedOut"));
                 return;
             }
             SetState(TelegramState.Connecting, Problem);
-            var connection = _connect(token);
+            ITelegramConnection connection;
+            try { connection = _connect(secret); }
+            catch (TelegramException ex)
+            {
+                SetState(TelegramState.Problem, ex.Message);
+                return;
+            }
             try
             {
                 var me = await connection.GetMeAsync(stop).ConfigureAwait(false);
                 Refresh(me);
                 _connection = connection;
                 SetState(TelegramState.Connected, null);
-                WriteLog($"conectado como @{me.Username}");
+                WriteLog($"conectado como {me.Shown}");
                 // «/comandos» in the bot's menu, in the language of K-Desktop.
                 if (connection is TelegramBotConnection botApi)
                     _ = Quiet(() => botApi.SetMenuAsync([(Loc.T("telegram.cmd.word"), Loc.T("telegram.cmd.menu"))], stop));
@@ -668,16 +985,26 @@ public sealed class TelegramService : IDisposable
         ex is HttpRequestException or IOException or SocketException or JsonException
         || (ex is TaskCanceledException && !stop.IsCancellationRequested);
 
-    /// <summary>The bot changed its name or @user in @BotFather: kept (the id does not change).</summary>
+    /// <summary>The bot (in @BotFather) or the account changed its name or @user: kept (the id does not change).</summary>
     private void Refresh(TelegramUser me)
     {
         lock (_gate)
         {
-            if (Settings.Bot is not { } bot || (bot.Name == me.Name && bot.Username == (me.Username ?? string.Empty))) return;
-            bot.Name = me.Name;
-            bot.Username = me.Username ?? string.Empty;
+            if (Settings.Account is { } account)
+            {
+                if (account.Name == me.Name && account.Username == (me.Username ?? string.Empty)) return;
+                account.Name = me.Name;
+                account.Username = me.Username ?? string.Empty;
+            }
+            else
+            {
+                if (Settings.Bot is not { } bot || (bot.Name == me.Name && bot.Username == (me.Username ?? string.Empty))) return;
+                bot.Name = me.Name;
+                bot.Username = me.Username ?? string.Empty;
+            }
             SaveSettings();
         }
+        Changed?.Invoke();
     }
 
     /// <summary>
@@ -687,6 +1014,11 @@ public sealed class TelegramService : IDisposable
     /// </summary>
     internal void Handle(TelegramIncoming m)
     {
+        if (!m.IsButton && Chosen(m) is { } chosen)
+        {
+            WriteLog($"← {m.From.Shown} [{m.From.Id}]: «{Short(m.Text)}» como respuesta");
+            m = chosen;
+        }
         if (m.IsButton)
         {
             HandleButton(m);
@@ -695,9 +1027,8 @@ public sealed class TelegramService : IDisposable
         WriteLog($"← {m.From.Shown} [{m.From.Id}]{(m.ChatKind == TelegramChatKind.Group ? $" en «{m.ChatTitle}»" : string.Empty)}: {Short(m.Text)}");
         if (m.ChatKind == TelegramChatKind.Private && TryLink(m)) return;
         if (m.ChatKind == TelegramChatKind.Group) SeeGroup(m);
-        var bot = Bot;
         TelegramVerdict verdict;
-        lock (_gate) verdict = TelegramInbox.Classify(m, Settings, bot?.Id ?? 0, bot?.Username ?? string.Empty);
+        lock (_gate) verdict = TelegramInbox.Classify(m, Settings, MeId, MeUsername);
         if (verdict.Why is not ("channel" or "blocked" or "groupIgnored" or "ignored"))
             Keep(m.ChatId, m.From.Shown, m.Text.Length > 0 ? m.Text : $"[{m.Content}]", false);
         if (verdict.Route == TelegramRoute.Drop)
@@ -855,9 +1186,8 @@ public sealed class TelegramService : IDisposable
         }
         if (!data.StartsWith("p:", StringComparison.Ordinal))
         {
-            var bot = Bot;
             TelegramVerdict verdict;
-            lock (_gate) verdict = TelegramInbox.Classify(m, Settings, bot?.Id ?? 0, bot?.Username ?? string.Empty);
+            lock (_gate) verdict = TelegramInbox.Classify(m, Settings, MeId, MeUsername);
             WriteLog($"botón de {m.From.Shown} [{m.From.Id}]: {data} ({verdict.Why})");
             if (!verdict.Served || (verdict.Route != TelegramRoute.Owner && Held(m)))
             {

@@ -8,16 +8,33 @@ namespace KDesktop.Core.Engine;
 
 public sealed partial class CommandEngine
 {
-    /// <summary>Telegram («Enviar por Telegram»); set by K-Desktop at start.</summary>
+    /// <summary>Telegram's bot («Enviar por Telegram»); set by K-Desktop at start.</summary>
     public TelegramService? Telegram { get; set; }
+
+    /// <summary>Telegram's account with a number (phase 6); set by K-Desktop at start.</summary>
+    public TelegramService? TelegramAccount { get; set; }
+
+    /// <summary>The connection «Enviar por Telegram» writes with (null: none is on).</summary>
+    private TelegramService? TelegramFor(TelegramSendAction a, string to)
+    {
+        var bot = Telegram is { On: true } b ? b : null;
+        var account = TelegramAccount is { On: true } c ? c : null;
+        return a.Via switch
+        {
+            TelegramSendVia.Bot => bot,
+            TelegramSendVia.Account => account,
+            _ when bot is not null && account is not null => TelegramAssistant.Choose(bot, account, to),
+            _ => account ?? bot,
+        };
+    }
 
     /// <summary>Telegram takes a photo up to 10 MB; a bigger capture goes as a file.</summary>
     private const long MaxPhoto = 10L << 20;
 
     private async Task TelegramSendAsync(TelegramSendAction a, ExecutionContext ctx)
     {
-        if (Telegram is not { Bot.Enabled: true } telegram) throw new InvalidOperationException(Loc.T("telegram.error.notReady"));
         var to = TextVariables.Expand(a.To);
+        if (TelegramFor(a, to) is not { } telegram) throw new InvalidOperationException(Loc.T("telegram.error.notReady"));
         var chat = telegram.Recipient(to) ?? throw new InvalidOperationException(Loc.T(to.Trim().Length == 0 ? "telegram.error.noOwner" : "telegram.error.noRecipient", to));
         if (!telegram.CanWriteTo(chat)) throw new InvalidOperationException(Loc.T("telegram.error.cantWrite", telegram.NameOf(chat)));
         var text = TextVariables.Expand(a.Text);

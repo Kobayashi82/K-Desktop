@@ -9,7 +9,8 @@ namespace KDesktop.Core.Remote.Telegram;
 /// <param name="To">send: who (empty: the owner; a contact by name, @user or id). read: whose chat or which group (empty: the owner's).</param>
 /// <param name="File">send: a full path, <c>screenshot</c> (the whole screen) or <c>last</c> (the last file that arrived by Telegram).</param>
 /// <param name="Undo">undo: what <c>send</c> gave.</param>
-public sealed record TelegramRequest(string Do, string? To = null, string? Text = null, string? File = null, int Max = 20, string? Undo = null);
+/// <param name="Via"><c>bot</c> or <c>account</c> (phase 6); null: K-Desktop picks (<see cref="TelegramAssistant.Choose"/>).</param>
+public sealed record TelegramRequest(string Do, string? To = null, string? Text = null, string? File = null, int Max = 20, string? Undo = null, string? Via = null);
 
 /// <param name="Reason">When not done: <c>notReady</c>, <c>noRecipient</c>, <c>cantWrite</c>, <c>noFile</c>, <c>nothing</c>,
 /// <c>notSent</c>, <c>notAllowed</c>, <c>undo</c>, <c>error</c>.</param>
@@ -30,10 +31,54 @@ public static class TelegramAssistant
 
     private static readonly string[] OwnerWords = ["me", "owner", "yo", "mí", "mi", "dueño", "moi", "mich", "ich", "io"];
 
+    /// <summary>
+    /// With the bot and the account (phase 6): what an order from Telegram asks goes through the connection it came by
+    /// (<paramref name="turnVia"/>); else the one asked for (<see cref="TelegramRequest.Via"/>), or the one
+    /// <see cref="Choose"/> picks. «contacts» gives the people of both.
+    /// </summary>
+    public static Task<TelegramAnswer> HandleAsync(TelegramService bot, TelegramService account, TelegramRequest request, long? onlyChat = null, TelegramVia? turnVia = null)
+    {
+        if (request.Do == "contacts")
+            return Task.FromResult(bot.On || account.On ? new TelegramAnswer(true, Contacts: Reachable(bot, account)) : new TelegramAnswer(false, "notReady"));
+        if (request.Do == "undo")
+            return HandleAsync(request.Undo?.StartsWith(AccountMark, StringComparison.Ordinal) == true ? account : bot, request with { Undo = request.Undo?.Replace(AccountMark, string.Empty, StringComparison.Ordinal) });
+        var via = turnVia ?? request.Via?.Trim().ToLowerInvariant() switch
+        {
+            "bot" => TelegramVia.Bot,
+            "account" or "cuenta" => TelegramVia.Account,
+            _ => (TelegramVia?)null,
+        };
+        var telegram = via is { } chosen ? chosen == TelegramVia.Account ? account : bot : Choose(bot, account, request.To, request.Do == "read");
+        return HandleAsync(telegram, request, onlyChat);
+    }
+
+    /// <summary>What marks an undo of the account's («a:chat:id»).</summary>
+    private const string AccountMark = "a:";
+
+    /// <summary>
+    /// Which one writes when none is said: the account when it is on and that person (or group) is its owner or one of its
+    /// contacts; else the bot; else the account. To read, the one where that chat said something last.
+    /// </summary>
+    public static TelegramService Choose(TelegramService bot, TelegramService account, string? to, bool read = false)
+    {
+        var inAccount = account.On && account.Owner is not null && ChatOf(account, to, read) is not null;
+        var inBot = bot.On && bot.Owner is not null && ChatOf(bot, to, read) is not null;
+        if (inAccount && inBot && read)
+        {
+            DateTimeOffset Last(TelegramService t) => t.Recent(ChatOf(t, to, true)!.Value, 1) is [var line] ? line.At : DateTimeOffset.MinValue;
+            return Last(bot) > Last(account) ? bot : account;
+        }
+        return inAccount ? account : inBot ? bot : bot.On ? bot : account;
+    }
+
+    /// <summary>Who it may write to with both (each name once).</summary>
+    public static IReadOnlyList<string> Reachable(TelegramService bot, TelegramService account) =>
+        [.. (account.On ? Reachable(account) : []).Concat(bot.On ? Reachable(bot) : []).Distinct(StringComparer.CurrentCultureIgnoreCase)];
+
     /// <param name="onlyChat">An order from someone who is not the owner: the one chat it may read.</param>
     public static async Task<TelegramAnswer> HandleAsync(TelegramService telegram, TelegramRequest request, long? onlyChat = null)
     {
-        if (telegram.Bot is not { Enabled: true } || telegram.Owner is null) return new TelegramAnswer(false, "notReady");
+        if (!telegram.On || telegram.Owner is null) return new TelegramAnswer(false, "notReady");
         return request.Do switch
         {
             "send" => await SendAsync(telegram, request).ConfigureAwait(false),
@@ -98,7 +143,7 @@ public static class TelegramAssistant
             var id = await telegram.SendForIdAsync(chat, text, file, kind).ConfigureAwait(false);
             if (id is null) return new TelegramAnswer(false, "notSent", telegram.NameOf(chat), Message: telegram.Problem);
             var who = chat == telegram.Owner?.Id ? null : telegram.NameOf(chat);
-            return new TelegramAnswer(true, To: who, Undo: id > 0 ? string.Create(CultureInfo.InvariantCulture, $"{chat}:{id}") : null);
+            return new TelegramAnswer(true, To: who, Undo: id > 0 ? (telegram.Kind == TelegramVia.Account ? AccountMark : string.Empty) + string.Create(CultureInfo.InvariantCulture, $"{chat}:{id}") : null);
         }
         finally
         {

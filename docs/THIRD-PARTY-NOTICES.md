@@ -99,6 +99,11 @@ La app de Android lee el código QR de «Emparejar dispositivo» con [jsQR](http
 El correo (IMAP con IDLE, SMTP y XOAUTH2 para Google y Microsoft) usa [MailKit](https://github.com/jstedfast/MailKit) y
 [MimeKit](https://github.com/jstedfast/MimeKit) (paquetes NuGet `MailKit` y `MimeKit`, licencia MIT, © .NET Foundation and Contributors).
 
+## WTelegramClient (la cuenta de Telegram con número)
+
+La cuenta de Telegram con número de teléfono (MTProto) usa [WTelegramClient](https://github.com/wiz0u/WTelegramClient)
+(paquete NuGet `WTelegramClient`, licencia MIT, © Olivier Marcoux «Wizou»). El bot usa la Bot API por HTTPS, sin librerías.
+
 ## Modelos que se descargan aparte
 
 No van dentro del ejecutable: se descargan desde Opciones › Voz a la carpeta `Models` de los datos.

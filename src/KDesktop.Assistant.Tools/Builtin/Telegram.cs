@@ -28,7 +28,7 @@ internal static class TelegramTools
 
     public static ToolResult Problem(TelegramAnswer answer) => answer.Reason switch
     {
-        "notReady" => ToolResult.Fail("Telegram is not set up in K-Desktop (no bot, or nobody linked): nothing was sent. Tell the user to add the bot in Options → Accounts.")
+        "notReady" => ToolResult.Fail("Telegram is not set up in K-Desktop (no bot or account, or nobody linked): nothing was sent. Tell the user to set it up in Options → Accounts.")
             with { Reply = Loc.T("tool.telegram.notReady") },
         "noRecipient" => ToolResult.Fail($"Nobody is called that. It may write to: {string.Join(", ", answer.Contacts ?? [])}. Ask the user which one.")
             with { Reply = Loc.T("tool.telegram.noRecipient", string.Join(", ", answer.Contacts ?? [])) },
@@ -55,6 +55,9 @@ internal static class TelegramTools
     public static string Short(string text) => text.Length > 60 ? text[..60] + "…" : text;
 
     public const string ToProperty = "\"to\":{\"type\":\"string\",\"description\":\"Who: empty for the user themself (default); a contact by name or @user\"}";
+
+    /// <summary>The bot or K-Desktop's Telegram account (phase 6); empty, K-Desktop picks.</summary>
+    public const string ViaProperty = "\"via\":{\"type\":\"string\",\"enum\":[\"bot\",\"account\"],\"description\":\"Only if the user says: through the bot or through K-Desktop's Telegram account. Leave it out otherwise\"}";
 }
 
 /// <summary>«Mándame por Telegram la lista», «dile a Ana por Telegram que llego tarde». Undone: the message is deleted.</summary>
@@ -62,10 +65,10 @@ public sealed class TelegramSendTool(ICommandBridge bridge) : ITool
 {
     public string Name => "telegram_send";
 
-    public string Description => "Sends a text message by Telegram, through K-Desktop's bot: to the user themself (default) or to one of their Telegram contacts. "
+    public string Description => "Sends a text message by Telegram, through K-Desktop's bot or its Telegram account: to the user themself (default) or to one of their Telegram contacts. "
                                  + "For files or a screenshot use telegram_send_file.";
 
-    public string ParametersSchemaJson => """{"type":"object","properties":{""" + TelegramTools.ToProperty + ""","text":{"type":"string","description":"The message itself, complete"}},"required":["text"]}""";
+    public string ParametersSchemaJson => """{"type":"object","properties":{""" + TelegramTools.ToProperty + "," + TelegramTools.ViaProperty + ""","text":{"type":"string","description":"The message itself, complete"}},"required":["text"]}""";
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
 
@@ -87,7 +90,7 @@ public sealed class TelegramSendTool(ICommandBridge bridge) : ITool
     {
         var text = arguments.GetString("text")?.Trim() ?? string.Empty;
         if (text.Length == 0) return ToolResult.Fail("Say what to send (text).");
-        if (await TelegramTools.AskAsync(bridge, new TelegramRequest("send", arguments.GetString("to"), text), context.Assistant, cancellationToken).ConfigureAwait(false) is not { } answer)
+        if (await TelegramTools.AskAsync(bridge, new TelegramRequest("send", arguments.GetString("to"), text, Via: arguments.GetString("via")), context.Assistant, cancellationToken).ConfigureAwait(false) is not { } answer)
             return TelegramTools.NoAnswer();
         return answer.Ok ? TelegramTools.Sent(answer, TelegramTools.Short(ToolText.Clean(text)), Name) : TelegramTools.Problem(answer);
     }
@@ -100,10 +103,10 @@ public sealed class TelegramSendFileTool(ICommandBridge bridge) : ITool
 {
     public string Name => "telegram_send_file";
 
-    public string Description => "Sends a file by Telegram, through K-Desktop's bot (photos are shown as photos): a file by its full path, a screenshot of the whole screen "
+    public string Description => "Sends a file by Telegram, through K-Desktop's bot or its Telegram account (photos are shown as photos): a file by its full path, a screenshot of the whole screen "
                                  + "(file: screenshot) or the last file that arrived by Telegram (file: last). To the user themself (default) or one of their contacts.";
 
-    public string ParametersSchemaJson => """{"type":"object","properties":{""" + TelegramTools.ToProperty
+    public string ParametersSchemaJson => """{"type":"object","properties":{""" + TelegramTools.ToProperty + "," + TelegramTools.ViaProperty
                                           + ""","file":{"type":"string","description":"A full path, «screenshot» or «last»"},"text":{"type":"string","description":"A few words to go with it (optional)"}},"required":["file"]}""";
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
@@ -130,7 +133,7 @@ public sealed class TelegramSendFileTool(ICommandBridge bridge) : ITool
         if (file.Length == 0 && context.Files.Count > 0) file = context.Files[0];
         if (file.Length == 0) return ToolResult.Fail("Say which file (a full path, screenshot or last).");
         if (file is not ("screenshot" or "last") && !File.Exists(file)) return ToolResult.Fail($"There is no file \"{file}\": find it first (find_files).");
-        if (await TelegramTools.AskAsync(bridge, new TelegramRequest("send", arguments.GetString("to"), arguments.GetString("text"), file), context.Assistant, cancellationToken)
+        if (await TelegramTools.AskAsync(bridge, new TelegramRequest("send", arguments.GetString("to"), arguments.GetString("text"), file, Via: arguments.GetString("via")), context.Assistant, cancellationToken)
                 .ConfigureAwait(false) is not { } answer)
             return TelegramTools.NoAnswer();
         return answer.Ok ? TelegramTools.Sent(answer, What(arguments) is { Length: > 0 } what ? what : Path.GetFileName(file), Name) : TelegramTools.Problem(answer);
@@ -144,11 +147,11 @@ public sealed class TelegramReadTool(ICommandBridge bridge) : ITool
 {
     public string Name => "telegram_read";
 
-    public string Description => "Reads the last messages of a Telegram chat with K-Desktop's bot (the last two days): the user's own chat (default), a contact's or a group's. "
-                                 + "The bot only sees what was written to it.";
+    public string Description => "Reads the last messages of a Telegram chat with K-Desktop's bot or its Telegram account (the last two days): the user's own chat (default), a contact's or a group's. "
+                                 + "It only sees what was written to it.";
 
     public string ParametersSchemaJson =>
-        """{"type":"object","properties":{"chat":{"type":"string","description":"Whose chat: empty for the user's own; a contact by name or @user, or a group by its name"},"max":{"type":"integer","description":"How many messages at most (default 20)"}}}""";
+        """{"type":"object","properties":{"chat":{"type":"string","description":"Whose chat: empty for the user's own; a contact by name or @user, or a group by its name"},""" + TelegramTools.ViaProperty + ""","max":{"type":"integer","description":"How many messages at most (default 20)"}}}""";
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
 
@@ -162,7 +165,7 @@ public sealed class TelegramReadTool(ICommandBridge bridge) : ITool
 
     public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
-        var request = new TelegramRequest("read", arguments.GetString("chat"), Max: arguments.GetNumber("max") is { } n ? (int)n : 20);
+        var request = new TelegramRequest("read", arguments.GetString("chat"), Max: arguments.GetNumber("max") is { } n ? (int)n : 20, Via: arguments.GetString("via"));
         if (await TelegramTools.AskAsync(bridge, request, context.Assistant, cancellationToken).ConfigureAwait(false) is not { } answer) return TelegramTools.NoAnswer();
         if (!answer.Ok) return TelegramTools.Problem(answer);
         var lines = answer.Lines ?? [];

@@ -8,17 +8,26 @@ using ToggleSwitch = Wpf.Ui.Controls.ToggleSwitch;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options › Cuentas › Telegram, who may write to it (telegram, phase 2): who waits for a decision, the contacts with
-/// their level (each one in its window), everybody else, the limits, the groups and the blocked.
+/// Options › Cuentas › Telegram Bot and › Telegram, who may write to it and to whom it may write (telegram, phases 2 and
+/// 6): who waits for a decision, the contacts with their level (each one in its window; the account adds them from its
+/// contacts in Telegram or by their number), everybody else, the limits, the groups and the blocked.
 /// </summary>
 public partial class AccountsSection
 {
     private static readonly int[] PerMinuteChoices = [3, 6, 10, 20, 30];
-    private static readonly int[] PerHourChoices = [0, 2, 5, 10, 20];
+    private static readonly int[] PerHourChoices = [0, 2, 3, 5, 10, 20];
 
     private void BuildPeople()
     {
-        var card = CalendarUi.Card(Root, Loc.T("telegram.people.title"), Loc.T("telegram.people.intro"));
+        var card = CalendarUi.Card(Root, Loc.T("telegram.people.title"), Loc.T(IsAccount ? "telegram.people.introAccount" : "telegram.people.intro"));
+        if (IsAccount)
+        {
+            var add = CalendarUi.Button(Loc.T("telegram.add.title"), SymbolRegular.PersonAdd24, AddContact, primary: true);
+            add.HorizontalAlignment = HorizontalAlignment.Left;
+            add.Margin = new Thickness(0, 0, 0, 8);
+            add.IsEnabled = Telegram.State == TelegramState.Connected;
+            card.Children.Add(add);
+        }
         List<TelegramPerson> pending = Telegram.Read(s => s.Pending.ToList());
         List<TelegramContact> contacts = Telegram.Read(s => s.Contacts.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList());
         if (pending.Count > 0) card.Children.Add(CalendarUi.Label(Loc.T("telegram.people.waiting")));
@@ -35,7 +44,8 @@ public partial class AccountsSection
         {
             var summary = Loc.T("telegram.level." + contact.Level)
                           + (contact.Level is TelegramLevel.ChosenCommands or TelegramLevel.ChosenTools ? " · " + Loc.T("telegram.people.chosen", contact.Commands.Count + contact.Tools.Count) : string.Empty)
-                          + (contact.MayWrite ? string.Empty : " · " + Loc.T("telegram.people.noWrite"));
+                          + (contact.MayWrite ? string.Empty : " · " + Loc.T("telegram.people.noWrite"))
+                          + (contact.Phone is { Length: > 0 } phone ? " · " + phone : string.Empty);
             var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Edit24, Loc.T("telegram.people.edit"), () => EditContact(contact.Id)));
             actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Prohibited24, Loc.T("telegram.stranger.block"), () => Telegram.Block(contact.Id)));
@@ -48,6 +58,13 @@ public partial class AccountsSection
         BuildOthers();
         BuildGroups();
         BuildBlocked();
+    }
+
+    /// <summary>A contact for the account (phase 6.4): from its contacts in Telegram or by their number; then what they may do.</summary>
+    private void AddContact()
+    {
+        if (Dialogs.TelegramAddContactDialog.Add(Window.GetWindow(this)) is { } added) EditContact(added.Id);
+        Build();
     }
 
     private static Grid PersonRow(string name, string detail, FrameworkElement actions)
@@ -66,10 +83,10 @@ public partial class AccountsSection
 
     private void EditContact(long id)
     {
-        if (Dialogs.TelegramContactDialog.Edit(Window.GetWindow(this), id)) Build();
+        if (Dialogs.TelegramContactDialog.Edit(Window.GetWindow(this), Telegram, id)) Build();
     }
 
-    private static async Task ForgetAsync(long id, string shown)
+    private async Task ForgetAsync(long id, string shown)
     {
         var box = new Wpf.Ui.Controls.MessageBox
         {
@@ -78,7 +95,8 @@ public partial class AccountsSection
             PrimaryButtonText = Loc.T("common.remove"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowCenteredAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) Telegram.Forget(id);
+        var telegram = Telegram;
+        if (await box.ShowCenteredAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) telegram.Forget(id);
     }
 
     /// <summary>«Todos los demás»: their level (above «Solo charla» only with «Entiendo el riesgo»), the notice, and the limits.</summary>
@@ -144,7 +162,7 @@ public partial class AccountsSection
 
     private void BuildGroups()
     {
-        var card = CalendarUi.Card(Root, Loc.T("telegram.groups.title"), Loc.T("telegram.groups.intro", "@" + Telegram.Bot?.Username));
+        var card = CalendarUi.Card(Root, Loc.T("telegram.groups.title"), Loc.T("telegram.groups.intro", Telegram.MeUsername.Length > 0 ? "@" + Telegram.MeUsername : Telegram.Account?.Name ?? string.Empty));
         var groups = Telegram.Read(s => s.Groups.ToList());
         if (groups.Count == 0) card.Children.Add(CalendarUi.Caption(Loc.T("telegram.groups.none")));
         foreach (var group in groups)

@@ -24,6 +24,7 @@ public partial class GuideDialog : FluentWindow
     public const string AppPassword = "appPassword";
     public const string Ics = "ics";
     public const string Telegram = "telegram";
+    public const string TelegramAccount = "telegramAccount";
 
     private static readonly Dictionary<string, GuideStep[]> Guides = new(StringComparer.Ordinal)
     {
@@ -58,6 +59,17 @@ public partial class GuideDialog : FluentWindow
         [
             new("https://t.me/BotFather"),
             new(null, ("guide.copy.command", "/newbot")),
+            new(),
+            new(),
+            new(),
+        ],
+        // The account with a number (telegram, phase 6): its own application in my.telegram.org, then logging in.
+        [TelegramAccount] =
+        [
+            new(),
+            new("https://my.telegram.org/apps",
+                ("guide.copy.appTitle", "K-Desktop"),
+                ("guide.copy.appShort", "kdesktop")),
             new(),
             new(),
             new(),

@@ -7,6 +7,9 @@ namespace KDesktop.Core.Model;
 /// <summary>What «Enviar por Telegram» sends.</summary>
 public enum TelegramSendWhat { Text, File, Screenshot, Clipboard }
 
+/// <summary>What «Enviar por Telegram» writes with (phase 6): K-Desktop picks, the bot or the account with a number.</summary>
+public enum TelegramSendVia { Auto, Bot, Account }
+
 /// <summary>
 /// «Enviar por Telegram» (telegram, phase 3.1): to the owner or a contact (one K-Desktop may write to), a text with
 /// variables, a file, a screenshot or what is in the clipboard (files, an image or text); the text goes with it.
@@ -20,6 +23,9 @@ public partial class TelegramSendAction : CommandAction
     [ObservableProperty] private string _text = string.Empty;
     [ObservableProperty] private string _file = string.Empty;
     [ObservableProperty] private bool _showOsd = true;
+
+    /// <summary>With what: <see cref="TelegramSendVia.Auto"/> is the account when that person is its owner or contact, else the bot.</summary>
+    [ObservableProperty] private TelegramSendVia _via = TelegramSendVia.Auto;
 
     /// <summary>A contact's name by its id, for the summary (set by K-Desktop).</summary>
     public static Func<string, string?>? NameOf { get; set; }

@@ -840,6 +840,7 @@ public partial class App : Application
         Calendar?.Dispose();
         Mail?.Dispose();
         Telegram?.Dispose();
+        TelegramAccount?.Dispose();
         ClipboardUi?.Dispose();
         Router.Dispose();
         _zoneSnapper?.Dispose();

@@ -379,7 +379,10 @@ public partial class SettingsPage
         FillToolFolders();
     }
 
-    /// <summary>The pages inside «Cuentas» (5.0.430): one per kind of account (Google, Telegram); «Cuentas» itself lists the connected ones.</summary>
+    /// <summary>
+    /// The pages inside «Cuentas» (5.0.430): one per kind of account (Google, Telegram with a number, Telegram Bot); «Cuentas»
+    /// itself lists the connected ones.
+    /// </summary>
     private void FillAccounts()
     {
         var item = new NavItem(NavKind.Sub, "accounts/google")
@@ -390,6 +393,14 @@ public partial class SettingsPage
         item.Header = SubHeader("Globe24", Loc.T("settings.nav.accountsGoogle"));
         AutomationProperties.SetName(item, Loc.T("settings.nav.accountsGoogle"));
         _accountsItem!.Items.Add(item);
+        var account = new NavItem(NavKind.Sub, "accounts/telegram")
+        {
+            Style = (Style)FindResource("NavItem"),
+            SearchText = Fold(Loc.T("settings.nav.accountsTelegramAccount") + " " + Loc.T("settings.nav.accountsTelegramAccount.hint") + " Telegram api_id api_hash my.telegram.org " + Loc.T("telegram.account.phone") + " " + Loc.T("telegram.add.title")),
+        };
+        account.Header = SubHeader("Phone24", Loc.T("settings.nav.accountsTelegramAccount"));
+        AutomationProperties.SetName(account, Loc.T("settings.nav.accountsTelegramAccount"));
+        _accountsItem.Items.Add(account);
         var telegram = new NavItem(NavKind.Sub, "accounts/telegrambot")
         {
             Style = (Style)FindResource("NavItem"),

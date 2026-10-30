@@ -18,6 +18,18 @@ public sealed partial class EventService
         }
     }
 
+    /// <summary>What the account with a number serves (phase 6): the same events.</summary>
+    public TelegramCommands? TelegramAccount
+    {
+        get;
+        set
+        {
+            if (field is not null) field.Arrived -= OnTelegramArrived;
+            field = value;
+            if (field is not null) field.Arrived += OnTelegramArrived;
+        }
+    }
+
     private void OnTelegramArrived(TelegramIncoming m, TelegramVerdict v, string? path)
     {
         List<EventRule> rules;

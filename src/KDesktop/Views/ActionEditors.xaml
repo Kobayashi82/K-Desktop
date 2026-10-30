@@ -1326,6 +1326,11 @@
                     <ComboBox ItemsSource="{x:Static v:Lookups.TelegramSendWhats}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding What}"
                               AutomationProperties.Name="{l:Tr editor.telegramWhat}" />
                 </StackPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="180">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.telegramVia}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.TelegramSendVias}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Via}"
+                              AutomationProperties.Name="{l:Tr editor.telegramVia}" ToolTip="{l:Tr editor.telegramViaHint}" />
+                </StackPanel>
             </WrapPanel>
             <StackPanel>
                 <StackPanel.Style>

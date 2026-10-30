@@ -27,7 +27,7 @@ public sealed partial class TelegramTests : IDisposable
         public Exception? GetMeFailure { get; set; }
         public int GetMeCalls;
 
-        public TelegramCapabilities Capabilities => TelegramCapabilities.Bot;
+        public TelegramCapabilities Capabilities { get; set; } = TelegramCapabilities.Bot;
 
         public Task<TelegramUser> GetMeAsync(CancellationToken cancel)
         {

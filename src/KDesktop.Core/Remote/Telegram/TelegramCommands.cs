@@ -114,7 +114,7 @@ public sealed class TelegramCommands
         }
         Arrived?.Invoke(m, v, path);
 
-        var text = m.ChatKind == TelegramChatKind.Group ? TelegramInbox.WithoutMention(m.Text, _telegram.Bot?.Username ?? string.Empty) : m.Text.Trim();
+        var text = m.ChatKind == TelegramChatKind.Group ? TelegramInbox.WithoutMention(m.Text, _telegram.MeUsername) : m.Text.Trim();
         // A photo alone (phase 5.3): for the assistant to look at it.
         if (text.Length == 0 && m.Content == TelegramContent.Photo && path is not null) text = Loc.T("telegram.talk.photo");
         if (!text.StartsWith('/') || m.Content == TelegramContent.Voice)

@@ -3,12 +3,15 @@ using System.Text.Json.Serialization;
 namespace KDesktop.Core.Remote.Telegram;
 
 /// <summary>Someone in Telegram: its id (the identity, never the name or the @user), the name shown and the @user.</summary>
-public sealed record TelegramUser(long Id, string Name, string? Username)
+public sealed record TelegramUser(long Id, string Name, string? Username, string? Phone = null)
 {
     [JsonIgnore] public string Shown => Username is { Length: > 0 } u ? $"{Name} (@{u})" : Name;
 }
 
 public enum TelegramChatKind { Private, Group, Channel }
+
+/// <summary>Which connection: the bot (Opciones › Cuentas › Telegram Bot) or the account with a number (› Telegram).</summary>
+public enum TelegramVia { Bot, Account }
 
 /// <summary>What a message brings besides its text.</summary>
 public enum TelegramContent { Text, Voice, Photo, Document, Other }
@@ -31,7 +34,9 @@ public sealed record TelegramIncoming(
     long? ReplyToUserId = null,
     string? CallbackId = null,
     string? CallbackData = null,
-    bool Forwarded = false)
+    bool Forwarded = false,
+    TelegramVia Via = TelegramVia.Bot,
+    int? ReplyToMessageId = null)
 {
     /// <summary>A button of a message pressed (<see cref="CallbackData"/>), not a message.</summary>
     public bool IsButton => CallbackId is not null;
@@ -44,10 +49,28 @@ public sealed record TelegramLine(long Chat, string From, DateTimeOffset At, str
 public sealed record TelegramButton(string Text, string Data);
 
 /// <summary>What a connection can do, so the options and the tools explain it instead of failing.</summary>
-public sealed record TelegramCapabilities(bool CanWriteFirst, bool CanReadGroups, long MaxUpload, long MaxDownload, bool CanEdit, bool CanDelete)
+public sealed record TelegramCapabilities(bool CanWriteFirst, bool CanReadGroups, long MaxUpload, long MaxDownload, bool CanEdit, bool CanDelete, bool CanButtons = true)
 {
     /// <summary>A bot: it only writes to who wrote to it first; files up to 50 MB out and 20 MB in.</summary>
     public static TelegramCapabilities Bot { get; } = new(false, false, 50L << 20, 20L << 20, true, true);
+
+    /// <summary>
+    /// An account with a number (phase 6): it writes first and reads groups, files up to 2 GB, but without buttons (they go
+    /// as numbered lines, answered with the number or the word).
+    /// </summary>
+    public static TelegramCapabilities Account { get; } = new(true, true, 2000L << 20, 2000L << 20, true, true, CanButtons: false);
+}
+
+/// <summary>What only an account with a number does (phase 6.4): its contacts in Telegram, adding one by its number, logging out.</summary>
+public interface ITelegramAgenda
+{
+    Task<IReadOnlyList<TelegramUser>> AgendaAsync(CancellationToken cancel);
+
+    /// <summary>Adds someone to the account's contacts by their number; null when that number has no Telegram.</summary>
+    Task<TelegramUser?> AddToAgendaAsync(string phone, string firstName, string lastName, CancellationToken cancel);
+
+    /// <summary>Closes the session in Telegram's servers too.</summary>
+    Task LogOutAsync(CancellationToken cancel);
 }
 
 /// <summary>How a file is sent: as it is, as a photo (shown) or as a voice note.</summary>
@@ -59,8 +82,11 @@ public sealed class TelegramException(string message, int code = 0, TimeSpan? re
     public int Code { get; } = code;
     public TimeSpan? RetryAfter { get; } = retryAfter;
 
-    /// <summary>The token is not valid (revoked or mistyped): trying again does not help.</summary>
+    /// <summary>The token is not valid (revoked or mistyped), or the account's session was closed: trying again does not help.</summary>
     public bool BadToken => Code is 401 or 404;
+
+    /// <summary>Telegram limits the account (it wrote to too many who don't know it): it can only answer for a while.</summary>
+    public bool Limited { get; init; }
 }
 
 /// <summary>
@@ -104,6 +130,24 @@ public sealed class TelegramBotSettings
     public string Name { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public bool Enabled { get; set; } = true;
+}
+
+/// <summary>
+/// The account with a number (Telegram\Account\settings.json; phase 6): the application it connects with (api_id and
+/// api_hash of my.telegram.org, the hash encrypted with DPAPI), the number it logged in with and who it is. The session goes
+/// apart, encrypted too (account.session).
+/// </summary>
+public sealed class TelegramAccountSettings
+{
+    public int ApiId { get; set; }
+    public string ApiHashProtected { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public bool Enabled { get; set; } = true;
+
+    [JsonIgnore] public string Shown => Username.Length > 0 ? $"{Name} (@{Username})" : Name;
 }
 
 /// <summary>The owner: the one person the bot works for (linked with a code, as the phone is paired).</summary>
@@ -155,6 +199,10 @@ public sealed class TelegramContact
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Username { get; set; }
+
+    /// <summary>Their number, when they were added with it or come from the account's contacts (only shown).</summary>
+    public string? Phone { get; set; }
+
     public TelegramLevel Level { get; set; } = TelegramLevel.ChatOnly;
 
     /// <summary>K-Desktop may write to them (when asked to).</summary>
@@ -238,6 +286,10 @@ public sealed class TelegramLimits
 public sealed class TelegramSettings
 {
     public TelegramBotSettings? Bot { get; set; }
+
+    /// <summary>The account with a number (only in the account's settings; the bot's have <see cref="Bot"/>).</summary>
+    public TelegramAccountSettings? Account { get; set; }
+
     public TelegramOwner? Owner { get; set; }
     public TelegramNotices Notices { get; set; } = new();
     public List<TelegramContact> Contacts { get; set; } = [];

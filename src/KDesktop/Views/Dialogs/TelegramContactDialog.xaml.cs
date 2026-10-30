@@ -9,12 +9,13 @@ using TextBlock = System.Windows.Controls.TextBlock;
 namespace KDesktop.Views.Dialogs;
 
 /// <summary>
-/// A Telegram contact (Opciones › Cuentas › Telegram; telegram, phase 2): what they may do, whether K-Desktop may write to
+/// A Telegram contact of the bot or the account (Opciones › Cuentas › Telegram Bot / Telegram; telegram, phases 2 and 6): what they may do, whether K-Desktop may write to
 /// them, and —with «Comandos elegidos» or «Herramientas elegidas»— which commands and tools. Saved in <see cref="TelegramService"/>.
 /// </summary>
 public partial class TelegramContactDialog : FluentWindow
 {
-    private static TelegramService Telegram => App.Current.Telegram;
+    /// <summary>The bot's or the account's (phase 6): each one has its own contacts.</summary>
+    private readonly TelegramService _telegram;
 
     private readonly long _id;
     private readonly ComboBox _level;
@@ -29,9 +30,10 @@ public partial class TelegramContactDialog : FluentWindow
     private readonly List<(CheckBox Box, string Name)> _tools = [];
     private readonly List<string> _unknownTools = [];
 
-    private TelegramContactDialog(TelegramContact c)
+    private TelegramContactDialog(TelegramService telegram, TelegramContact c)
     {
         InitializeComponent();
+        _telegram = telegram;
         _id = c.Id;
         TitleBar.Title = c.Shown;
         Form.Children.Add(CalendarUi.Caption(Loc.T("telegram.contact.intro"), new Thickness(0, 0, 0, 12)));
@@ -111,10 +113,10 @@ public partial class TelegramContactDialog : FluentWindow
     }
 
     /// <summary>Opens the window for the contact <paramref name="id"/>; true when saved.</summary>
-    public static bool Edit(Window? owner, long id)
+    public static bool Edit(Window? owner, TelegramService telegram, long id)
     {
-        var contact = Telegram.Read(s => s.Contacts.FirstOrDefault(c => c.Id == id));
-        return contact is not null && new TelegramContactDialog(contact) { Owner = owner }.ShowDialog() == true;
+        var contact = telegram.Read(s => s.Contacts.FirstOrDefault(c => c.Id == id));
+        return contact is not null && new TelegramContactDialog(telegram, contact) { Owner = owner }.ShowDialog() == true;
     }
 
     private TelegramLevel Level => _level.SelectedValue is TelegramLevel l ? l : TelegramLevel.ChatOnly;
@@ -135,7 +137,7 @@ public partial class TelegramContactDialog : FluentWindow
         TelegramAnswerKind? answer = Enum.TryParse<TelegramAnswerKind>(_answer.SelectedValue as string, out var kind) ? kind : null;
         List<string> commands = [.. _commands.Where(x => x.Box.IsChecked == true).Select(x => x.Id)];
         List<string> tools = [.. _tools.Where(x => x.Box.IsChecked == true).Select(x => x.Name), .. _unknownTools];
-        Telegram.Update(s =>
+        _telegram.Update(s =>
         {
             if (s.Contacts.FirstOrDefault(c => c.Id == _id) is not { } contact) return;
             contact.Level = level;
