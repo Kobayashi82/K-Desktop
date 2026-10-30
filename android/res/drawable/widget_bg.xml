@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's card: dark and a little see-through, like the app's surfaces. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="24dp" />
+    <solid android:color="#E6141418" />
+    <stroke android:width="1dp" android:color="#33F5B324" />
+</shape>

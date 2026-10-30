@@ -30,4 +30,12 @@
     <string name="share_offline">%1$s no contesta</string>
     <string name="share_sending">Enviando a %1$s…</string>
     <string name="share_nopc">Primero empareja un PC</string>
+    <string name="tile_talk">Hablar</string>
+    <string name="tile_wake">Encender el PC</string>
+    <string name="tile_run">Comando favorito</string>
+    <string name="widget_desc">Tus comandos favoritos y hablar</string>
+    <string name="widget_empty">Marca comandos como favoritos en la app</string>
+    <string name="run_ok">%1$s: hecho</string>
+    <string name="run_failed">%1$s: no ha funcionado</string>
+    <string name="run_offline">El PC no contesta</string>
 </resources>

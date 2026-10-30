@@ -753,6 +753,17 @@ const commandById = id => state.catalog?.commands?.find(c => c.id === id);
 function savePcSets() {
   pcStore.set('favorites', [...state.favorites]);
   pcStore.set('confirm', [...state.confirm]);
+  syncFavorites();
+}
+
+/** The favourites with their names, for the Android app's widget and tile (only when they change). */
+function syncFavorites() {
+  if (!window.KDesktopApp?.setPref || !state.catalog) return;
+  const info = state.catalog.commands.filter(c => state.favorites.has(c.id)).slice(0, 8).map(c => ({ id: c.id, name: c.name }));
+  const json = JSON.stringify(info);
+  if (json === syncFavorites.last) return;
+  syncFavorites.last = json;
+  pcStore.set('favoriteInfo', info);
 }
 
 /** Holding a command: what it does, its hotkeys and where it works; favourite, ask first, run. */
@@ -1162,6 +1173,7 @@ function renderAll() {
   shownAll = list;
   $('allCount').textContent = list.length ? String(list.length) : '';
 
+  syncFavorites();
   // Favourites, then the most used: only without a search.
   const favorites = q ? [] : commands.filter(c => state.favorites.has(c.id));
   $('favStrip').hidden = favorites.length === 0;

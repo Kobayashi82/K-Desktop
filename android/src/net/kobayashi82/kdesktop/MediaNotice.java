@@ -40,7 +40,7 @@ import java.util.concurrent.Executors;
  * «media» event). Its buttons ask the PC straight away (api/media, api/audio). Everything here runs on the main thread
  * but the requests, which go one after the other.
  */
-final class MediaNotice {
+public final class MediaNotice {
     static final String KEY_ENABLED = "mediaNotice";
     static final String ACTION = "net.kobayashi82.kdesktop.MEDIA";
     private static final String CHANNEL = "media";

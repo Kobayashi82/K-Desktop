@@ -59,6 +59,49 @@
             android:exported="false"
             android:foregroundServiceType="remoteMessaging" />
 
+        <!-- Quick Settings tiles: talk, switch the PC on, the first favourite command -->
+        <service
+            android:name=".Tiles$Talk"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_talk"
+            android:label="@string/tile_talk"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".Tiles$Wake"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_wake"
+            android:label="@string/tile_wake"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".Tiles$Run"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_run"
+            android:label="@string/tile_run"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- The home screen widget: favourite commands and talking -->
+        <receiver
+            android:name=".Widget"
+            android:exported="false"
+            android:label="@string/widget_desc">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
+        </receiver>
+
         <!-- The buttons of the notification of what plays on the PC -->
         <receiver
             android:name=".MediaNotice$Receiver"

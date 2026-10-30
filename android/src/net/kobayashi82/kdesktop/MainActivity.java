@@ -1135,6 +1135,13 @@ public class MainActivity extends Activity {
                     if (value == null || value.isEmpty()) pc.prefs.remove(key);
                     else pc.prefs.put(key, value);
                     pcs.save(pc);
+                    // The favourites are on the widget and on a tile too.
+                    if ("favoriteInfo".equals(key)) {
+                        Widget.refresh(MainActivity.this);
+                        if (Build.VERSION.SDK_INT >= 24)
+                            android.service.quicksettings.TileService.requestListeningState(MainActivity.this,
+                                    new android.content.ComponentName(MainActivity.this, Tiles.Run.class));
+                    }
                 } catch (Exception ignored) {
                 }
             });
