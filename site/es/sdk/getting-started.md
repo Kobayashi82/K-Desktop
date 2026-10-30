@@ -153,14 +153,14 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día.
 
 K-Desktop los dibuja con sus propios controles, sin cargar nada del código del asistente:
 
-- **`settings.json`** ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/settings.schema.json))
+- **`settings.json`** ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/settings.schema.json))
   → sus pestañas en su ficha de *Opciones → Asistentes* (o en su menú del botón derecho → *Ajustes*). Páginas (pestañas si
   hay varias), secciones y controles: `toggle`, `slider`, `number`, `choice`, `text`, `color`, `gallery`, `apps`, `hotkey`,
   `button` (lanza un extra o, con `resetData`, borra su carpeta de datos tras preguntar), `info` y `keys`. `enabledWhen`
   atenúa un control mientras un interruptor está apagado. Lo que cambia el usuario se guarda (solo lo que difiere del valor
   por defecto) y, si está en el escritorio, le llega al momento: `OnSettingsChanged` con **todos** los valores (también en
   `host.Settings`).
-- **`panel.json`** ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/panel.schema.json))
+- **`panel.json`** ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/panel.schema.json))
   → *Panel → Asistente*, en su propia pestaña (se guarda, así que se ve aunque no esté en el escritorio): `stat` (en fila), `progress`, `list`, `achievements`, `buttons` y `text`. Los
   datos llegan con `host.PublishPanel`, que se **fusiona** con lo publicado antes: publica todo en `Enter` y luego solo lo
   que cambie. Una galería con `source` toma sus imágenes de esos mismos datos
@@ -181,12 +181,12 @@ a `OnExtraAsync`.
 ## Voz y personalidad
 
 - **Su voz**: lo que contesta lo dice el host en voz alta, con el perfil `voice` de su manifiesto (`voice/<id>.json`,
-  [esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/voice.schema.json)): un motor y una
+  [esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/voice.schema.json)): un motor y una
   cadena de efectos —`pitch`, `formant`, `ring`, `vocoder`, `bitcrush`, `radio`, `chorus`, `flanger`, `echo`, `glitch`— y
   `moods`, los efectos que se añaden en algunas situaciones. `OnVoiceLevel` dice lo fuerte que suena mientras habla (para
   luces o una boca); `host.SetVoiceMood("error")`, `"happy"` o `null` cambian el ánimo de lo que dice desde entonces.
 - **Su personalidad**: `persona/{lang}.json`
-  ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/persona.schema.json)), lo que le dice a
+  ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/persona.schema.json)), lo que le dice a
   la IA quién es y cómo habla, y sus frases fijas. Sin el idioma del usuario, el inglés o el primero que haya.
 - **Lo que cambia el usuario**: en *Personalidad* y *Voz* el usuario puede escribirle otra personalidad (tus frases fijas se
   quedan) y darle otro idioma y otra voz. Con otro idioma, `host.Language` es ese y no el de K-Desktop: léelo en `Attach`

@@ -383,7 +383,7 @@ public sealed class TalkTests : IDisposable
         var package = Path.Combine(_folder, "package");
         Directory.CreateDirectory(Path.Combine(package, "persona"));
         File.WriteAllText(Path.Combine(package, "persona", "en.json"), """{ "prompt": "You are a tiny lunar module.", "phrases": { "ok": ["Roger."] } }""");
-        var manifest = AssistantManifest.Parse(File.ReadAllText(Path.Combine(Contracts.DocsDir, "ejemplos-paquete", "lander", "assistant.json")));
+        var manifest = AssistantManifest.Parse(File.ReadAllText(Path.Combine(Contracts.LanderPackage, "assistant.json")));
 
         // No Spanish one: English.
         var persona = AssistantPersona.Read(package, manifest, "es");
@@ -393,7 +393,7 @@ public sealed class TalkTests : IDisposable
         // A phrase it does not have is the module's.
         Assert.Equal("No estaba haciendo nada.", persona.Phrase("nothingToCancel"));
 
-        File.WriteAllText(Path.Combine(package, "persona", "es.json"), File.ReadAllText(Path.Combine(Contracts.DocsDir, "ejemplos-paquete", "lander", "persona", "es.json")));
+        File.WriteAllText(Path.Combine(package, "persona", "es.json"), File.ReadAllText(Path.Combine(Contracts.LanderPackage, "persona", "es.json")));
         persona = AssistantPersona.Read(package, manifest, "es");
         Assert.StartsWith("Eres un pequeño módulo lunar", persona.Prompt, StringComparison.Ordinal);
         Assert.Equal("¿«A» o «B»?", persona.Phrase("which", null, "A", "B"));

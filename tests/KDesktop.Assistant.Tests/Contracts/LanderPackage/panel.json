@@ -1,5 +1,5 @@
 {
-  "$schema": "../../schemas/panel.schema.json",
+  "$schema": "../../../../src/KDesktop.Core/Assistant/Packages/Schemas/panel.schema.json",
   "cards": [
     { "type": "stat", "label": "Nivel de piloto", "bind": "pilot.level" },
     { "type": "progress", "label": "Hasta el siguiente nivel", "bind": "pilot.points", "max": "pilot.nextLevel", "format": "{0} / {1} puntos" },

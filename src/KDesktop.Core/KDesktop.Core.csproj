@@ -63,9 +63,9 @@
     <EmbeddedResource Include="Assistant\Voice\voice-profiles.json" LogicalName="AssistantVoice/voice-profiles.json" />
   </ItemGroup>
 
-  <!-- The schemas of assistant packages (docs\assistant\schemas): K-Desktop checks a package with them. -->
+  <!-- The schemas of assistant packages (Assistant\Packages\Schemas): K-Desktop checks a package with them. -->
   <ItemGroup>
-    <EmbeddedResource Include="..\..\docs\assistant\schemas\*.schema.json" LogicalName="AssistantSchemas/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Assistant\Packages\Schemas\*.schema.json" LogicalName="AssistantSchemas/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- The remote web app (PWA), served by Remote/Web/WebServer. -->

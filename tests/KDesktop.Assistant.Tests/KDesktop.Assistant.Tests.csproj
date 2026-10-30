@@ -40,11 +40,11 @@
     <None Include="Data\*.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Data\*.js" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-  <!-- The contract files live in docs\assistant: the tests read them from there. -->
+  <!-- The contract files (schemas, examples, protocol) are read from the repository (Contracts.cs). -->
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>DocsDir</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\..\docs\assistant</_Parameter2>
+      <_Parameter1>RepoDir</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>KDesktopExe</_Parameter1>

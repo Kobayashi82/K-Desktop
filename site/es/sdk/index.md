@@ -45,11 +45,11 @@ miasistente-1.0.0.kai
 
 ## El manifiesto
 
-`assistant.json` ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/assistant.schema.json)):
+`assistant.json` ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/assistant.schema.json)):
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/docs/assistant/schemas/assistant.schema.json",
+  "$schema": "https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/src/KDesktop.Core/Assistant/Packages/Schemas/assistant.schema.json",
   "id": "miasistente",
   "name": "MiAsistente",
   "version": "1.0.0",
@@ -86,12 +86,12 @@ miasistente-1.0.0.kai
 | `showcase` | Vídeos de lo que sabe enseñar, para el catálogo (ver [Escaparate](showcase.md#vídeos-para-el-catálogo)) |
 
 Los demás archivos también tienen su esquema:
-[settings](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/settings.schema.json),
-[panel](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/panel.schema.json),
-[persona](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/persona.schema.json),
-[voice](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/voice.schema.json),
-[character](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/character.schema.json) y
-[catalog](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/catalog.schema.json).
+[settings](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/settings.schema.json),
+[panel](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/panel.schema.json),
+[persona](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/persona.schema.json),
+[voice](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/voice.schema.json),
+[character](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/character.schema.json) y
+[catalog](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/catalog.schema.json).
 
 ## Instalarlo
 

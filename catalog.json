@@ -1,5 +1,5 @@
 {
-  "$schema": "docs/assistant/schemas/catalog.schema.json",
+  "$schema": "src/KDesktop.Core/Assistant/Packages/Schemas/catalog.schema.json",
   "catalog": 1,
   "assistants": [
     { "id": "lander", "package": "https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/lander.kai" },

@@ -25,7 +25,7 @@ public partial class FileDropTests
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
     private static string DotPackage =>
-        DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "tests", "DotAssistant"))
+        DevLoader.FindPackage(Path.Combine(Contracts.Root, "tests", "DotAssistant"))
         ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
 
     [Theory]

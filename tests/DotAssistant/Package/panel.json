@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../docs/assistant/schemas/panel.schema.json",
+  "$schema": "../../../src/KDesktop.Core/Assistant/Packages/Schemas/panel.schema.json",
   "cards": [
     {
       "type": "stat",

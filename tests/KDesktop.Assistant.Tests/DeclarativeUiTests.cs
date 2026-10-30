@@ -9,7 +9,7 @@ namespace KDesktop.Assistant.Tests;
 /// <summary>Stage 1.9: settings.json and panel.json as K-Desktop draws them, the values it saves and the panel data.</summary>
 public class DeclarativeUiTests
 {
-    private static string Root => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", ".."));
+    private static string Root => Contracts.Root;
 
     private static string Dot(string file) => File.ReadAllText(Path.Combine(Root, "tests/DotAssistant/Package", file));
 

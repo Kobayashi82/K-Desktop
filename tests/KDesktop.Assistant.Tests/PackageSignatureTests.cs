@@ -25,7 +25,7 @@ public sealed class PackageSignatureTests : IDisposable
     }
 
     private static string DotFolder =>
-        DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "tests", "DotAssistant"))
+        DevLoader.FindPackage(Path.Combine(Contracts.Root, "tests", "DotAssistant"))
         ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
 
     private TrustedPublisher Me => new("Pruebas", Convert.ToBase64String(_key.ExportSubjectPublicKeyInfo()));

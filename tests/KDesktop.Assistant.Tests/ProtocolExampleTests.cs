@@ -8,7 +8,7 @@ public partial class ProtocolExampleTests
 {
     private static HashSet<string> DocumentedMessages()
     {
-        var doc = File.ReadAllText(Path.Combine(Contracts.DocsDir, "protocolo.md"));
+        var doc = File.ReadAllText(Contracts.Protocol);
         // Rows of the message tables: | `name` | A→K / K→A / ambas | …  («ping / pong» documents two).
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (Match row in MessageRow().Matches(doc))

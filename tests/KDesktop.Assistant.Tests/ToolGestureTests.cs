@@ -24,7 +24,7 @@ public sealed class ToolGestureTests : IDisposable
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
     private static string DotPackage =>
-        DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "tests", "DotAssistant"))
+        DevLoader.FindPackage(Path.Combine(Contracts.Root, "tests", "DotAssistant"))
         ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
 
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "toolgestures-" + Guid.NewGuid().ToString("N")[..8]);

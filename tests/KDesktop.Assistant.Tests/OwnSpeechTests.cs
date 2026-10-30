@@ -116,7 +116,7 @@ public class OwnSpeechTests
         /// <summary>Dot's built package, with <c>"speech": "own"</c> in its manifest.</summary>
         private static string CopyDot(string to)
         {
-            var from = DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "tests", "DotAssistant"))
+            var from = DevLoader.FindPackage(Path.Combine(Contracts.Root, "tests", "DotAssistant"))
                 ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
             foreach (var file in Directory.EnumerateFiles(from, "*", SearchOption.AllDirectories))
             {

@@ -4,7 +4,7 @@ using Json.Schema;
 namespace KDesktop.Core.Assistant.Packages;
 
 /// <summary>
-/// The JSON schemas of a package (docs/assistant/schemas, built into the assembly): assistant, settings, panel,
+/// The JSON schemas of a package (Schemas next to this file, built into the assembly): assistant, settings, panel,
 /// persona and voice. Only data is checked here; nothing of the package runs.
 /// </summary>
 public static class PackageSchemas

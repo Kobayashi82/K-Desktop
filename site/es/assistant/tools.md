@@ -108,10 +108,10 @@ mandarte un Telegram, ejecutar uno de tus comandos con frases propias, encadenar
 
 - Están en `%APPDATA%\K-Desktop 5\Assistant\Tools\`, un `.json` por herramienta (*Herramientas → Personalizadas → Abrir
   carpeta*, o **Nueva** a partir de una plantilla). Se recargan un momento después de guardar, añadir o quitar una.
-- Esquema: [`tool.schema.json`](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/tool.schema.json).
+- Esquema: [`tool.schema.json`](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json).
   Con `"$schema"` apuntando a él, tu editor te enseña los errores mientras escribes. Un archivo con errores no se carga y
   K-Desktop te dice por qué.
-- [Ejemplos](https://github.com/Kobayashi82/K-Desktop/tree/main/docs/assistant/herramientas) de cada tipo.
+- [Ejemplos](https://github.com/Kobayashi82/K-Desktop/tree/main/samples/Tools) de cada tipo.
 
 ```jsonc
 {

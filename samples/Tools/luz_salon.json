@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/tool.schema.json",
+  "$schema": "../../src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json",
   "name": "luz_salon",
   "type": "http",
   "description": "Turns the living room light on or off (Home Assistant).",

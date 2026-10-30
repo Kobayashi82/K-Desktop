@@ -222,7 +222,7 @@ public class VoiceTests
     public void TheSixProfilesAndTheirMoodsBuild()
     {
         Assert.Equal(["natural", "robot", "martian", "mission", "eightbit", "beeps"], VoiceProfile.BuiltIn.Select(p => p.Id));
-        var example = VoiceProfile.Load(Path.Combine(Contracts.DocsDir, "ejemplos-paquete", "lander", "voice", "lander.json"), "lander");
+        var example = VoiceProfile.Load(Path.Combine(Contracts.LanderPackage, "voice", "lander.json"), "lander");
         Assert.NotNull(example);
         var noise = new Random(1);
         var input = Enumerable.Range(0, 24000).Select(i => (float)(Math.Sin(i * 0.05) * 0.3 + (noise.NextDouble() - 0.5) * 0.05)).ToArray();

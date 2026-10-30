@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/tool.schema.json",
+  "$schema": "../../src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json",
   "name": "comprobar_conexion",
   "type": "script",
   "description": "Pings a host (the router by default) and says how long it takes to answer, in ms.",

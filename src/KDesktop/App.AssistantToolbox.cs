@@ -319,7 +319,7 @@ public partial class App
 /// <summary>The starting point of a new JSON tool of each type (guide: site/en/assistant/tools.md).</summary>
 internal static class ToolTemplates
 {
-    private const string Schema = "https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/docs/assistant/schemas/tool.schema.json";
+    private const string Schema = "https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json";
 
     public static string For(string type, string name) => (type switch
     {

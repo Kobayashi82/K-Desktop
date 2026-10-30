@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../docs/assistant/schemas/assistant.schema.json",
+  "$schema": "../../../src/KDesktop.Core/Assistant/Packages/Schemas/assistant.schema.json",
   "id": "dot",
   "name": "Dot",
   "version": "1.2.0",

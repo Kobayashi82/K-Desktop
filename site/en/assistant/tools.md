@@ -108,10 +108,10 @@ you a Telegram message, run one of your commands with phrases of its own, chain 
 
 - They are in `%APPDATA%\K-Desktop 5\Assistant\Tools\`, one `.json` per tool (*Tools → Custom → Open folder*, or **New**
   from a template). They reload a moment after you save, add or remove one.
-- Schema: [`tool.schema.json`](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/tool.schema.json).
+- Schema: [`tool.schema.json`](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json).
   With `"$schema"` pointing to it your editor shows the mistakes as you type. A file with errors is not loaded and
   K-Desktop tells you why.
-- [Examples](https://github.com/Kobayashi82/K-Desktop/tree/main/docs/assistant/herramientas) of every type.
+- [Examples](https://github.com/Kobayashi82/K-Desktop/tree/main/samples/Tools) of every type.
 
 ```jsonc
 {

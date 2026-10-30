@@ -59,7 +59,7 @@ assistant's row in *Settings → Assistants* and *Settings → Updates*, with *U
 
 *Settings → Assistant → Catalog* shows the assistants of the catalogs it reads (K-Desktop's and any the user adds)
 with *Install…* and *Update…*. A catalog is a JSON published at a fixed address
-([schema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/catalog.schema.json)) that only says
+([schema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/catalog.schema.json)) that only says
 where each package is:
 
 ```json

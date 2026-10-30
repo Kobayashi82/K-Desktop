@@ -300,7 +300,7 @@ app de Android (`tools\android\build-apk.ps1`). La compilación no da ningún av
 ## Estructura del proyecto
 
 ```
-src/KDesktop.Core             núcleo sin interfaz: modelo, almacenamiento, hooks, motor de acciones, eventos, voz, servidor web y UDP
+src/KDesktop.Core             núcleo sin interfaz: modelo, almacenamiento, hooks, motor de acciones, eventos, voz, servidor web y UDP; los esquemas de los paquetes de asistentes (Assistant/Packages/Schemas)
 src/KDesktop                  aplicación WPF: ventana principal, QuickMenu, lanzador, OSD, bandeja, temas
 src/KDesktop.Assistant.Sdk    SDK de los asistentes (IAssistant y lo que les da el host) y empaquetado en .kai
 src/KDesktop.Assistant.Host   el proceso de los asistentes (KDesktop.exe --assistant): capa de dibujo, mundo, sonido, escenario
@@ -308,11 +308,12 @@ src/KDesktop.Assistant.Brain  la IA de los asistentes: servidores de modelos, en
 src/KDesktop.Assistant.Tools  herramientas incluidas, herramientas JSON, cliente y servidor MCP, documentos, permisos
 src/KDesktop.Assistant.Voice  su voz: Kokoro y Piper en el procesador, voces de Windows, efectos de voz
 samples/CharacterAssistant    Pip, el asistente de ejemplo sin código
+samples/Tools                 herramientas JSON de ejemplo para los asistentes
 templates/kdassistant         plantilla de dotnet new para un asistente nuevo
 android/                      app de Android (WebView de la app web del PC; micrófono, voz, widget, botones… nativos)
 tests/                        pruebas del núcleo, del módulo Asistente y Dot, el asistente de las pruebas
 site/                         la web de la documentación (DocFX), publicada en GitHub Pages con site/publish.ps1
-docs/assistant/               esquemas de los paquetes, protocolo de la tubería y sus ejemplos, notas internas
+docs/assistant/               protocolo de la tubería y notas internas
 docs/tutorial/                el vídeo explicativo (Remotion) y sus capturas
 tools/                        scripts de publicación, KaiSign, icono, APK, imágenes de Pip, capturas del tutorial
 catalog.json                  el catálogo oficial de asistentes que lee K-Desktop

@@ -1,7 +1,7 @@
 # Sin código
 
 Un asistente puede ser solo imágenes y JSON: en vez de un ensamblado, su `entry` es un `character.json`
-([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/character.schema.json)) y lo mueve
+([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/character.schema.json)) y lo mueve
 K-Desktop.
 
 Se pone en la barra de tareas o encima de las ventanas, pasea de vez en cuando (y a veces se cae por el borde de una

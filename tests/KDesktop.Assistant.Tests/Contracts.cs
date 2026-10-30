@@ -5,22 +5,30 @@ using Json.Schema;
 
 namespace KDesktop.Assistant.Tests;
 
-/// <summary>The contract files of docs\assistant: pipe examples and package schemas.</summary>
+/// <summary>The contract files: pipe examples (Contracts\Pipe), the example package (Contracts\LanderPackage), the
+/// package schemas (KDesktop.Core, Assistant\Packages\Schemas), the JSON tool samples and the protocol doc.</summary>
 internal static class Contracts
 {
-    public static string DocsDir { get; } = Path.GetFullPath(typeof(Contracts).Assembly
-        .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "DocsDir").Value!);
+    /// <summary>The root of the repository.</summary>
+    public static string Root { get; } = Path.GetFullPath(typeof(Contracts).Assembly
+        .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "RepoDir").Value!);
 
-    public static string Examples => Path.Combine(DocsDir, "ejemplos");
+    public static string Examples => Path.Combine(Root, "tests", "KDesktop.Assistant.Tests", "Contracts", "Pipe");
 
-    public static string LanderPackage => Path.Combine(DocsDir, "ejemplos-paquete", "lander");
+    public static string LanderPackage => Path.Combine(Root, "tests", "KDesktop.Assistant.Tests", "Contracts", "LanderPackage");
+
+    public static string SchemasDir => Path.Combine(Root, "src", "KDesktop.Core", "Assistant", "Packages", "Schemas");
+
+    public static string ToolSamples => Path.Combine(Root, "samples", "Tools");
+
+    public static string Protocol => Path.Combine(Root, "docs", "assistant", "protocolo.md");
 
     private static readonly Lazy<Dictionary<string, JsonSchema>> Schemas = new(LoadSchemas);
 
     private static Dictionary<string, JsonSchema> LoadSchemas()
     {
         var options = new BuildOptions { SchemaRegistry = new SchemaRegistry() };
-        var dir = Path.Combine(DocsDir, "schemas");
+        var dir = SchemasDir;
         var result = new Dictionary<string, JsonSchema>(StringComparer.OrdinalIgnoreCase);
 
         // common first: the others refer to it.

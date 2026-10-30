@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/tool.schema.json",
+  "$schema": "../../src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json",
   "name": "buenas_noches",
   "type": "routine",
   "description": "The user's bedtime routine: switches the living room light off and then the screens.",

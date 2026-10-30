@@ -5,7 +5,7 @@ namespace KDesktop.Assistant.Tests;
 /// <summary>Stage 1.6: the packages of Dot and of the template are valid, and the manifest reader agrees with the schemas.</summary>
 public class ManifestTests
 {
-    private static string Root => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", ".."));
+    private static string Root => Contracts.Root;
 
     public static TheoryData<string, string> PackageFiles => new()
     {

@@ -28,7 +28,7 @@ seen by the assistant.
 
 - **Guide:** [Making assistants](https://kobayashi82.github.io/K-Desktop/en/sdk/index.html), and the
   [API reference](https://kobayashi82.github.io/K-Desktop/api/KDesktop.Assistant.Sdk.html)
-- **Schemas** of the package files: [docs/assistant/schemas](https://github.com/Kobayashi82/K-Desktop/tree/main/docs/assistant/schemas)
+- **Schemas** of the package files: [src/KDesktop.Core/Assistant/Packages/Schemas](https://github.com/Kobayashi82/K-Desktop/tree/main/src/KDesktop.Core/Assistant/Packages/Schemas)
 - **Template:** `dotnet new install KDesktop.Assistant.Templates`, then `dotnet new kdassistant -n MyAssistant`
 - **Without code:** an assistant can be just pictures and a `character.json` (see
   [Pip](https://github.com/Kobayashi82/K-Desktop/tree/main/samples/CharacterAssistant))

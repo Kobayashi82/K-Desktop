@@ -12,7 +12,7 @@ namespace KDesktop.Assistant.Tests;
 public class PackageManagerTests
 {
     private static string DotFolder =>
-        DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "tests", "DotAssistant"))
+        DevLoader.FindPackage(Path.Combine(Contracts.Root, "tests", "DotAssistant"))
         ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
 
     private static readonly string Work = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "packages-" + Guid.NewGuid().ToString("N")[..6]);

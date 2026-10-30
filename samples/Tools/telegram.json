@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/tool.schema.json",
+  "$schema": "../../src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json",
   "name": "send_telegram",
   "type": "http",
   "description": "Sends a message to the user's phone through their own Telegram bot. Use it when they ask to send something to their phone or to Telegram; never open the Telegram app or website for that.",

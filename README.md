@@ -301,7 +301,7 @@ app (`tools\android\build-apk.ps1`). The build has no warnings, with the .NET an
 ## Project structure
 
 ```
-src/KDesktop.Core             core without UI: model, storage, hooks, action engine, events, voice, web and UDP server
+src/KDesktop.Core             core without UI: model, storage, hooks, action engine, events, voice, web and UDP server; the assistant package schemas (Assistant/Packages/Schemas)
 src/KDesktop                  WPF application: main window, QuickMenu, launcher, OSD, tray, themes
 src/KDesktop.Assistant.Sdk    assistant SDK (IAssistant and what the host provides) and .kai packaging
 src/KDesktop.Assistant.Host   the assistants' process (KDesktop.exe --assistant): drawing layer, world, sound, stage
@@ -309,11 +309,12 @@ src/KDesktop.Assistant.Brain  the assistants' AI: model servers, order routing, 
 src/KDesktop.Assistant.Tools  built-in tools, JSON tools, MCP client and server, document knowledge, permissions
 src/KDesktop.Assistant.Voice  speech: Kokoro and Piper on the processor, Windows voices, voice effects
 samples/CharacterAssistant    Pip, the no-code sample assistant
+samples/Tools                 sample JSON tools for the assistants
 templates/kdassistant         dotnet new template for a new assistant
 android/                      Android app (WebView of the PC's web app; native microphone, voice, widget, tiles…)
 tests/                        core tests, Assistant module tests and Dot, the test assistant
 site/                         documentation website (DocFX), published to GitHub Pages with site/publish.ps1
-docs/assistant/               package schemas, pipe protocol and its examples, internal notes (in Spanish)
+docs/assistant/               pipe protocol and internal notes (in Spanish)
 docs/tutorial/                the tutorial video (Remotion) and its screenshots
 tools/                        release scripts, KaiSign, icon, APK, Pip's pictures, tutorial captures
 catalog.json                  the official assistant catalog read by K-Desktop

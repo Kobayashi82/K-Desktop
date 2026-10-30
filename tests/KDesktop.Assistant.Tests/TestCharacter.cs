@@ -27,7 +27,7 @@ internal static partial class TestCharacter
     }
 
     /// <summary>Pip's folder, the SDK's example.</summary>
-    public static string Sample => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    public static string Sample => Path.GetFullPath(Path.Combine(Contracts.Root, "samples", "CharacterAssistant", "Package"));
 
     private const string Manifest = """
         {

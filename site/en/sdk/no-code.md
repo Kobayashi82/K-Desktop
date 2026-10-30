@@ -1,7 +1,7 @@
 # Without code
 
 An assistant can be just pictures and JSON: instead of an assembly, its `entry` is a `character.json`
-([schema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/character.schema.json)) and
+([schema](https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/character.schema.json)) and
 K-Desktop moves it.
 
 It stands on the taskbar or on top of the windows, strolls now and then (and sometimes falls off the edge of a window),

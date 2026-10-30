@@ -131,7 +131,7 @@ public sealed class JsonToolsTests : IDisposable
     [Fact]
     public void TheExamplesOfTheGuideAreValidAndLoad()
     {
-        foreach (var file in Directory.GetFiles(Path.Combine(Contracts.DocsDir, "herramientas")))
+        foreach (var file in Directory.GetFiles(Contracts.ToolSamples))
             File.Copy(file, Path.Combine(ToolsFolder, Path.GetFileName(file)));
         var (_, json, registry) = Make();
         Assert.All(json.Files, f => Assert.True(f.Errors.Count == 0, Path.GetFileName(f.File) + ": " + string.Join("; ", f.Errors)));

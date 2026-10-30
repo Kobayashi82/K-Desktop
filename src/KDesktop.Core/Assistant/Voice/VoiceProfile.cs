@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 namespace KDesktop.Core.Assistant.Voice;
 
 /// <summary>
-/// How a voice sounds (plan §10, <c>docs/assistant/schemas/voice.schema.json</c>): the engine that makes it and the chain
+/// How a voice sounds (plan §10, <c>Assistant/Packages/Schemas/voice.schema.json</c>): the engine that makes it and the chain
 /// of effects after it, plus the effects added in some situations (<see cref="Moods"/>: <c>error</c> after a crash,
 /// <c>far</c> when it speaks from another monitor, <c>happy</c> when it celebrates…). K-Desktop has six of its own
 /// (<see cref="BuiltIn"/>); each assistant may bring its own (<c>voice</c> of its manifest).
