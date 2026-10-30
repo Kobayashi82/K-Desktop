@@ -134,4 +134,51 @@ public static class AppVolume
             foreach (var d in devices) d.Dispose();
         }
     }
+
+    /// <summary>
+    /// The programs with sound open on the default output, as the volume mixer shows them: one per program (its
+    /// processes together), the ones sounding first. The sounds of Windows itself are left out.
+    /// </summary>
+    public static IReadOnlyList<AppLevel> List()
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+        var manager = device.AudioSessionManager;
+        manager.RefreshSessions();
+        var list = manager.Sessions;
+        var found = new Dictionary<string, AppLevel>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < list.Count; i++)
+        {
+            var session = list[i];
+            try
+            {
+                if (session.State == AudioSessionState.AudioSessionStateExpired || session.IsSystemSoundsSession) continue;
+                var pid = (int)session.GetProcessID;
+                if (pid == 0) continue;
+                var path = WindowTools.ProcessPath(pid);
+                var process = ProcessNames.Normalize(path is null ? string.Empty : Path.GetFileName(path));
+                if (process.Length == 0) continue;
+                var level = new AppLevel(process, NameOf(session, (uint)pid, process), path,
+                    (int)Math.Round(session.SimpleAudioVolume.Volume * 100), session.SimpleAudioVolume.Mute,
+                    session.State == AudioSessionState.AudioSessionStateActive);
+                // Several processes of one program (a browser): the one sounding tells its level.
+                if (!found.TryGetValue(process, out var known) || (level.Active && !known.Active)) found[process] = level;
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("No se pudo leer una sesión de sonido: " + ex.Message);
+            }
+        }
+        return [.. found.Values.OrderByDescending(a => a.Active).ThenBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase)];
+    }
+
+    private static string NameOf(AudioSessionControl session, uint pid, string process)
+    {
+        var display = session.DisplayName;
+        if (!string.IsNullOrWhiteSpace(display) && !display.StartsWith('@')) return display.Trim();
+        return AppFinder.DescriptionOf(pid) is { Length: > 0 } description ? description : process;
+    }
 }
+
+/// <summary>The volume of one program in the mixer. <c>Process</c>: «spotify», what <see cref="AppVolume.Change"/> takes.</summary>
+public sealed record AppLevel(string Process, string Name, string? Path, int Level, bool Muted, bool Active);

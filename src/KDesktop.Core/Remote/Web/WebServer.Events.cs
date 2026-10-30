@@ -70,6 +70,7 @@ public sealed partial class WebServer
 
         var gate = new SemaphoreSlim(1, 1);
         _eventClients[response] = new EventClient(gate, device.Id);
+        WatchMedia();
         var token = _cts?.Token ?? CancellationToken.None;
         try
         {

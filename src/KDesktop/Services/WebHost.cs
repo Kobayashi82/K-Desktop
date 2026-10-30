@@ -45,6 +45,15 @@ public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, Achieve
         }
     }
 
+    public WebIcon? FileIcon(string path) => Invoke(() =>
+    {
+        if (IconProvider.Shell(path) is not { } source) return null;
+        if (_png.TryGetValue(source, out var cached)) return cached;
+        var icon = Png(source);
+        if (icon is not null) _png.AddOrUpdate(source, icon);
+        return icon;
+    });
+
     public IReadOnlyDictionary<string, long> Runs() => achievements.Snapshot().Data.CommandRuns;
 
     public bool VoiceReady => voice.Ready;

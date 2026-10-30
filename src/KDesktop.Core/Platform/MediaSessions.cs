@@ -11,8 +11,11 @@ public enum MediaOp { Play, Pause, Toggle, Next, Previous, Stop }
 /// <param name="App">Its name for people («Spotify», «Firefox»).</param>
 /// <param name="AppId">How Windows names it (an app id or «Spotify.exe»).</param>
 /// <param name="Current">The one Windows' media keys would act on now.</param>
+/// <param name="CanPrevious">Its player has a previous track now (the same for next and for moving in the track).</param>
+/// <param name="HasArt">It has a cover (<see cref="MediaSessions.ArtAsync"/>).</param>
 public sealed record MediaNow(string App, string AppId, string? Title, string? Artist, string? Album, MediaState State,
-    TimeSpan? Position, TimeSpan? Length, bool Current);
+    TimeSpan? Position, TimeSpan? Length, bool Current, bool CanPrevious = true, bool CanNext = true, bool CanSeek = false,
+    bool HasArt = false);
 
 /// <summary>
 /// Stage 10.2: what is playing and controlling it, with the media controls of Windows (SMTC, the same that the media
@@ -81,6 +84,150 @@ public static class MediaSessions
         return done;
     }
 
+    /// <summary>Plays, pauses, skips… in exactly the program <paramref name="appId"/>; false when it is not there or refused.</summary>
+    public static async Task<bool> ControlAppAsync(string appId, MediaOp op, CancellationToken cancellationToken = default)
+    {
+        if (await SessionOfAsync(appId, cancellationToken).ConfigureAwait(false) is not { } session) return false;
+        var asked = op switch
+        {
+            MediaOp.Play => session.TryPlayAsync(),
+            MediaOp.Pause => session.TryPauseAsync(),
+            MediaOp.Toggle => session.TryTogglePlayPauseAsync(),
+            MediaOp.Next => session.TrySkipNextAsync(),
+            MediaOp.Previous => session.TrySkipPreviousAsync(),
+            _ => session.TryStopAsync(),
+        };
+        try { return await asked.AsTask(cancellationToken).WaitAsync(Wait, cancellationToken).ConfigureAwait(false); }
+        catch (TimeoutException) { return false; }
+    }
+
+    /// <summary>Moves to <paramref name="position"/> of what <paramref name="appId"/> plays; false when its player cannot.</summary>
+    public static async Task<bool> SeekAsync(string appId, TimeSpan position, CancellationToken cancellationToken = default)
+    {
+        if (await SessionOfAsync(appId, cancellationToken).ConfigureAwait(false) is not { } session) return false;
+        if (session.GetTimelineProperties() is { } timeline) position += timeline.StartTime;
+        try
+        {
+            return await session.TryChangePlaybackPositionAsync(Math.Max(0, position.Ticks)).AsTask(cancellationToken)
+                .WaitAsync(Wait, cancellationToken).ConfigureAwait(false);
+        }
+        catch (TimeoutException) { return false; }
+    }
+
+    /// <summary>The cover of what <paramref name="appId"/> plays (the bytes and their type), or null.</summary>
+    public static async Task<(byte[] Bytes, string ContentType)?> ArtAsync(string appId, CancellationToken cancellationToken = default)
+    {
+        if (await SessionOfAsync(appId, cancellationToken).ConfigureAwait(false) is not { } session) return null;
+        try
+        {
+            var properties = await session.TryGetMediaPropertiesAsync().AsTask(cancellationToken).WaitAsync(Wait, cancellationToken).ConfigureAwait(false);
+            if (properties?.Thumbnail is not { } thumbnail) return null;
+            using var stream = await thumbnail.OpenReadAsync().AsTask(cancellationToken).WaitAsync(Wait, cancellationToken).ConfigureAwait(false);
+            if (stream.Size is 0 or > MaxArt) return null;
+            using var reader = new Windows.Storage.Streams.DataReader(stream);
+            await reader.LoadAsync((uint)stream.Size).AsTask(cancellationToken).WaitAsync(Wait, cancellationToken).ConfigureAwait(false);
+            var bytes = new byte[stream.Size];
+            reader.ReadBytes(bytes);
+            return (bytes, string.IsNullOrEmpty(stream.ContentType) ? "image/png" : stream.ContentType);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Info($"Multimedia: sin carátula de {appId} ({ex.Message})");
+            return null;
+        }
+    }
+
+    private const int MaxArt = 4 * 1024 * 1024;
+
+    private static async Task<GlobalSystemMediaTransportControlsSession?> SessionOfAsync(string appId, CancellationToken cancellationToken)
+    {
+        var (_, sessions) = await SessionsAsync(cancellationToken).ConfigureAwait(false);
+        return sessions.FirstOrDefault(s => string.Equals(s.SourceAppUserModelId, appId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Calls <paramref name="changed"/> whenever a program starts or stops playing, changes track or pauses (not for the
+    /// position moving on). Dispose to stop.
+    /// </summary>
+    public static async Task<IDisposable> WatchAsync(Action changed, CancellationToken cancellationToken = default)
+    {
+        var manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync().AsTask(cancellationToken).WaitAsync(Wait, cancellationToken).ConfigureAwait(false);
+        return new Watcher(manager, changed);
+    }
+
+    private sealed class Watcher : IDisposable
+    {
+        private readonly GlobalSystemMediaTransportControlsSessionManager _manager;
+        private readonly Action _changed;
+        private readonly Lock _lock = new();
+        private List<GlobalSystemMediaTransportControlsSession> _sessions = [];
+        private bool _disposed;
+
+        public Watcher(GlobalSystemMediaTransportControlsSessionManager manager, Action changed)
+        {
+            _manager = manager;
+            _changed = changed;
+            manager.SessionsChanged += OnSessions;
+            manager.CurrentSessionChanged += OnCurrent;
+            Hook();
+        }
+
+        private void Hook()
+        {
+            lock (_lock)
+            {
+                Unhook();
+                if (_disposed) return;
+                _sessions = [.. _manager.GetSessions()];
+                foreach (var s in _sessions)
+                {
+                    s.MediaPropertiesChanged += OnMedia;
+                    s.PlaybackInfoChanged += OnPlayback;
+                }
+            }
+        }
+
+        private void Unhook()
+        {
+            foreach (var s in _sessions)
+            {
+                s.MediaPropertiesChanged -= OnMedia;
+                s.PlaybackInfoChanged -= OnPlayback;
+            }
+            _sessions = [];
+        }
+
+        private void OnSessions(GlobalSystemMediaTransportControlsSessionManager sender, SessionsChangedEventArgs args)
+        {
+            Hook();
+            Raise();
+        }
+
+        private void OnCurrent(GlobalSystemMediaTransportControlsSessionManager sender, CurrentSessionChangedEventArgs args) => Raise();
+
+        private void OnMedia(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args) => Raise();
+
+        private void OnPlayback(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs args) => Raise();
+
+        private void Raise()
+        {
+            if (_disposed) return;
+            try { _changed(); }
+            catch (Exception ex) { Log.Warn("Multimedia: " + ex.Message); }
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                _disposed = true;
+                _manager.SessionsChanged -= OnSessions;
+                _manager.CurrentSessionChanged -= OnCurrent;
+                Unhook();
+            }
+        }
+    }
+
     private sealed record Known(GlobalSystemMediaTransportControlsSession Session, MediaNow Now);
 
     private static async Task<(GlobalSystemMediaTransportControlsSessionManager, IReadOnlyList<GlobalSystemMediaTransportControlsSession>)> SessionsAsync(CancellationToken cancellationToken)
@@ -103,6 +250,7 @@ public static class MediaSessions
                 _ => MediaState.Other,
             };
             string? title = null, artist = null, album = null;
+            var hasArt = false;
             try
             {
                 // Some programs never answer this: a moment at most.
@@ -110,6 +258,7 @@ public static class MediaSessions
                 title = Clean(properties?.Title);
                 artist = Clean(properties?.Artist) ?? Clean(properties?.AlbumArtist);
                 album = Clean(properties?.AlbumTitle);
+                hasArt = properties?.Thumbnail is not null;
             }
             catch (TimeoutException) { }
             TimeSpan? position = null, length = null;
@@ -122,7 +271,10 @@ public static class MediaSessions
                     at += DateTimeOffset.Now - timeline.LastUpdatedTime;
                 position = at < TimeSpan.Zero ? TimeSpan.Zero : at > length ? length : at;
             }
-            return new MediaNow(NameOf(id), id, title, artist, album, state, position, length, current);
+            var controls = playback?.Controls;
+            return new MediaNow(NameOf(id), id, title, artist, album, state, position, length, current,
+                controls?.IsPreviousEnabled ?? true, controls?.IsNextEnabled ?? true,
+                controls?.IsPlaybackPositionEnabled == true && length is not null, hasArt);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

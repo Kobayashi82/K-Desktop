@@ -37,7 +37,7 @@ public sealed class WebServerTests : IDisposable
     {
         Assert.True(Platform.PowerTools.Disabled);
         _engine = new CommandEngine(new ConfigStore(), new FakeUi());
-        _server = new WebServer(new Host(_engine));
+        _server = new WebServer(new Host(_engine)) { NoMediaWatch = true };
         var port = FreePort();
         _server.Start(new WebServerOptions(port, string.Empty));
         Assert.True(_server.IsRunning);
@@ -200,6 +200,21 @@ public sealed class WebServerTests : IDisposable
         Assert.EndsWith("+1", probe.GetProperty("summary").GetString(), StringComparison.Ordinal);
         // Called by its own name or the trigger's, each name once; not the ones switched off or with another trigger.
         Assert.Equal(["casa", "Timbre"], catalog.GetProperty("events").EnumerateArray().Select(e => e.GetProperty("name").GetString()));
+    }
+
+    [Fact]
+    public async Task MediaNeedsAProgramAndAKnownOp()
+    {
+        // Only what does nothing: what plays on this PC is never touched by the tests.
+        var token = await PairAsync();
+        var state = await ReadAsync(await _http.SendAsync(Request(HttpMethod.Get, "api/media", token)));
+        Assert.Equal(JsonValueKind.Array, state.GetProperty("sessions").ValueKind);
+        using var noApp = await _http.SendAsync(Request(HttpMethod.Post, "api/media", token, new { op = "toggle" }));
+        Assert.Equal(HttpStatusCode.BadRequest, noApp.StatusCode);
+        using var badOp = await _http.SendAsync(Request(HttpMethod.Post, "api/media", token, new { app = "nadie.exe", op = "explode" }));
+        Assert.Equal(HttpStatusCode.BadRequest, badOp.StatusCode);
+        using var noArt = await _http.SendAsync(Request(HttpMethod.Get, "api/media/art?app=nadie.exe", token));
+        Assert.Equal(HttpStatusCode.NotFound, noArt.StatusCode);
     }
 
     private async Task<StreamReader> OpenEventsAsync(string token)

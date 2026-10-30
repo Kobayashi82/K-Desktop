@@ -115,6 +115,15 @@ public sealed partial class WebServer
             case ("POST", "/api/audio"):
                 await AudioChangeAsync(context).ConfigureAwait(false);
                 break;
+            case ("GET", "/api/media"):
+                await MediaStateAsync(response).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/media"):
+                await MediaChangeAsync(context).ConfigureAwait(false);
+                break;
+            case ("GET", "/api/media/art"):
+                await MediaArtAsync(context).ConfigureAwait(false);
+                break;
             case ("POST", "/api/power"):
                 await PowerAsync(context, device).ConfigureAwait(false);
                 break;

@@ -19,6 +19,9 @@ public interface IWebHost
     /// <param name="light">For a light background (white glyph icons are shown inverted), else for a dark one.</param>
     WebIcon? Icon(Command? command, QuickMenuItem? item = null, bool light = false);
 
+    /// <summary>The icon of a program file (the volume of each program). Null when it has none.</summary>
+    WebIcon? FileIcon(string path) => null;
+
     /// <summary>How many times each command has run (by id), to rank search results.</summary>
     IReadOnlyDictionary<string, long> Runs();
 

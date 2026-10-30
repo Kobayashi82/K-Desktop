@@ -102,6 +102,7 @@ public sealed partial class WebServer : IDisposable
     {
         _cts?.Cancel();
         CloseInputs();
+        StopMediaWatch();
         try { _listener?.Close(); } catch { /* ignore */ }
         _listener = null;
         _cts = null;

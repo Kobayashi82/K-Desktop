@@ -128,6 +128,27 @@
       </section>
 
       <section class="view" data-view="audio">
+        <!-- What plays on the PC: the program's cover, title, progress and buttons (one or another with the chips) -->
+        <div class="card now-card" id="nowCard" hidden>
+          <nav class="chips now-chips" id="nowChips" hidden></nav>
+          <div class="now-main">
+            <div class="now-art" id="nowArt"><span data-icon="music"></span></div>
+            <div class="now-text">
+              <b id="nowTitle"></b>
+              <span id="nowArtist"></span>
+              <small id="nowApp"></small>
+            </div>
+          </div>
+          <div class="now-progress" id="nowProgress" hidden>
+            <input type="range" id="nowSeek" min="0" max="1000" step="1" value="0" data-i18n-title="pwa.media.seek">
+            <div class="now-times"><span id="nowAt"></span><span id="nowLength"></span></div>
+          </div>
+          <div class="media-row now-buttons">
+            <button class="round-btn" id="nowPrev" data-icon="previous" data-i18n-title="pwa.audio.previous"></button>
+            <button class="round-btn play" id="nowPlay" data-i18n-title="pwa.audio.playPause"></button>
+            <button class="round-btn" id="nowNext" data-icon="next" data-i18n-title="pwa.audio.next"></button>
+          </div>
+        </div>
         <div class="card volume-card" id="volumeCard">
           <div class="dial" id="dial" role="slider" aria-valuemin="0" aria-valuemax="100" tabindex="0">
             <svg viewBox="0 0 220 220" aria-hidden="true">
@@ -151,7 +172,7 @@
             <input type="range" id="volumeSlider" min="0" max="100" step="1" value="0">
             <button class="round-btn" id="volUp" data-icon="plus" aria-label="+"></button>
           </div>
-          <div class="media-row">
+          <div class="media-row" id="mediaKeys">
             <button class="round-btn" data-media="previous" data-icon="previous" data-i18n-title="pwa.audio.previous"></button>
             <button class="round-btn play" data-media="playPause" data-icon="playPause" data-i18n-title="pwa.audio.playPause"></button>
             <button class="round-btn" data-media="next" data-icon="next" data-i18n-title="pwa.audio.next"></button>
@@ -167,6 +188,10 @@
               <button class="round-btn key-space" data-key="space" data-icon="space" data-i18n-title="pwa.audio.keySpace"></button>
             </div>
           </div>
+        </div>
+        <div id="appsBlock" hidden>
+          <h3 class="section-title" data-i18n="pwa.audio.apps"></h3>
+          <div class="group" id="appList"></div>
         </div>
         <h3 class="section-title" data-i18n="pwa.audio.output"></h3>
         <div class="devices" id="deviceList"></div>

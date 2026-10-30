@@ -5,6 +5,7 @@ import { setupPad, padActive, padTexts, padSettings } from './pad.js';
 import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
 import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, chatAsked, chatTexts } from './chat.js';
 import { setupInbox, fetchInbox } from './inbox.js';
+import { setupMedia, mediaActive, onMediaEvent, renderApps } from './media.js';
 
 const $ = id => document.getElementById(id);
 
@@ -64,6 +65,9 @@ const ICONS = {
   previous: '<path d="M7 6v12"/><path d="M18 6l-8 6 8 6z"/>',
   next: '<path d="M17 6v12"/><path d="M6 6l8 6-8 6z"/>',
   playPause: '<path d="M4.5 6l7 6-7 6z"/><path d="M15 6v12M19.5 6v12"/>',
+  play: '<path d="M8 5.5l11 6.5-11 6.5z"/>',
+  pause: '<path d="M8.5 5.5v13M15.5 5.5v13"/>',
+  music: '<path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>',
   arrowUp: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   arrowDown: '<path d="M12 5v14M6 13l6 6 6-6"/>',
   arrowLeft: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
@@ -279,6 +283,7 @@ function showView(view, back = false) {
   updateHeader();
   if (view === 'audio') startAudio();
   else stopAudio();
+  mediaActive(view === 'audio');
   padActive(view === 'pad', state.session?.input !== false);
   chatActive(view === 'assistant');
 }
@@ -390,6 +395,7 @@ function renderAudio(state) {
   $('muteButton').setAttribute('aria-label', t(state.muted ? 'pwa.audio.unmute' : 'pwa.audio.mute'));
   if (!audio.dragging) setVolumeUi(has ? state.volume : 0);
   if (!has) $('volumeValue').textContent = '–';
+  renderApps(state.apps ?? []);
 
   const list = $('deviceList');
   const devices = state.devices ?? [];
@@ -1410,6 +1416,7 @@ function startEvents() {
     chatResync();
   });
   events.addEventListener('catalog', () => loadCatalog());
+  events.addEventListener('media', () => onMediaEvent());
   events.addEventListener('inbox', () => fetchInbox());
   events.addEventListener('session', () => loadSession());
   events.addEventListener('assistants', () => onAssistants());
@@ -1890,6 +1897,7 @@ function wire() {
       changeAudio({ media: b.dataset.media });
     });
   wireKeys();
+  setupMedia({ api, t, svg, toast, changeAudio });
 
   $('pairForm').addEventListener('submit', pair);
   $('pairCode').addEventListener('input', e => {

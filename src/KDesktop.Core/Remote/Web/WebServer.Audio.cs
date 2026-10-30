@@ -7,12 +7,12 @@ namespace KDesktop.Core.Remote.Web;
 
 public sealed partial class WebServer
 {
-    /// <summary>GET: volume, mute and playback devices.</summary>
-    private static async Task AudioStateAsync(HttpListenerResponse response) =>
+    /// <summary>GET: volume, mute, playback devices and the volume of each program.</summary>
+    private async Task AudioStateAsync(HttpListenerResponse response) =>
         await WriteJsonAsync(response, await Task.Run(AudioState).ConfigureAwait(false)).ConfigureAwait(false);
 
     /// <summary>
-    /// POST {volume} | {muted} | {device} | {media: "playPause" | "next" | "previous"} | {key: "left" | "right" | "up" |
+    /// POST {volume} | {muted} | {app, volume | muted} (one program) | {device} | {media: "playPause" | "next" | "previous"} | {key: "left" | "right" | "up" |
     /// "down" | "space"}: applies it and answers with the new state. The keys go to the window in front (a player:
     /// seek, its own volume, pause), so only when «Touchpad y teclado» is allowed.
     /// </summary>
@@ -24,8 +24,19 @@ public sealed partial class WebServer
             if (body is not { } b) return AudioState();
             try
             {
-                if (b.TryGetProperty("volume", out var v) && v.TryGetInt32(out var volume)) AudioTools.SetVolume(volume);
-                if (b.TryGetProperty("muted", out var m) && m.ValueKind is JsonValueKind.True or JsonValueKind.False) AudioTools.SetMute(m.GetBoolean());
+                int? volume = b.TryGetProperty("volume", out var v) && v.TryGetInt32(out var level) ? Math.Clamp(level, 0, 100) : null;
+                bool? muted = b.TryGetProperty("muted", out var m) && m.ValueKind is JsonValueKind.True or JsonValueKind.False ? m.GetBoolean() : null;
+                if (Str(b, "app") is { Length: > 0 } app)
+                {
+                    // One program, as in the volume mixer.
+                    if (volume is not null || muted is not null)
+                        AppVolume.Change(app, now => new LevelState(volume ?? now.Level, muted ?? (volume is > 0 ? false : now.Muted)));
+                }
+                else
+                {
+                    if (volume is { } all) AudioTools.SetVolume(all);
+                    if (muted is { } mute) AudioTools.SetMute(mute);
+                }
                 if (b.TryGetProperty("device", out var d) && d.GetString() is { Length: > 0 } id)
                 {
                     // Like the Windows settings: every role, communications included.
@@ -65,7 +76,7 @@ public sealed partial class WebServer
         await WriteJsonAsync(context.Response, state).ConfigureAwait(false);
     }
 
-    private static object AudioState()
+    private object AudioState()
     {
         int? volume = null;
         var muted = false;
@@ -92,6 +103,28 @@ public sealed partial class WebServer
                 Default = d.IsDefault,
                 Kind = d.FormFactor.ToString().ToLowerInvariant(),
             }),
+            apps = AppLevels(),
         };
+    }
+
+    /// <summary>The programs with sound open and their volume, each with its icon.</summary>
+    private object[] AppLevels()
+    {
+        IReadOnlyList<AppLevel> apps;
+        try { apps = AppVolume.List(); }
+        catch (Exception ex)
+        {
+            Log.Warn("Web: no se pudo leer el volumen de los programas: " + ex.Message);
+            return [];
+        }
+        return [.. apps.Select(a => new
+        {
+            a.Process,
+            a.Name,
+            a.Level,
+            a.Muted,
+            a.Active,
+            Icon = a.Path is null ? null : _catalog.Keep(_host.FileIcon(a.Path)),
+        })];
     }
 }
