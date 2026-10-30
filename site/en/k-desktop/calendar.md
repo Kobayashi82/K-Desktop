@@ -6,7 +6,16 @@ events and join meetings, and the assistants can check and change your agenda.
 
 ## The Agenda
 
-**Agenda**, in the side menu, lists the coming days with their events, each in its calendar's colour. From there:
+**Agenda**, in the side menu above *History*, is there while some calendar has **Show in the agenda**. It shows the events,
+each in its calendar's colour, in two ways:
+
+- **List**: the days from today on, with today always at the top (even with nothing on it). The event going on now has
+  **Now**, and the ones already over are dimmed.
+- **Month**: the whole month; all-day events are a band in their colour and the rest show their time. The arrows (or the
+  mouse wheel) change the month, **+N more** opens that day in the list and a double click on a day adds an event on it.
+
+**Today** goes back to today in both. The coloured buttons at the top show or hide each calendar (at least one has to be
+shown). Also:
 
 - **New event**, or a click on one to **Edit** it (or **View** it, if its calendar is read-only); right click: *Join*,
   *Copy* and *Delete*.

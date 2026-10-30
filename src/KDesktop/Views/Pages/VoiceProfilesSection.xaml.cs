@@ -139,7 +139,7 @@ public partial class VoiceProfilesSection : UserControl
         var (card, stack) = Card(Loc.T("voiceProfiles.title"), Loc.T("voiceProfiles.intro"));
         var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
         buttons.Children.Add(Wide(SymbolRegular.Sparkle24, Loc.T("voiceProfiles.random"), NewRandom, primary: true));
-        buttons.Children.Add(Wide(SymbolRegular.ArrowDownload24, Loc.T("voiceProfiles.import"), Import));
+        buttons.Children.Add(Wide(SymbolRegular.ArrowUpload24, Loc.T("voiceProfiles.import"), Import));
         stack.Children.Add(buttons);
 
         var rows = new StackPanel();
@@ -188,7 +188,7 @@ public partial class VoiceProfilesSection : UserControl
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
         buttons.Children.Add(ForAllButton(profile.Id, name));
         buttons.Children.Add(Small(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), () => Duplicate(profile), name));
-        buttons.Children.Add(Small(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), () => Export(profile), name));
+        buttons.Children.Add(Small(SymbolRegular.ArrowDownload24, Loc.T("voiceProfiles.export"), () => Export(profile), name));
         if (!builtIn) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), () => Delete(profile), name));
         buttons.Children.Add(Small(SymbolRegular.ChevronRight24, Loc.T("voiceProfiles.edit"), () => Select(profile.Id), name));
         Grid.SetColumn(buttons, 2);
@@ -434,7 +434,7 @@ public partial class VoiceProfilesSection : UserControl
         var profile = _draft;
         buttons.Children.Add(ForAllButton(_draft.Id, name));
         buttons.Children.Add(Small(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), () => { Keep(); Duplicate(_draft); }, name));
-        buttons.Children.Add(Small(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), () => { Keep(); Export(_draft); }, name));
+        buttons.Children.Add(Small(SymbolRegular.ArrowDownload24, Loc.T("voiceProfiles.export"), () => { Keep(); Export(_draft); }, name));
         if (!IsBuiltIn) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), () => Delete(profile), name));
         Grid.SetColumn(buttons, 1);
         grid.Children.Add(buttons);

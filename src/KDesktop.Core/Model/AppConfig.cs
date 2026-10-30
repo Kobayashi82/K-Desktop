@@ -687,6 +687,9 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _kBoardNotesFolded;
     [ObservableProperty] private bool _kBoardKeyboardFolded;
 
+    /// <summary>Agenda: shown as a month instead of the list by days.</summary>
+    [ObservableProperty] private bool _agendaMonthView;
+
     /// <summary>Comandos: «Opciones» unfolded (it stays as left, from one command to the next).</summary>
     [ObservableProperty] private bool _commandsOptionsOpen;
 

@@ -115,12 +115,6 @@
                             <TextBlock Text="{l:Tr nav.events}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="agenda">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="CalendarLtr24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                            <TextBlock Text="{l:Tr nav.agenda}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </ListBoxItem>
                     <ListBoxItem Tag="quickmenus">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="TextBulletListTree24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
@@ -155,6 +149,13 @@
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.assistant}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <!-- Only while some calendar is shown in the agenda (Opciones › Calendario) -->
+                    <ListBoxItem x:Name="AgendaNav" Tag="agenda" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="CalendarLtr24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock Text="{l:Tr nav.agenda}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="history">

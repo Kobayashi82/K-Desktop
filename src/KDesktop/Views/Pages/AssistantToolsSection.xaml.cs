@@ -484,7 +484,7 @@ public partial class AssistantToolsSection : UserControl
         var card = Card(Loc.T("toolsOptions.servers"), Loc.T("toolsOptions.serversIntro"));
         var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
         buttons.Children.Add(Wide(SymbolRegular.Add24, Loc.T("toolsOptions.addServer"), _ => EditServer(null), primary: true));
-        buttons.Children.Add(Wide(SymbolRegular.ArrowDownload24, Loc.T("toolsOptions.import"), _ => Import()));
+        buttons.Children.Add(Wide(SymbolRegular.ArrowUpload24, Loc.T("toolsOptions.import"), _ => Import()));
         buttons.Children.Add(Wide(SymbolRegular.ClipboardPaste24, Loc.T("toolsOptions.paste"), _ => Paste()));
         card.Add(buttons);
         if (errors.Count > 0) card.Add(Note(Loc.T("toolsOptions.mcpBroken", errors[0]), danger: true));

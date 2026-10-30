@@ -41,6 +41,7 @@ public partial class MainWindow : FluentWindow
         App.Current.PausedChanged += OnPausedChanged;
         App.Current.AssistantChanged += UpdateStatus;
         App.Current.AssistantBrainChanged += OnBrainChanged;
+        App.Current.Calendar.Changed += OnCalendarChanged;
         Services.ThemeService.Changed += OnThemeChanged;
         SourceInitialized += (_, _) => FileDrop.Attach(this, OnFilesDropped);
         // A QuickMenu open over this window (Probar, or its hotkey) closes with a click here, as it does anywhere else.
@@ -54,6 +55,7 @@ public partial class MainWindow : FluentWindow
             App.Current.PausedChanged -= OnPausedChanged;
             App.Current.AssistantChanged -= UpdateStatus;
             App.Current.AssistantBrainChanged -= OnBrainChanged;
+            App.Current.Calendar.Changed -= OnCalendarChanged;
             Services.ThemeService.Changed -= OnThemeChanged;
             foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
         };
@@ -172,6 +174,8 @@ public partial class MainWindow : FluentWindow
                   : ""),
             Loc.T("status.clickOptions"));
 
+        UpdateAgendaNav();
+
         // The assistant: its page and its icon only while the module is on.
         var assistantOn = app.Assistant is not null;
         AssistantNav.Visibility = AssistantStatus.Visibility = assistantOn ? Visibility.Visible : Visibility.Collapsed;
@@ -190,6 +194,16 @@ public partial class MainWindow : FluentWindow
     }
 
     private void OnBrainChanged() => Dispatcher.BeginInvoke(UpdateStatus);
+
+    private void OnCalendarChanged() => Dispatcher.BeginInvoke(UpdateAgendaNav);
+
+    /// <summary>The Agenda in the list only while some calendar is shown in it (Opciones › Calendario › Mostrar en la agenda).</summary>
+    private void UpdateAgendaNav()
+    {
+        var shown = App.Current.Calendar.Calendars.Any(c => c.Visible);
+        AgendaNav.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+        if (!shown && _current == "agenda") Navigate("commands");
+    }
 
     /// <summary>Icon, colour and tooltip of one status button.</summary>
     private static void SetStatus(System.Windows.Controls.Button button, SymbolIcon icon, SymbolRegular symbol, string brush, string text, string? hint)

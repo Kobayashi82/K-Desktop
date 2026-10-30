@@ -2345,8 +2345,8 @@
                     </TextBlock>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr settings.exportHint}" />
                     <WrapPanel>
-                        <ui:Button Appearance="Primary" MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.export}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnExport" />
-                        <ui:Button Appearance="Primary" MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.import}" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnImport" />
+                        <ui:Button Appearance="Primary" MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.export}" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnExport" />
+                        <ui:Button Appearance="Primary" MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.import}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnImport" />
                         <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.openLog}" Icon="{ui:SymbolIcon DocumentText24}" Click="OnOpenLog" />
                     </WrapPanel>
                     <Border Height="1" SnapsToDevicePixels="True" Margin="0,10,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />

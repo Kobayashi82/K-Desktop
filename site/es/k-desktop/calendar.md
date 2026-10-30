@@ -6,7 +6,16 @@ abrir reuniones, y los asistentes pueden mirar y cambiar tu agenda.
 
 ## La Agenda
 
-**Agenda**, en el menú lateral, enseña los próximos días con sus citas, cada una del color de su calendario. Desde ahí:
+**Agenda**, en el menú lateral encima de *Registro*, sale mientras algún calendario tenga **Mostrar en la agenda**. Enseña
+las citas, cada una del color de su calendario, de dos formas:
+
+- **Lista**: los días desde hoy, con hoy siempre arriba (aunque no tengas nada). La cita que está pasando lleva **Ahora**
+  y las que ya pasaron se ven más apagadas.
+- **Mes**: el mes entero; las citas de todo el día salen como una banda de su color y las demás con su hora. Las flechas
+  (o la rueda del ratón) cambian de mes, **+N más** lleva ese día a la lista y un doble clic en un día crea una cita en él.
+
+**Hoy** vuelve a hoy en las dos. Los botones de colores de arriba muestran u ocultan cada calendario (al menos uno tiene
+que verse). Además:
 
 - **Nueva cita**, o un clic en una para **Editar** (o **Ver**, si su calendario es de solo lectura); con el botón derecho:
   *Unirse*, *Copiar* y *Eliminar*.

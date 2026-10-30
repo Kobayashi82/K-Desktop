@@ -4,8 +4,66 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization"
              AllowDrop="True" Drop="OnDrop" DragOver="OnDragOver">
-    <!-- «Agenda»: the citas of every calendar by days (the own one, the .ics subscriptions and the accounts), to see,
-         create, change and delete them without the assistant. The rows are made in code. -->
+    <!-- «Agenda»: the citas of every calendar (the own one, the .ics subscriptions and the accounts) as a list by days or
+         as a month, to see, create, change and delete them without the assistant. Rows and cells are made in code. -->
+    <UserControl.Resources>
+        <!-- List / Month (as the tabs of Logros) -->
+        <Style x:Key="SegmentTab" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="B" CornerRadius="6" Padding="14,5" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" TextElement.FontWeight="SemiBold" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- A calendar shown or hidden: a pill tinted in its colour when shown (the colours are set in code) -->
+        <Style x:Key="CalendarChip" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="Padding" Value="10,5,12,5" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border CornerRadius="15" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" />
+                            <Border x:Name="Hover" CornerRadius="15" Background="{DynamicResource Kd.SubtleHover}" Visibility="Collapsed" />
+                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Hover" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="Opacity" Value="0.6" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <DockPanel Margin="24,12,24,16">
         <StackPanel DockPanel.Dock="Top">
             <Grid Margin="0,0,0,6">
@@ -16,22 +74,63 @@
                     </Border>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon CalendarAdd24}" Content="{l:Tr agenda.new}" Click="OnNew" Margin="0,0,6,0" />
                     <ui:Button x:Name="SyncButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowSync24, FontSize=18}" ToolTip="{l:Tr agenda.sync}" AutomationProperties.Name="{l:Tr agenda.sync}" Click="OnSync" Margin="0,0,6,0" />
-                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowDownload24, FontSize=18}" ToolTip="{l:Tr agenda.import}" AutomationProperties.Name="{l:Tr agenda.import}" Click="OnImport" Margin="0,0,6,0" />
-                    <ui:Button x:Name="ExportButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr agenda.export}" AutomationProperties.Name="{l:Tr agenda.export}" Click="OnExport" Margin="0,0,6,0" />
-                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Settings24, FontSize=18}" ToolTip="{l:Tr agenda.options}" AutomationProperties.Name="{l:Tr agenda.options}" Click="OnOptions" Margin="0,0,6,0" />
-                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon CalendarAdd24}" Content="{l:Tr agenda.new}" Click="OnNew" />
+                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUpload24, FontSize=18}" ToolTip="{l:Tr agenda.import}" AutomationProperties.Name="{l:Tr agenda.import}" Click="OnImport" Margin="0,0,6,0" />
+                    <ui:Button x:Name="ExportButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowDownload24, FontSize=18}" ToolTip="{l:Tr agenda.export}" AutomationProperties.Name="{l:Tr agenda.export}" Click="OnExport" Margin="0,0,6,0" />
+                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Settings24, FontSize=18}" ToolTip="{l:Tr agenda.options}" AutomationProperties.Name="{l:Tr agenda.options}" Click="OnOptions" />
                 </StackPanel>
             </Grid>
             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr agenda.hint}" />
-            <ui:TextBox x:Name="SearchBox" Margin="0,0,0,8" PlaceholderText="{l:Tr agenda.search}" Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True"
-                        TextChanged="OnSearchChanged" />
-            <!-- One button per calendar, in its colour: shown or hidden in the agenda -->
-            <WrapPanel x:Name="CalendarChips" Margin="0,0,0,8" />
+
+            <!-- List or month, where (month and «Hoy») and the search -->
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border VerticalAlignment="Center" CornerRadius="8" Padding="3" Background="{DynamicResource Kd.Subtle}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="ListTab" Style="{StaticResource SegmentTab}" GroupName="AgendaView" IsChecked="True" Checked="OnViewChanged"
+                                     AutomationProperties.Name="{l:Tr agenda.viewList}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="CalendarAgenda24" FontSize="15" Margin="0,0,8,0" />
+                                <TextBlock Text="{l:Tr agenda.viewList}" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton x:Name="MonthTab" Style="{StaticResource SegmentTab}" GroupName="AgendaView" Checked="OnViewChanged"
+                                     AutomationProperties.Name="{l:Tr agenda.viewMonth}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="CalendarMonth24" FontSize="15" Margin="0,0,8,0" />
+                                <TextBlock Text="{l:Tr agenda.viewMonth}" />
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </Border>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <ui:Button x:Name="TodayButton" Content="{l:Tr calendar.today}" ToolTip="{l:Tr agenda.goToday}" AutomationProperties.Name="{l:Tr agenda.goToday}"
+                               Icon="{ui:SymbolIcon CalendarToday24}" Click="OnToday" Margin="0,0,10,0" />
+                    <StackPanel x:Name="MonthNav" Orientation="Horizontal" Visibility="Collapsed">
+                        <ui:Button Style="{StaticResource IconButton}" Icon="{ui:SymbolIcon ChevronLeft24, FontSize=18}" ToolTip="{l:Tr agenda.prevMonth}"
+                                   AutomationProperties.Name="{l:Tr agenda.prevMonth}" Click="OnPrevMonth" />
+                        <ui:Button Style="{StaticResource IconButton}" Icon="{ui:SymbolIcon ChevronRight24, FontSize=18}" ToolTip="{l:Tr agenda.nextMonth}"
+                                   AutomationProperties.Name="{l:Tr agenda.nextMonth}" Click="OnNextMonth" Margin="2,0,10,0" />
+                        <TextBlock x:Name="MonthTitle" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    </StackPanel>
+                </StackPanel>
+                <ui:TextBox x:Name="SearchBox" Grid.Column="2" Width="260" VerticalAlignment="Center" PlaceholderText="{l:Tr agenda.search}"
+                            Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True" TextChanged="OnSearchChanged" />
+            </Grid>
+
+            <!-- One pill per calendar, in its colour: shown or hidden in the agenda -->
+            <WrapPanel x:Name="CalendarChips" Margin="0,0,0,6" />
             <StackPanel x:Name="Problems" />
         </StackPanel>
 
         <Grid>
+            <!-- List by days -->
             <ScrollViewer x:Name="Scroll" VerticalScrollBarVisibility="Auto" Padding="0,0,14,0">
                 <StackPanel>
                     <ui:Button x:Name="EarlierButton" HorizontalAlignment="Center" Margin="0,0,0,8" Icon="{ui:SymbolIcon ArrowUp24}" Content="{l:Tr agenda.earlier}" Click="OnEarlier" />
@@ -39,6 +138,17 @@
                     <ui:Button x:Name="LaterButton" HorizontalAlignment="Center" Margin="0,8,0,0" Icon="{ui:SymbolIcon ArrowDown24}" Content="{l:Tr agenda.later}" Click="OnLater" />
                 </StackPanel>
             </ScrollViewer>
+
+            <!-- Month: the names of the days and a grid of weeks -->
+            <DockPanel x:Name="MonthView" Visibility="Collapsed">
+                <UniformGrid x:Name="WeekdayNames" DockPanel.Dock="Top" Columns="7" Rows="1" Margin="0,0,0,4" />
+                <UniformGrid x:Name="MonthGrid" Columns="7" Background="Transparent" PreviewMouseWheel="OnMonthWheel" SizeChanged="OnMonthSizeChanged">
+                    <UniformGrid.RenderTransform>
+                        <TranslateTransform x:Name="MonthShift" />
+                    </UniformGrid.RenderTransform>
+                </UniformGrid>
+            </DockPanel>
+
             <StackPanel x:Name="Empty" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False">
                 <ui:SymbolIcon Symbol="CalendarLtr24" FontSize="48" Foreground="{DynamicResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
                 <TextBlock x:Name="EmptyText" Margin="0,12,0,0" FontSize="15" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420"
