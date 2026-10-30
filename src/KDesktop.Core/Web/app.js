@@ -23,6 +23,22 @@ const store = {
   },
 };
 
+/** What this phone keeps for this PC: in the Android app, kept by the app (the same at every address of the PC). */
+const pcStore = {
+  get(key, fallback) {
+    const app = window.KDesktopApp;
+    const raw = app?.getPref ? app.getPref(key) : localStorage.getItem('kd.pc.' + key);
+    try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
+  },
+  set(key, value) {
+    const raw = value === null || value === undefined ? '' : JSON.stringify(value);
+    const app = window.KDesktopApp;
+    if (app?.setPref) app.setPref(key, raw);
+    else if (raw) localStorage.setItem('kd.pc.' + key, raw);
+    else localStorage.removeItem('kd.pc.' + key);
+  },
+};
+
 // ── icons ──────────────────────────────────────────────────────────
 
 const ICONS = {
@@ -84,6 +100,11 @@ const ICONS = {
   hibernate: '<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5"/>',
   restart: '<path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v4.5h4.5"/>',
   power: '<path d="M12 3.5v8"/><path d="M7 6.5a7 7 0 1 0 10 0"/>',
+  star: '<path d="M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>',
+  starFill: '<path fill="currentColor" d="M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>',
+  shield: '<path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.2-7.5 9.5-4.3-1.3-7.5-5-7.5-9.5V6z"/><path d="M9 12l2 2 4-4"/>',
+  broadcast: '<circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/>',
+  folder: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>',
 };
 
 const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
@@ -108,6 +129,8 @@ const state = {
   showHidden: store.get('showHidden', false),
   path: [],          // ids of the open submenus
   lastLoad: 0,
+  favorites: new Set(pcStore.get('favorites', [])),   // ids of the commands pinned at the top (this phone, this PC)
+  confirm: new Set(pcStore.get('confirm', [])),       // ids of the commands that ask before running (this phone)
 };
 
 class Unpaired extends Error {}
@@ -543,9 +566,10 @@ function tile({ label, icon, commandId, folder, node, onOpen, index }) {
   b.addEventListener('pointerdown', e => ripple(b, e));
   b.addEventListener('click', e => {
     if (e.target.closest('.tile-more')) return;
-    if (commandId) run(commandId, b, label);
+    if (commandId) tryRun(commandId, b, label);
     else onOpen?.();
   });
+  if (commandId) onHold(b, () => { const c = commandById(commandId); if (c) openCommandSheet(c, b); });
 
   // A command that also has children: the corner button opens them.
   if (commandId && onOpen) {
@@ -601,8 +625,9 @@ function badge(target, kind) {
 
 // ── running commands ───────────────────────────────────────────────
 
+/** Runs a command and shows how it went on <target> (its row or tile): a spinner, then ✓ or ✗. Returns the status. */
 async function run(id, target, label) {
-  if (target.classList.contains('busy')) return;
+  if (target.classList.contains('busy')) return null;
   navigator.vibrate?.(8);
   target.classList.add('busy');
   let result;
@@ -610,7 +635,7 @@ async function run(id, target, label) {
     result = await api('run', { method: 'POST', body: { id } });
     setOnline(true);
   } catch (e) {
-    if (e instanceof Unpaired) return;
+    if (e instanceof Unpaired) return null;
     result = { status: e.status === 404 ? 'unavailable' : 'offline', messages: [] };
     if (!e.status) setOnline(false);
   } finally {
@@ -626,11 +651,149 @@ async function run(id, target, label) {
     target.classList.add('shake');
     navigator.vibrate?.([25, 40, 25]);
   }
+  // The row or tile already says it went well: a toast only for what it can't show (messages, errors, still running).
   const messages = (result.messages ?? []).join('\n');
-  const statusText = t({ ok: 'pwa.run.ok', error: 'pwa.run.error', warning: 'pwa.run.warning', running: 'pwa.run.running',
-                         offline: 'pwa.run.offline', unavailable: 'pwa.run.unavailable' }[status] ?? 'pwa.run.ok');
-  toast(kind, label, messages || statusText, kind === 'error' ? 5000 : messages ? 3500 : 1800);
+  if (kind !== 'ok' || messages) {
+    const statusText = t({ ok: 'pwa.run.ok', error: 'pwa.run.error', warning: 'pwa.run.warning', running: 'pwa.run.running',
+                           offline: 'pwa.run.offline', unavailable: 'pwa.run.unavailable' }[status] ?? 'pwa.run.ok');
+    toast(kind, label, messages || statusText, kind === 'error' ? 5000 : 3500);
+  }
   if (status === 'unavailable') loadCatalog();
+  return status;
+}
+
+/** Runs it, asking first when this phone was told to («Pedir confirmación»). The status, or null if not run. */
+function tryRun(id, target, label) {
+  if (!state.confirm.has(id)) return run(id, target, label);
+  return new Promise(resolve => {
+    let chosen = false;
+    const close = openSheet(box => {
+      box.append(el('h2', '', t('pwa.cmd.confirmTitle', label)));
+      const buttons = el('div', 'sheet-buttons');
+      const cancel = el('button', 'btn', t('pwa.cancel'));
+      const ok = el('button', 'btn primary', t('pwa.cmd.run'));
+      cancel.addEventListener('click', () => close());
+      ok.addEventListener('click', () => {
+        chosen = true;
+        close();
+        setTimeout(() => resolve(run(id, target, label)), 200);
+      });
+      buttons.append(cancel, ok);
+      box.append(buttons);
+    });
+    sheets[sheets.length - 1].onClose = () => { if (!chosen) resolve(null); };
+  });
+}
+
+/** «Llamada desde fuera»: fires the events waiting for that name; nobody waiting is an error. */
+async function fireEvent(name, target) {
+  if (target.classList.contains('busy')) return;
+  navigator.vibrate?.(8);
+  target.classList.add('busy');
+  let kind = 'ok';
+  try {
+    await api('event', { method: 'POST', body: { name } });
+    setOnline(true);
+  } catch (e) {
+    if (e instanceof Unpaired) return;
+    kind = 'error';
+    toast('error', name, e.status === 404 ? t('pwa.event.nobody') : t('pwa.run.offline'), 3500);
+    if (!e.status) setOnline(false);
+  } finally {
+    target.classList.remove('busy');
+  }
+  badge(target, kind);
+}
+
+/** Holding <target> does <onHold> instead of its tap (the tap that follows is ignored). */
+function onHold(target, onLong) {
+  let timer = 0, x = 0, y = 0, down = false, last = 0;
+  const cancel = () => { clearTimeout(timer); down = false; };
+  const hold = () => {
+    cancel();
+    if (Date.now() - last < 900) return;
+    last = Date.now();
+    target.dataset.held = '1';
+    navigator.vibrate?.(15);
+    onLong();
+  };
+  target.addEventListener('pointerdown', e => {
+    x = e.clientX;
+    y = e.clientY;
+    cancel();
+    down = true;
+    timer = setTimeout(hold, 480);
+  });
+  target.addEventListener('pointermove', e => { if (Math.hypot(e.clientX - x, e.clientY - y) > 10) cancel(); });
+  for (const type of ['pointerup', 'pointercancel', 'pointerleave']) target.addEventListener(type, cancel);
+  // Android's own long press (it may cancel the pointer first): the same hold, once. With a mouse, the right click.
+  target.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    hold();
+  });
+  target.addEventListener('click', e => {
+    if (!target.dataset.held) return;
+    delete target.dataset.held;
+    e.stopImmediatePropagation();
+    e.preventDefault();
+  }, true);
+}
+
+const commandById = id => state.catalog?.commands?.find(c => c.id === id);
+
+function savePcSets() {
+  pcStore.set('favorites', [...state.favorites]);
+  pcStore.set('confirm', [...state.confirm]);
+}
+
+/** Holding a command: what it does, its hotkeys and where it works; favourite, ask first, run. */
+function openCommandSheet(c, target) {
+  const close = openSheet(box => {
+    const head = el('div', 'sheet-head');
+    const icon = el('span', 'sheet-icon cmd-sheet-icon');
+    if (iconOf(c)) icon.append(iconImage(iconOf(c)));
+    else icon.innerHTML = svg('all');
+    const text = el('div', 'sheet-head-text');
+    text.append(el('b', '', c.name));
+    if (c.summary) text.append(el('span', '', c.summary));
+    head.append(icon, text);
+    box.append(head);
+    if (c.hotkeys?.length || c.apps?.length) {
+      const meta = el('div', 'cmd-sheet-meta');
+      for (const h of c.hotkeys ?? []) meta.append(el('kbd', '', h));
+      if (c.apps?.length) meta.append(el('span', 'cmd-apps', t('pwa.cmd.only', c.apps.join(', '))));
+      box.append(meta);
+    }
+    const group = el('div', 'group');
+    const toggle = (iconName, label, sub, set) => {
+      const row = el('label', 'row');
+      row.innerHTML = `<span class="row-icon">${svg(iconName)}</span><span class="row-label"><span></span><small class="row-sub"></small></span><input type="checkbox" class="switch">`;
+      row.querySelector('.row-label > span').textContent = label;
+      row.querySelector('.row-sub').textContent = sub;
+      const input = row.querySelector('input');
+      input.checked = set.has(c.id);
+      input.addEventListener('change', () => {
+        navigator.vibrate?.(6);
+        if (input.checked) set.add(c.id);
+        else set.delete(c.id);
+        savePcSets();
+        renderAll();
+      });
+      return row;
+    };
+    group.append(toggle('star', t('pwa.cmd.favorite'), t('pwa.cmd.favoriteHint'), state.favorites),
+      toggle('shield', t('pwa.cmd.confirm'), t('pwa.cmd.confirmHint'), state.confirm));
+    box.append(group);
+    const buttons = el('div', 'sheet-buttons');
+    const runButton = el('button', 'btn primary', t('pwa.cmd.run'));
+    runButton.addEventListener('click', () => {
+      close();
+      // Already asked here: straight away.
+      setTimeout(() => run(c.id, target, c.name), 200);
+    });
+    buttons.append(runButton);
+    box.append(buttons);
+  });
 }
 
 // ── toasts ─────────────────────────────────────────────────────────
@@ -759,31 +922,67 @@ function goToDepth(depth) {
 
 let ignorePops = 0;
 
+/** A level of a QuickMenu, drawn like the PC's: rows with their icons, separators, titles and submenus with their arrow. */
 function renderNodes(nodes, container, counter) {
-  let grid = null;
-  for (const node of nodes) {
-    // Separators make sense in a desktop list, not in a grid of tiles: only titles start sections here.
-    if (node.kind === 'separator') continue;
-    if (node.kind === 'title') {
-      container.append(el('h3', 'section-title', node.label ?? ''));
-      grid = null;
-      if (node.children) {
-        const body = el('div', 'section-body');
-        renderNodes(node.children, body, counter);
-        container.append(body);
+  const panel = el('div', 'menu-panel');
+  const add = items => {
+    for (const node of items) {
+      if (node.kind === 'separator') {
+        if (panel.lastElementChild && !panel.lastElementChild.classList.contains('menu-sep')) panel.append(el('div', 'menu-sep'));
+        continue;
       }
-      continue;
+      if (node.kind === 'title') {
+        panel.append(el('div', 'menu-title', node.label ?? ''));
+        if (node.children) add(node.children);
+        continue;
+      }
+      panel.append(menuItem(node, counter.i++));
     }
-    if (!grid) {
-      grid = el('div', 'grid');
-      container.append(grid);
-    }
-    const open = node.children ? () => openSubmenu(node) : null;
-    grid.append(tile({
-      label: node.label, icon: iconOf(node), commandId: node.commandId,
-      folder: node.kind === 'submenu', node, onOpen: open, index: counter.i++,
-    }));
+  };
+  add(nodes);
+  container.append(panel, el('p', 'menu-hint', t('pwa.menu.hold')));
+}
+
+function menuItem(node, index) {
+  const folder = node.kind === 'submenu' || !node.commandId;
+  const b = el('button', 'menu-item' + (folder ? ' submenu' : ''));
+  b.style.setProperty('--n', Math.min(index, 20));
+  const ic = el('span', 'menu-icon');
+  const icon = iconOf(node) ?? (folder ? previewIcons(node, 1)[0] : null);
+  if (icon) ic.append(iconImage(icon, img => tintFrom(img, b)));
+  else ic.innerHTML = svg(folder ? 'folder' : 'all');
+  b.append(ic, el('span', 'menu-label', node.label ?? ''));
+  if (folder) {
+    const count = countItems(node);
+    if (count) b.append(el('span', 'menu-count', String(count)));
+    const chevron = el('span', 'menu-chevron');
+    chevron.innerHTML = svg('chevron');
+    b.append(chevron);
+  } else if (node.children) {
+    // A command with items of its own: the arrow opens them, the rest runs it.
+    const more = el('span', 'menu-open');
+    more.innerHTML = svg('chevron');
+    more.setAttribute('role', 'button');
+    more.setAttribute('aria-label', t('pwa.openSub'));
+    more.addEventListener('click', e => {
+      e.stopPropagation();
+      openSubmenu(node);
+    });
+    b.append(more);
   }
+  b.addEventListener('pointerdown', e => ripple(b, e));
+  b.addEventListener('click', async e => {
+    if (e.target.closest('.menu-open')) return;
+    if (folder) {
+      openSubmenu(node);
+      return;
+    }
+    const status = await tryRun(node.commandId, b, node.label);
+    // As on the PC, running something closes the menu: back to its first level (holding the row keeps it open).
+    if (status === 'ok' && state.path.length) setTimeout(() => { if (state.tab === 'menus' && state.path.length) goToDepth(0); }, 650);
+  });
+  if (!folder) onHold(b, () => tryRun(node.commandId, b, node.label));
+  return b;
 }
 
 function openSubmenu(node) {
@@ -831,10 +1030,14 @@ function menuCommands(menuId) {
 }
 
 /** The filter chips: all, not in a QuickMenu, each QuickMenu. */
+/** The filter chips: all, not in a QuickMenu, each QuickMenu, and the events that can be fired by name. */
 function renderFilters() {
   const menus = state.catalog?.menus ?? [];
-  if (!['all', 'none'].includes(state.filter) && !menus.some(m => m.id === state.filter)) state.filter = 'all';
-  const options = [['all', t('pwa.filter.all')], ['none', t('pwa.filter.none')], ...menus.map(m => [m.id, m.name])];
+  const events = state.catalog?.events ?? [];
+  const valid = ['all', 'none', ...(events.length ? ['events'] : []), ...menus.map(m => m.id)];
+  if (!valid.includes(state.filter)) state.filter = 'all';
+  const options = [['all', t('pwa.filter.all')], ...(events.length ? [['events', t('pwa.filter.events')]] : []),
+    ['none', t('pwa.filter.none')], ...menus.map(m => [m.id, m.name])];
   const chips = options.map(([key, label]) => {
     const c = el('button', 'chip' + (key === state.filter ? ' active' : ''), label);
     c.addEventListener('click', () => {
@@ -848,7 +1051,7 @@ function renderFilters() {
   });
   // "Hidden" is a switch in the search bar, always in sight (also with no hidden commands: then it shows the same).
   const h = $('hiddenToggle');
-  h.hidden = !state.catalog;
+  h.hidden = !state.catalog || state.filter === 'events';
   h.classList.toggle('active', state.showHidden);
   h.setAttribute('aria-pressed', String(state.showHidden));
   h.innerHTML = svg(state.showHidden ? 'eye' : 'eyeOff');
@@ -871,13 +1074,71 @@ function filteredCommands() {
   return list;
 }
 
+/** A command in the list: icon, name, what it does, its hotkey and where it works; the result shows in the row. */
+function commandRow(c, index) {
+  const b = el('button', 'cmd');
+  b.style.setProperty('--n', Math.min(index, 24));
+  const ic = el('span', 'cmd-icon');
+  if (iconOf(c)) ic.append(iconImage(iconOf(c), img => tintFrom(img, b)));
+  else ic.innerHTML = svg('all');
+  const text = el('span', 'cmd-text');
+  text.append(el('b', '', c.name));
+  if (c.summary) text.append(el('span', 'cmd-sub', c.summary));
+  if (c.hotkeys?.length || c.apps?.length) {
+    const meta = el('span', 'cmd-meta');
+    if (c.hotkeys?.length) {
+      meta.append(el('kbd', '', c.hotkeys[0]));
+      if (c.hotkeys.length > 1) meta.append(el('span', 'cmd-more', '+' + (c.hotkeys.length - 1)));
+    }
+    if (c.apps?.length) meta.append(el('span', 'cmd-apps', c.apps[0] + (c.apps.length > 1 ? ' +' + (c.apps.length - 1) : '')));
+    text.append(meta);
+  }
+  const end = el('span', 'cmd-end');
+  if (state.favorites.has(c.id)) end.innerHTML = svg('starFill');
+  if (state.confirm.has(c.id)) end.insertAdjacentHTML('beforeend', svg('shield'));
+  b.append(ic, text, end);
+  b.addEventListener('pointerdown', e => ripple(b, e));
+  b.addEventListener('click', () => tryRun(c.id, b, c.name));
+  onHold(b, () => openCommandSheet(c, b));
+  return b;
+}
+
+function eventRow(ev, index) {
+  const b = el('button', 'cmd event');
+  b.style.setProperty('--n', Math.min(index, 24));
+  const ic = el('span', 'cmd-icon');
+  if (ev.icon) ic.append(iconImage(ev.icon, img => tintFrom(img, b)));
+  else ic.innerHTML = svg('broadcast');
+  const text = el('span', 'cmd-text');
+  text.append(el('b', '', ev.name), el('span', 'cmd-sub', t('pwa.event.sub')));
+  b.append(ic, text, el('span', 'cmd-end'));
+  b.addEventListener('pointerdown', e => ripple(b, e));
+  b.addEventListener('click', () => fireEvent(ev.name, b));
+  return b;
+}
+
+function skeletonList(count = 8) {
+  const list = el('div', 'cmd-list');
+  for (let i = 0; i < count; i++) {
+    const row = el('div', 'cmd skeleton');
+    row.append(el('span', 'cmd-icon'), el('span', 'cmd-text'));
+    list.append(row);
+  }
+  return list;
+}
+
 function renderAll() {
   const grid = $('allGrid');
   const q = $('searchBox').value.trim();
   renderFilters();
   if (!state.catalog) {
-    grid.replaceChildren(skeletonGrid());
+    grid.replaceChildren(skeletonList());
     $('topStrip').hidden = true;
+    $('favStrip').hidden = true;
+    return;
+  }
+  if (state.filter === 'events') {
+    renderEvents(q);
     return;
   }
   const commands = filteredCommands();
@@ -892,15 +1153,21 @@ function renderAll() {
   shownAll = list;
   $('allCount').textContent = list.length ? String(list.length) : '';
 
-  // Most used: only without a search, and only when there is a history.
-  const top = q ? [] : [...commands].filter(c => c.runs > 0).sort((a, b) => b.runs - a.runs).slice(0, 10);
+  // Favourites, then the most used: only without a search.
+  const favorites = q ? [] : commands.filter(c => state.favorites.has(c.id));
+  $('favStrip').hidden = favorites.length === 0;
+  $('favList').replaceChildren(...favorites.map((c, i) => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: i })));
+  const top = q ? [] : [...commands].filter(c => c.runs > 0 && !state.favorites.has(c.id)).sort((a, b) => b.runs - a.runs).slice(0, 10);
   $('topStrip').hidden = top.length < 3;
   $('topList').replaceChildren(...top.map((c, i) => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: i })));
 
-  if (q) {
-    const g = el('div', 'grid');
-    g.append(...list.map((c, i) => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: Math.min(i, 8) })));
-    grid.replaceChildren(g);
+  if (q || list.length < LETTER_SECTIONS) {
+    // A search, or few enough to see at a glance: one list.
+    const rows = el('div', 'cmd-list');
+    rows.append(...list.map((c, i) => commandRow(c, q ? Math.min(i, 8) : i)));
+    // Under the favourites or the most used, a title says where the whole list starts.
+    const strips = !$('favStrip').hidden || !$('topStrip').hidden;
+    grid.replaceChildren(...(strips && list.length ? [el('h3', 'section-title', t('pwa.filter.all'))] : []), rows);
   } else {
     // A section per letter: quicker to find something among many commands.
     const groups = new Map();
@@ -912,9 +1179,9 @@ function renderAll() {
     let n = 0;
     grid.replaceChildren(...[...groups].map(([letter, items]) => {
       const section = el('section', 'letter');
-      const g = el('div', 'grid');
-      g.append(...items.map(c => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: n++ })));
-      section.append(el('h3', 'section-title', letter), g);
+      const rows = el('div', 'cmd-list');
+      rows.append(...items.map(c => commandRow(c, n++)));
+      section.append(el('h3', 'section-title', letter), rows);
       return section;
     }));
   }
@@ -922,6 +1189,28 @@ function renderAll() {
   empty.hidden = list.length > 0;
   empty.textContent = q ? t('pwa.noResults', q)
     : state.catalog.commands.length && (state.filter !== 'all' || !state.showHidden) ? t('pwa.filter.empty') : t('pwa.noCommands');
+}
+
+/** From how many commands the list goes in sections by letter. */
+const LETTER_SECTIONS = 30;
+
+/** The «Eventos» filter: the events that can be fired by name. */
+function renderEvents(q) {
+  $('favStrip').hidden = true;
+  $('topStrip').hidden = true;
+  let list = state.catalog.events ?? [];
+  if (q) {
+    const toks = tokens(q);
+    list = list.map(e => ({ e, s: score(toks, searchKey(e.name)) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s).map(x => x.e);
+  }
+  shownAll = list;
+  $('allCount').textContent = list.length ? String(list.length) : '';
+  const rows = el('div', 'cmd-list');
+  rows.append(...list.map((e, i) => eventRow(e, i)));
+  $('allGrid').replaceChildren(rows);
+  const empty = $('allEmpty');
+  empty.hidden = list.length > 0;
+  empty.textContent = q ? t('pwa.noResults', q) : t('pwa.event.none');
 }
 
 // ── catalog / session ──────────────────────────────────────────────
@@ -965,6 +1254,8 @@ function showShell() {
 
 function fillSession(s = state.session) {
   if (!s) return;
+  state.favorites = new Set(pcStore.get('favorites', []));
+  state.confirm = new Set(pcStore.get('confirm', []));
   $('deviceName').textContent = s.device?.name ?? '';
   $('connectedTo').textContent = t('pwa.settings.connected', s.machine);
   $('version').textContent = s.version ? 'K-Desktop ' + s.version : s.app;
@@ -1402,7 +1693,7 @@ function openPcSheet() {
     panel.innerHTML = `<div class="count-ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44" pathLength="100"/><circle class="fill" cx="50" cy="50" r="44" pathLength="100"/></svg><b></b></div>`;
     const label = el('p', 'count-text');
     const buttons = el('div', 'sheet-buttons');
-    const cancel = el('button', 'btn', t('pwa.power.cancel'));
+    const cancel = el('button', 'btn', t('pwa.cancel'));
     const now = el('button', 'btn danger', t('pwa.power.now'));
     buttons.append(cancel, now);
     panel.append(label, buttons);
@@ -1556,7 +1847,7 @@ function wire() {
   search.addEventListener('keydown', e => {
     if (e.key !== 'Enter' || !shownAll.length) return;
     e.preventDefault();
-    $('allGrid').querySelector('.tile')?.click();
+    $('allGrid').querySelector('.cmd')?.click();
   });
 
   for (const b of $('themeSwitch').querySelectorAll('button'))

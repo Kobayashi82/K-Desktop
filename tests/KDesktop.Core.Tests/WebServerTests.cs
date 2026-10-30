@@ -178,6 +178,30 @@ public sealed class WebServerTests : IDisposable
         Assert.DoesNotContain("probe", await ReadUntilAsync(b, "probe", 800));
     }
 
+    [Fact]
+    public async Task TheCatalogSaysHotkeysAppsWhatItDoesAndTheEventsByName()
+    {
+        var config = _engine.Config;
+        var command = new Command { Name = "Probar", Hotkeys = ["CTRL + ALT + K"], Processes = ["Chrome.exe", "chrome"] };
+        command.Actions.Add(new ShowMessageAction { Text = "hola", Seconds = 1 });
+        command.Actions.Add(new ShowMessageAction { Text = "adiós", Seconds = 1 });
+        config.Commands.Add(command);
+        config.Events.Add(new EventRule { Name = "Timbre", Trigger = new RemoteCallTrigger() });
+        config.Events.Add(new EventRule { Name = "Llegada", Trigger = new RemoteCallTrigger { Name = "casa" } });
+        config.Events.Add(new EventRule { Name = "Otra casa", Trigger = new RemoteCallTrigger { Name = "Casa" } });
+        config.Events.Add(new EventRule { Name = "Apagado", Enabled = false, Trigger = new RemoteCallTrigger() });
+        config.Events.Add(new EventRule { Name = "Al arrancar", Trigger = new AppStartTrigger() });
+
+        var token = await PairAsync();
+        var catalog = await ReadAsync(await _http.SendAsync(Request(HttpMethod.Get, "api/catalog", token)));
+        var probe = catalog.GetProperty("commands").EnumerateArray().Single(c => c.GetProperty("name").GetString() == "Probar");
+        Assert.Equal(["CTRL + ALT + K"], probe.GetProperty("hotkeys").EnumerateArray().Select(h => h.GetString()));
+        Assert.Single(probe.GetProperty("apps").EnumerateArray());
+        Assert.EndsWith("+1", probe.GetProperty("summary").GetString(), StringComparison.Ordinal);
+        // Called by its own name or the trigger's, each name once; not the ones switched off or with another trigger.
+        Assert.Equal(["casa", "Timbre"], catalog.GetProperty("events").EnumerateArray().Select(e => e.GetProperty("name").GetString()));
+    }
+
     private async Task<StreamReader> OpenEventsAsync(string token)
     {
         var answer = await _http.SendAsync(Request(HttpMethod.Get, "api/events", token), HttpCompletionOption.ResponseHeadersRead);

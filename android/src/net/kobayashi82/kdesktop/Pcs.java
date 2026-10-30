@@ -37,6 +37,8 @@ final class Pcs {
         /** The PC lets this phone switch it off, restart it… («Energía»). */
         boolean power;
         long lastUsed;
+        /** What the web app keeps for this PC (favourites, commands that ask first…): the same at all its addresses. */
+        JSONObject prefs = new JSONObject();
 
         boolean canWake() {
             return adapters.length() > 0 || wakeUrl != null;
@@ -59,6 +61,7 @@ final class Pcs {
             o.put("id", id).put("name", name).put("token", token).put("last", last == null ? JSONObject.NULL : last);
             o.put("addresses", new JSONArray(addresses)).put("adapters", adapters).put("power", power).put("lastUsed", lastUsed);
             if (wakeUrl != null) o.put("wakeUrl", wakeUrl);
+            o.put("prefs", prefs);
             return o;
         }
 
@@ -84,6 +87,8 @@ final class Pcs {
             pc.wakeUrl = o.optJSONObject("wakeUrl");
             pc.power = o.optBoolean("power");
             pc.lastUsed = o.optLong("lastUsed");
+            JSONObject prefs = o.optJSONObject("prefs");
+            if (prefs != null) pc.prefs = prefs;
             return pc;
         }
     }

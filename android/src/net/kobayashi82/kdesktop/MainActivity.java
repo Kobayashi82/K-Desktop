@@ -1014,6 +1014,28 @@ public class MainActivity extends Activity {
             });
         }
 
+        /** A value the web app keeps for the PC on screen (JSON text; "" when there is none). */
+        @JavascriptInterface
+        public String getPref(String key) {
+            Pcs.Pc pc = currentPc();
+            return pc == null || onSetup || key == null ? "" : pc.prefs.optString(key, "");
+        }
+
+        @JavascriptInterface
+        public void setPref(String key, String value) {
+            if (key == null || key.length() > 60 || (value != null && value.length() > 64000)) return;
+            runOnUiThread(() -> {
+                Pcs.Pc pc = currentPc();
+                if (pc == null || onSetup) return;
+                try {
+                    if (value == null || value.isEmpty()) pc.prefs.remove(key);
+                    else pc.prefs.put(key, value);
+                    pcs.save(pc);
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
         /** «Cambiar de PC»: the page of PCs. */
         @JavascriptInterface
         public void changeServer() {
