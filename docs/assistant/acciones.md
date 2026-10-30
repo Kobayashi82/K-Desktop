@@ -32,6 +32,8 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Script (`RunScript`) | | `communicate` ★ | 🔴 |
 | Petición web (`HttpRequest`) | | `communicate` ★ | 🔴 |
 | Esperar (`Wait`) | | `communicate` ★ (cuenta atrás) | 🟢 |
+| Crear cita (`CalendarAdd`), Abrir la reunión (`CalendarJoin`) | | `communicate` ★ (icono `clock`) | 🟢 |
+| Enviar correo (`MailSend`) | | `communicate` ★ (icono `message`) | 🔴 |
 | Comandos (`CommandControl`) | Ejecutar | `communicate` ★ (sus pasos llegan con `depth` + 1) | el del comando llamado |
 | | Activar / desactivar | `communicate` ★ | 🟡 |
 | Portapapeles, Wake on LAN, Sonido, Multimedia, Grabar audio, Mensaje, Notificación, Enviar al móvil, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |

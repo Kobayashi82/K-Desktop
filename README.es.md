@@ -99,6 +99,21 @@ https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 - **Dictado**: mantén una tecla y habla; el texto se escribe donde está el cursor, con saltos de línea dichos y «borra
   eso».
 
+### Calendario y correo
+
+- **Agenda**: tus citas por días de tu propio calendario, suscripciones `.ics` (festivos, un calendario compartido…),
+  Google Calendar y Outlook, cada una de su color. Crear, editar y borrar con repetición (cada día, laborables, el
+  segundo martes, el último viernes…), avisos y enlace de la reunión en línea; «Unirse» abre Teams, Meet o Zoom.
+  Importar y exportar `.ics`. También en el móvil, en su propia pestaña.
+- **Correo**: cuentas IMAP/SMTP (Gmail, Outlook, iCloud, Yahoo o cualquier otra) vigiladas con IDLE; aviso de cada
+  correo nuevo, solo de los importantes o de ninguno; una invitación que llega por correo pasa al calendario con un clic.
+- **Eventos y acciones**: «Cita del calendario» (minutos antes, al empezar o al acabar) y «Llega un correo» (por
+  remitente, asunto o importancia) como eventos; «Crear cita», «Abrir la reunión» y «Enviar correo» como acciones.
+- **Asistentes**: «¿qué tengo mañana?», «pasa el dentista al viernes», «¿tengo algún correo importante?», «contesta a
+  Ana que voy». Enviar pregunta siempre, y después de leer un correo ninguna otra herramienta se usa sin preguntar: lo
+  que diga un correo nunca se toma como una orden.
+- **Cuentas**: Google y Microsoft se conectan con OAuth en tu navegador; los tokens se guardan cifrados en tu PC.
+
 ### Control remoto
 
 - **Móvil**: app web instalable (PWA) y app de Android con tus comandos (favoritos, eventos) y menús, touchpad con
@@ -139,6 +154,12 @@ https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 | Pantalla (brillo, proyección, apagar) | | | Abrir QuickMenu |
 | Tema de Windows | | | Mostrar mensaje |
 
+| Calendario y correo |
+|---|
+| Crear cita |
+| Abrir la reunión (Teams, Meet, Zoom) |
+| Enviar correo |
+
 Con el módulo Asistente encendido hay cuatro más: **preguntar** a un asistente, hacer que **diga** algo, **cargar o
 liberar su cerebro** y lanzar uno de sus **extras** (como el modo manual del Lander).
 
@@ -147,7 +168,8 @@ liberar su cerebro** y lanzar uno de sus **extras** (como el modo manual del Lan
 El reconocimiento de voz, las palabras de activación, las voces y la IA de los asistentes funcionan **en tu PC**. Lo
 que dices o escribes no se manda a ningún sitio. K-Desktop solo sale a internet para lo que le pides: las peticiones
 web de tus comandos, las herramientas de web, tiempo y divisas de los asistentes, las herramientas y servidores MCP que
-añadas tú, las actualizaciones y las descargas de voces o modelos. El móvil habla con el PC por tu red local y necesita
+añadas tú, los calendarios, suscripciones y cuentas de correo que conectes, las actualizaciones y las descargas de
+voces o modelos. El móvil habla con el PC por tu red local y necesita
 emparejarse, incluso desde el propio PC.
 
 ## Requisitos
