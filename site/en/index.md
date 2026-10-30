@@ -31,5 +31,5 @@ music, timers, notes and your own documents.
 - **Macros and K-Board**: record keyboard and mouse, remap keys and buttons per program.
 - **Voice**: your own wake word, recognition on your PC (no internet), dictation.
 - **Phone**: a web app and an Android app with your commands, a touchpad, a keyboard and the assistants' chat.
-- **Six languages**: English, Spanish, French, German, Italian and Portuguese.
+- **Five languages**: English, Spanish, French, German and Italian.
 - **Private**: speech, voices and the AI run on your PC. See [Privacy](k-desktop/settings.md#privacy).

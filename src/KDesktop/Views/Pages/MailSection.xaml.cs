@@ -92,7 +92,7 @@ public partial class MailSection : UserControl
         var add = CalendarUi.Button(Loc.T("mailOptions.add"), SymbolRegular.MailAdd24, () => Edit(new MailAccountSettings()), primary: true);
         add.Margin = new Thickness(0, 8, 0, 0);
         card.Children.Add(add);
-        card.Children.Add(CalendarUi.GuideButton(this, "mailOptions.guide", Dialogs.GuideDialog.AppPassword, new Thickness(0, 10, 0, 0)));
+        card.Children.Add(CalendarUi.GuideLink(this, "mailOptions.guide", Dialogs.GuideDialog.AppPassword, new Thickness(0, 10, 0, 0)));
     }
 
     private void Edit(MailAccountSettings account)

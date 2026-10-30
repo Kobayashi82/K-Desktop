@@ -29,7 +29,6 @@ public class SpokenReplyTests
     [InlineData("Don't ask again", SpokenReplyKind.Always)]
     [InlineData("oui", SpokenReplyKind.Yes)]
     [InlineData("nein danke", SpokenReplyKind.No)]
-    [InlineData("Não", SpokenReplyKind.No)]
     public void ShortAnswersAreUnderstood(string said, SpokenReplyKind expected) => Assert.Equal(expected, SpokenReply.Of(said));
 
     [Theory]

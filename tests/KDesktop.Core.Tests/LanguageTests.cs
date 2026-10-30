@@ -5,7 +5,7 @@ namespace KDesktop.Core.Tests;
 
 public class LanguageTests
 {
-    private static readonly string[] Languages = ["es", "en", "fr", "de", "it", "pt"];
+    private static readonly string[] Languages = ["es", "en", "fr", "de", "it"];
 
     private static Dictionary<string, string> Load(string code)
     {

@@ -70,7 +70,6 @@ public sealed class TalkTests : IDisposable
     [InlineData("Wie spät ist es?", QuickRuleKind.Time, null, null)]
     [InlineData("rappelle-moi dans une demi-heure", QuickRuleKind.Timer, 1800.0, null)]
     [InlineData("ricordami tra venti minuti di chiamare Luca", QuickRuleKind.Timer, 1200.0, "chiamare Luca")]
-    [InlineData("me avisa daqui a dez minutos", QuickRuleKind.Timer, 600.0, null)]
     public void TheFixedRulesUnderstand(string said, QuickRuleKind kind, double? seconds, string? text)
     {
         var rule = QuickRules.Match(said, ["Lander"]);
@@ -435,7 +434,6 @@ public sealed class TalkTests : IDisposable
     [InlineData("saca el modelo de memoria", QuickRuleKind.FreeBrain)]
     [InlineData("apaga la IA", QuickRuleKind.FreeBrain)]
     [InlineData("unload the model", QuickRuleKind.FreeBrain)]
-    [InlineData("libere a placa de vídeo", QuickRuleKind.FreeBrain)]
     [InlineData("carga el cerebro", QuickRuleKind.LoadBrain)]
     [InlineData("load the model", QuickRuleKind.LoadBrain)]
     // What the user said to the Lander on 23/10 and no rule understood.

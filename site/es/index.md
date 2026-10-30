@@ -32,5 +32,5 @@ música, temporizadores, notas y tus propios documentos.
 - **Macros y K-Board**: graba teclado y ratón, y cambia lo que hacen teclas y botones en cada programa.
 - **Voz**: tu propia palabra de activación y reconocimiento en tu PC (sin internet), y dictado.
 - **Móvil**: una aplicación web y otra de Android con tus comandos, un touchpad, un teclado y el chat de los asistentes.
-- **Seis idiomas**: español, inglés, francés, alemán, italiano y portugués.
+- **Cinco idiomas**: español, inglés, francés, alemán e italiano.
 - **Privado**: el reconocimiento de voz, las voces y la IA van en tu PC. Ver [Privacidad](k-desktop/settings.md#privacidad).

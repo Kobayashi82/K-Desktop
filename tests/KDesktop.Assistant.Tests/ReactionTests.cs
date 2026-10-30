@@ -81,7 +81,6 @@ public class ReactionTests
     [InlineData("¡Muy bien, Lander!", true)]
     [InlineData("thank you so much", true)]
     [InlineData("gut gemacht", true)]
-    [InlineData("obrigado", true)]
     [InlineData("no, gracias", false)]
     [InlineData("gracias pero eso está mal", false)]
     [InlineData("gracias, y ahora ábreme el correo y ponme una alarma para mañana a las ocho", false)]

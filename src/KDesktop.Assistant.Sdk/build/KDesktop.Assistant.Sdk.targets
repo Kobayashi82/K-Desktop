@@ -16,7 +16,7 @@
     clip of each thing it shows is recorded into Package\showcase\ (animated WebP) and listed in the "showcase" of
     Package\assistant.json (only that part of the file is rewritten). It takes a few minutes; the clips stay in the
     sources, so later builds just pack them. The clips are recorded in English (the bubble's text, the stage's windows);
-    AssistantShowcaseLanguage=es (or fr, de, it, pt) records them in another language.
+    AssistantShowcaseLanguage=es (or fr, de, it) records them in another language.
   -->
 
   <PropertyGroup>

@@ -68,12 +68,15 @@ public partial class GuideDialog : FluentWindow
     public static void Show(Window? owner, string guide)
     {
         var dlg = new GuideDialog { Owner = owner };
-        dlg.TitleBar.Title = Loc.T($"guide.{guide}.title");
-        dlg.IntroText.Text = Loc.T($"guide.{guide}.intro");
+        dlg.TitleBar.Title = Text($"guide.{guide}.title");
+        dlg.IntroText.Text = Text($"guide.{guide}.intro");
         var steps = Guides[guide];
         for (var i = 0; i < steps.Length; i++) dlg.Steps.Children.Add(Step(guide, i + 1, steps[i], last: i == steps.Length - 1));
         dlg.ShowDialog();
     }
+
+    /// <summary>A text of the guide, with «K-Desktop» never split at the end of a line (a non-breaking hyphen).</summary>
+    private static string Text(string key) => Loc.T(key).Replace("K-Desktop", "K‑Desktop", StringComparison.Ordinal);
 
     private static Grid Step(string guide, int number, GuideStep step, bool last)
     {
@@ -90,10 +93,10 @@ public partial class GuideDialog : FluentWindow
 
         var content = new StackPanel();
         Grid.SetColumn(content, 1);
-        var title = new TextBlock { Text = Loc.T($"guide.{guide}.{number}.title"), FontSize = 14, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 2) };
+        var title = new TextBlock { Text = Text($"guide.{guide}.{number}.title"), FontSize = 14, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 2) };
         title.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
         content.Children.Add(title);
-        var text = new TextBlock { Text = Loc.T($"guide.{guide}.{number}.text"), TextWrapping = TextWrapping.Wrap };
+        var text = new TextBlock { Text = Text($"guide.{guide}.{number}.text"), TextWrapping = TextWrapping.Wrap };
         text.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         content.Children.Add(text);
 

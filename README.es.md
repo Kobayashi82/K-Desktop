@@ -131,7 +131,7 @@ https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 - **Iconos**: colección vectorial propia (cualquier símbolo de Windows 11 en 15 colores), las bibliotecas de iconos de
   Windows, cualquier imagen o el favicon de una web.
 - **Interfaz moderna** con tema claro, oscuro o del sistema, y animaciones.
-- **Seis idiomas** (español, inglés, francés, alemán, italiano y portugués) dentro del ejecutable. Para añadir otro o
+- **Cinco idiomas** (español, inglés, francés, alemán e italiano) dentro del ejecutable. Para añadir otro o
   cambiar textos basta con dejar un JSON en `%APPDATA%\K-Desktop 5\Languages`.
 - **Copias de seguridad**: diarias de la configuración, completas en `.zip` cada N días, exportar e importar.
 - **Actualizaciones automáticas** del programa y de la app de Android.

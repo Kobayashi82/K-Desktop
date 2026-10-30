@@ -9,7 +9,7 @@ allí.
 
 | Sección | Qué tiene |
 |---|---|
-| **Apariencia** | Tema claro, oscuro o el del sistema; idioma (el de Windows, o uno de los seis incluidos); iconos de las webs; traducir |
+| **Apariencia** | Tema claro, oscuro o el del sistema; idioma (el de Windows, o uno de los cinco incluidos); iconos de las webs; traducir |
 | **General** | Pausar K-Desktop (con su atajo y sus sonidos); iniciar con Windows, el icono de la bandeja y su imagen; los atajos para enseñar la ventana y para salir, los sonidos y el mensaje al arrancar |
 | **Mensajes y notificaciones** | Los mensajes en pantalla (OSD) de K-Desktop: si salen (apagados no sale ninguno, salvo las cuentas atrás y el progreso de lo que se puede parar), si las cuentas atrás salen en un **círculo** en el centro de la pantalla, un poco más abajo (con un botón para probarlo), qué sonido suena al cancelar una cuenta atrás con Esc, dónde salen (pulsando en un dibujo de la pantalla), en qué monitor, su tamaño, cuánto duran, qué hacen con una película o un juego a pantalla completa y qué grupos salen (acciones, volumen y brillo, voz, avisos). Debajo, las **notificaciones**: su **sonido** (el de todas; *Mostrar notificación* puede elegir otro o «Global»), si salen las de los logros y con su sonido, en qué monitor y esquina (también en un dibujo), cuánto duran y si esperan a que acabe lo que está a pantalla completa |
 | **Lanzador** | Su atajo, qué encuentra (programas, comandos ocultos, cuentas, archivos, la web) y en qué orden |
@@ -62,7 +62,7 @@ El **módulo Asistente** tiene su propio grupo: ver [Asistentes](../assistant/in
 
 ## Idiomas
 
-Hay seis incluidos: español, inglés, francés, alemán, italiano y portugués. Los idiomas de más son archivos JSON en
+Hay cinco incluidos: español, inglés, francés, alemán e italiano. Los idiomas de más son archivos JSON en
 `%APPDATA%\K-Desktop 5\Languages`. En *Traducir*, **Exportar plantilla** saca el idioma actual: traduce los textos,
 guarda el archivo ahí con el código del idioma (`nl.json`) y elígelo en *Idioma*. Un archivo con solo algunos textos
 (`es.json`) cambia solo esos.

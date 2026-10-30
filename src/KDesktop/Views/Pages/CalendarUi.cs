@@ -69,13 +69,18 @@ internal static class CalendarUi
         return button;
     }
 
-    /// <summary>A button that opens a step-by-step guide (<see cref="Dialogs.GuideDialog"/>) of what is done outside K-Desktop.</summary>
-    public static UiButton GuideButton(FrameworkElement from, string textKey, string guide, Thickness margin)
+    /// <summary>
+    /// A link (like the one of «Control remoto») that opens a step-by-step guide (<see cref="Dialogs.GuideDialog"/>) of
+    /// what is done outside K-Desktop.
+    /// </summary>
+    public static TextBlock GuideLink(FrameworkElement from, string textKey, string guide, Thickness margin)
     {
-        var button = Button(Loc.T(textKey), SymbolRegular.BookQuestionMark24, () => Dialogs.GuideDialog.Show(Window.GetWindow(from), guide));
-        button.Margin = margin;
-        button.HorizontalAlignment = HorizontalAlignment.Left;
-        return button;
+        var line = Caption(string.Empty, margin);
+        var link = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run(Loc.T(textKey)));
+        link.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "Kd.AccentText");
+        link.Click += (_, _) => Dialogs.GuideDialog.Show(Window.GetWindow(from), guide);
+        line.Inlines.Add(link);
+        return line;
     }
 
     public static UiButton IconButton(SymbolRegular icon, string tip, Action click, bool danger = false)

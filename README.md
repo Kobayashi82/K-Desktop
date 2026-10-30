@@ -129,7 +129,7 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 - **Icons**: a built-in vector set (any Windows 11 symbol in 15 colours), Windows icon libraries, any image or a
   website's favicon.
 - **Modern interface** with light, dark or system theme and animations.
-- **Six languages** (English, Spanish, French, German, Italian and Portuguese) built into the executable. Drop a JSON
+- **Five languages** (English, Spanish, French, German and Italian) built into the executable. Drop a JSON
   file in `%APPDATA%\K-Desktop 5\Languages` to add one or change texts.
 - **Backups**: daily copies of the settings, full `.zip` backups every N days, export and import.
 - **Automatic updates** of the program and the Android app.
