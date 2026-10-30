@@ -4,6 +4,7 @@ import { COMMANDS } from '../shorts/02-commands/scenes';
 import { QUICKMENU_LAUNCHER } from '../shorts/03-quickmenu-launcher/scenes';
 import { MACROS_TEXTS } from '../shorts/04-macros-texts/scenes';
 import { KBOARD } from '../shorts/05-kboard/scenes';
+import { EVENTS } from '../shorts/06-events/scenes';
 import { VOICE } from '../shorts/08-voice/scenes';
 
 /** A short video (shorts/<id>): the picture of each chapter of its script, and the background colours of its chapters. */
@@ -16,5 +17,6 @@ export const SHORTS: Record<string, Short> = {
   '03-quickmenu-launcher': QUICKMENU_LAUNCHER,
   '04-macros-texts': MACROS_TEXTS,
   '05-kboard': KBOARD,
+  '06-events': EVENTS,
   '08-voice': VOICE,
 };

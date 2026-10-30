@@ -1,0 +1,116 @@
+{
+  "lang": "en",
+  "number": 6,
+  "title": "Events",
+  "next": "Windows, clipboard and screen",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "When it ends",
+      "Only if",
+      "Home Assistant",
+      "Steam opens",
+      "Steam closes",
+      "Elden Ring"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Events",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "So far, you've started every command yourself. Now let your PC do it, {something}the moment something happens."
+        },
+        {
+          "id": "plan",
+          "text": "Let's see {how}how events work, {real}some real ones, and how {cond}conditions make them smarter.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "title": "How events work",
+      "label": "Events",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "So far, you trigger the commands. {events}Events let your PC trigger them for you. {when}When this happens, run these commands."
+        },
+        {
+          "id": "kinds",
+          "text": "There are {sixteen}twenty-two kinds of triggers. When K-Desktop {start}starts or exits. {time}At a time, or every few {interval}minutes. When a {program}program opens, or comes to the {front}front. After a while {idle}without using the PC. When you {lock}lock it, or it goes to sleep. When a laptop switches to {battery}battery."
+        },
+        {
+          "id": "kinds2",
+          "text": "When a {controller}controller, a {usb}USB drive, {headphones}headphones or any other device is connected. When you join a {network}network. When a new {file}file appears in a folder. When the {cpu}CPU, the graphics card or the memory crosses a threshold. Or when {remote}another computer, a script or Home Assistant calls it by name."
+        },
+        {
+          "id": "kinds3",
+          "text": "And a few more: when the {level}battery runs low, at {sun}sunrise or sunset, when a {screen}screen is plugged in, before a {calendar}calendar event, when {mail}mail arrives, or a {telegram}Telegram message."
+        },
+        {
+          "id": "example",
+          "text": "For example: {when}when Steam opens, {switch}switch the audio output to the headphones."
+        },
+        {
+          "id": "ends",
+          "text": "Many triggers also have a {ends}When it ends side. {closes}When Steam closes, {back}back to the speakers. {nosecond}No second event needed."
+        },
+        {
+          "id": "safety",
+          "text": "Events can have {conditions}conditions, a {cooldown}minimum time between runs, and built-in {loops}protection against loops, so an event can never keep setting itself off."
+        }
+      ]
+    },
+    {
+      "id": "real",
+      "title": "Real events",
+      "label": "Examples",
+      "beats": [
+        {
+          "id": "list",
+          "text": "Here are some real ones. {elden}When Elden Ring opens. {weekday}Every weekday at eight thirty. {away}When I step away. {headphones}When the headphones connect. A {file}new file in Downloads. And the {cpu}CPU above ninety percent."
+        },
+        {
+          "id": "detail",
+          "text": "Open one, and you see its {when}When: a program opens, {exe}Elden Ring. What it {runs}runs: Gaming mode, for high performance. And {ends}When it ends, to put things back. {test}Test runs it right away."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: in {only}Only if, add conditions. Then an event fires only when, say, it's a {weekday}weekday and you're on your {home}home network. Ask for {all}all of them, or any, and {check}test whether they're met right now."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}windows, the clipboard and the screen."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
