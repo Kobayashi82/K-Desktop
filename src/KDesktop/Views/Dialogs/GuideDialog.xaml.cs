@@ -23,6 +23,7 @@ public partial class GuideDialog : FluentWindow
     public const string Google = "google";
     public const string AppPassword = "appPassword";
     public const string Ics = "ics";
+    public const string Telegram = "telegram";
 
     private static readonly Dictionary<string, GuideStep[]> Guides = new(StringComparer.Ordinal)
     {
@@ -50,6 +51,14 @@ public partial class GuideDialog : FluentWindow
         [
             new("https://calendar.google.com/calendar/r/settings"),
             new("https://outlook.live.com/calendar/0/options/calendar/SharedCalendars"),
+            new(),
+            new(),
+        ],
+        [Telegram] =
+        [
+            new("https://t.me/BotFather"),
+            new(null, ("guide.copy.command", "/newbot")),
+            new(),
             new(),
             new(),
         ],

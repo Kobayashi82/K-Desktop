@@ -12,14 +12,15 @@ namespace KDesktop.Views.Pages;
 /// Options › Cuentas (calendar, phase 6; in two pages since 5.0.430, «Part»): <c>accounts</c>, the connected accounts
 /// with what each one is used for, connecting one again when the server forgot it and disconnecting it (revoked in the
 /// server); and <c>accounts/google</c>, connecting one (the browser opens; cancellable) and the application it connects
-/// with (the user's own Google Client ID).
+/// with (the user's own Google Client ID); and <c>accounts/telegram</c>, the Telegram bot and its owner
+/// (AccountsSection.Telegram.cs).
 /// </summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "The token source lives only while a connection is under way, and is disposed then.")]
 public partial class AccountsSection : UserControl
 {
     private static AccountService Accounts => App.Current.Accounts;
 
-    /// <summary>Which page it is: <c>accounts</c> (the connected ones) or <c>accounts/google</c>.</summary>
+    /// <summary>Which page it is: <c>accounts</c> (the connected ones), <c>accounts/google</c> or <c>accounts/telegram</c>.</summary>
     public string Part { get; set; } = "accounts";
 
     private bool _subscribed;
@@ -31,13 +32,19 @@ public partial class AccountsSection : UserControl
         InitializeComponent();
         Loaded += (_, _) =>
         {
-            if (!_subscribed) Accounts.Changed += OnChanged;
+            if (!_subscribed)
+            {
+                Accounts.Changed += OnChanged;
+                Telegram.Changed += OnChanged;
+            }
             _subscribed = true;
             Build();
         };
         Unloaded += (_, _) =>
         {
             Accounts.Changed -= OnChanged;
+            Telegram.Changed -= OnChanged;
+            _linkTimer?.Stop();
             _subscribed = false;
         };
     }
@@ -62,6 +69,7 @@ public partial class AccountsSection : UserControl
             BuildConnect();
             BuildApps();
         }
+        else if (Part == "accounts/telegram") BuildTelegram();
         else BuildList();
     }
 
@@ -69,7 +77,7 @@ public partial class AccountsSection : UserControl
     {
         var card = CalendarUi.Card(Root, Loc.T("accounts.title"), Loc.T("accounts.intro"));
         var all = Accounts.Accounts;
-        if (all.Count == 0) card.Children.Add(CalendarUi.Caption(Loc.T("accounts.none")));
+        if (all.Count == 0 && Telegram.Bot is null) card.Children.Add(CalendarUi.Caption(Loc.T("accounts.none")));
         foreach (var account in all)
         {
             var grid = new Grid { Margin = new Thickness(0, 6, 0, 6) };
@@ -92,7 +100,9 @@ public partial class AccountsSection : UserControl
             grid.Children.Add(actions);
             card.Children.Add(grid);
         }
+        if (Telegram.Bot is not null) card.Children.Add(TelegramRow());
         card.Children.Add(CalendarUi.NavLink(this, "accounts.goGoogle", "settings/accounts/google", new Thickness(0, 8, 0, 0)));
+        if (Telegram.Bot is null) card.Children.Add(CalendarUi.NavLink(this, "accounts.goTelegram", "settings/accounts/telegram", new Thickness(0, 4, 0, 0)));
     }
 
     private void BuildConnect()

@@ -1,0 +1,28 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Dialogs.TelegramBotDialog"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 Title="K-Desktop"
+                 Width="560" SizeToContent="Height" MinHeight="0" MaxHeight="760"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="NoResize"
+                 ShowInTaskbar="False">
+    <!-- The Telegram bot (Opciones › Cuentas › Telegram): its token, pasted from @BotFather; «Conectar» checks it with
+         Telegram before keeping it. The form is made in code. -->
+    <DockPanel Margin="20,0,20,20">
+        <ui:TitleBar x:Name="TitleBar" DockPanel.Dock="Top" ShowMinimize="False" ShowMaximize="False" Margin="-20,0,-20,4" />
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <TextBlock x:Name="StatusText" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <ui:Button Content="{l:Tr common.cancel}" Click="OnCancel" Margin="0,0,8,0" IsCancel="True" />
+                <ui:Button x:Name="SaveButton" Content="{l:Tr telegram.bot.connect}" Appearance="Primary" Icon="{ui:SymbolIcon PlugConnected24}" Click="OnSave" IsDefault="True" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel x:Name="Form" />
+    </DockPanel>
+</ui:FluentWindow>

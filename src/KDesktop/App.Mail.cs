@@ -38,6 +38,7 @@ public partial class App
 
     private void ShowNewMail(MailArrived arrived)
     {
+        TellMailByTelegram(arrived);
         var notify = arrived.Account.Notify;
         if (notify == MailNotify.None || (notify == MailNotify.Important && !arrived.Important)) return;
         var m = arrived.Mail;

@@ -91,7 +91,7 @@ public partial class WebPairDialog : Wpf.Ui.Controls.FluentWindow
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>The QR as crisp vector modules, black on white (phones read it best that way, in any theme).</summary>
-    private static DrawingImage RenderQr(string text)
+    internal static DrawingImage RenderQr(string text)
     {
         using var generator = new QRCodeGenerator();
         using var data = generator.CreateQrCode(text, QRCodeGenerator.ECCLevel.M);

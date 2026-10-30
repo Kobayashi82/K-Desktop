@@ -134,6 +134,7 @@ public partial class App : Application
         Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         CreateCalendar();
+        CreateTelegram();
         Events.Calendar = Calendar;
         Engine.Calendar = Calendar;
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
@@ -355,6 +356,7 @@ public partial class App : Application
         // Startup feedback and the «Al iniciar K-Desktop» events; a restart after an update is not a new start.
         Events.Start(afterUpdate: UpdatedFrom is not null);
         StartCalendar();
+        StartTelegram();
         var s = Config.Settings;
         if (UpdatedFrom is null)
         {
@@ -837,6 +839,7 @@ public partial class App : Application
         Events?.Dispose();
         Calendar?.Dispose();
         Mail?.Dispose();
+        Telegram?.Dispose();
         ClipboardUi?.Dispose();
         Router.Dispose();
         _zoneSnapper?.Dispose();
