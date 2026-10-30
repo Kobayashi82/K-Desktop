@@ -64,7 +64,8 @@ public partial class AccountsSection : UserControl
 
     private void Build()
     {
-        if (!IsLoaded) return;
+        // Closing K-Desktop may still raise a change on the way out: there is nothing to draw then.
+        if (!IsLoaded || App.Current?.TelegramAccount is null) return;
         Root.Children.Clear();
         if (Part == "accounts/google")
         {

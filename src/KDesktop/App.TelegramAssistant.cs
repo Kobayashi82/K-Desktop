@@ -28,7 +28,12 @@ public partial class App
 
     private TelegramTurn? TelegramTurnOf(string? key) => key is null ? null : _telegramTurns.GetValueOrDefault(key);
 
-    private void WireTelegramTalk() => TelegramCommands.Talk = TalkFromTelegramAsync;
+    /// <summary>What is written to the bot and to the account goes to the assistant the same way.</summary>
+    private void WireTelegramTalk()
+    {
+        TelegramCommands.Talk = TalkFromTelegramAsync;
+        TelegramAccountCommands.Talk = TalkFromTelegramAsync;
+    }
 
     /// <summary>A message for the assistant (any thread): sent, waited for, and its answer back to the chat.</summary>
     private async Task TalkFromTelegramAsync(TelegramIncoming m, TelegramVerdict v, string text, string? file)
