@@ -5,7 +5,7 @@
                  xmlns:v="clr-namespace:KDesktop.Views"
                  xmlns:l="clr-namespace:KDesktop.Localization"
                  Title="K-Desktop"
-                 Width="620" SizeToContent="Height" MaxHeight="900"
+                 Width="680" SizeToContent="Height" MaxHeight="900"
                  WindowStartupLocation="CenterOwner"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"

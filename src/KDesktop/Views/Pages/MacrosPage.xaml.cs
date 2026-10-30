@@ -236,11 +236,6 @@ public sealed partial class MacrosPage : UserControl, IDisposable
         return name;
     }
 
-    private void OnExport(object sender, RoutedEventArgs e)
-    {
-        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Macro, item.Id, item.Name);
-    }
-
     private void OnDuplicate(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;

@@ -655,8 +655,6 @@
                                                ToolTip="{l:Tr event.testHint}" />
                                     <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon FlashAdd20, FontSize=18}" ToolTip="{l:Tr event.createCommand}" AutomationProperties.Name="{l:Tr event.createCommand}"
                                                Click="OnCreateCommand" Margin="0,0,8,0" />
-                                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr transfer.export}" AutomationProperties.Name="{l:Tr transfer.export}"
-                                               Click="OnExport" Margin="0,0,8,0" />
                                     <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr common.duplicate}" AutomationProperties.Name="{l:Tr common.duplicate}" Click="OnDuplicateEvent" Margin="0,0,8,0" />
                                     <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr common.delete}" AutomationProperties.Name="{l:Tr common.delete}" Click="OnDeleteEvent">
                                         <ui:SymbolIcon Symbol="Delete24" FontSize="18" Foreground="{DynamicResource Kd.Danger}" />

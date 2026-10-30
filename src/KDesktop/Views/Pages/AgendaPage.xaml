@@ -16,10 +16,10 @@
                     </Border>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <ui:Button x:Name="SyncButton" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr agenda.sync}" AutomationProperties.Name="{l:Tr agenda.sync}" Click="OnSync" Margin="0,0,6,0" />
-                    <ui:Button Icon="{ui:SymbolIcon ArrowImport24}" ToolTip="{l:Tr agenda.import}" AutomationProperties.Name="{l:Tr agenda.import}" Click="OnImport" Margin="0,0,6,0" />
-                    <ui:Button x:Name="ExportButton" Icon="{ui:SymbolIcon ArrowExport24}" ToolTip="{l:Tr agenda.export}" AutomationProperties.Name="{l:Tr agenda.export}" Click="OnExport" Margin="0,0,6,0" />
-                    <ui:Button Icon="{ui:SymbolIcon Settings24}" ToolTip="{l:Tr agenda.options}" AutomationProperties.Name="{l:Tr agenda.options}" Click="OnOptions" Margin="0,0,6,0" />
+                    <ui:Button x:Name="SyncButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowSync24, FontSize=18}" ToolTip="{l:Tr agenda.sync}" AutomationProperties.Name="{l:Tr agenda.sync}" Click="OnSync" Margin="0,0,6,0" />
+                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowDownload24, FontSize=18}" ToolTip="{l:Tr agenda.import}" AutomationProperties.Name="{l:Tr agenda.import}" Click="OnImport" Margin="0,0,6,0" />
+                    <ui:Button x:Name="ExportButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr agenda.export}" AutomationProperties.Name="{l:Tr agenda.export}" Click="OnExport" Margin="0,0,6,0" />
+                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Settings24, FontSize=18}" ToolTip="{l:Tr agenda.options}" AutomationProperties.Name="{l:Tr agenda.options}" Click="OnOptions" Margin="0,0,6,0" />
                     <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon CalendarAdd24}" Content="{l:Tr agenda.new}" Click="OnNew" />
                 </StackPanel>
             </Grid>

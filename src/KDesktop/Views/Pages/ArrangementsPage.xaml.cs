@@ -505,11 +505,6 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
         }, System.Windows.Threading.DispatcherPriority.Input);
     }
 
-    private void OnExport(object sender, RoutedEventArgs e)
-    {
-        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Arrangement, item.Id, item.Name);
-    }
-
     private void OnDuplicate(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;

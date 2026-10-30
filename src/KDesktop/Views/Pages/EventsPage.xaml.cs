@@ -250,11 +250,6 @@ public sealed partial class EventsPage : UserControl, IDisposable
         }, System.Windows.Threading.DispatcherPriority.Input);
     }
 
-    private void OnExport(object sender, RoutedEventArgs e)
-    {
-        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Event, item.Id, item.Name);
-    }
-
     private void OnDuplicateEvent(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;

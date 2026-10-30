@@ -216,8 +216,6 @@
                                                       Title="{l:Tr kboard.ignoreDisabled}" Hint="{l:Tr kboard.ignoreDisabledHint}" />
                                         <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon FlashAdd20, FontSize=18}" ToolTip="{l:Tr kboard.createCommand}" AutomationProperties.Name="{l:Tr kboard.createCommand}"
                                                    Click="OnCreateCommand" Margin="0,0,8,0" />
-                                        <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr transfer.export}" AutomationProperties.Name="{l:Tr transfer.export}"
-                                                   Click="OnExport" Margin="0,0,8,0" />
                                         <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr kboard.duplicate}" AutomationProperties.Name="{l:Tr kboard.duplicate}"
                                                    Click="OnDuplicate" Margin="0,0,8,0" />
                                         <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr kboard.delete}" AutomationProperties.Name="{l:Tr kboard.delete}" Click="OnDelete">

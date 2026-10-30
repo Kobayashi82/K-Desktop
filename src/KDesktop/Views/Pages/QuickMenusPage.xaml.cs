@@ -270,11 +270,6 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         _app.Ui.ShowNotice(Loc.T("aiMenu.created", menu.Name, opener.Name), Core.Engine.OsdKind.Success);
     }
 
-    private void OnExport(object sender, RoutedEventArgs e)
-    {
-        if (_menu is { } item) ItemTransferUi.Export(this, TransferKind.QuickMenu, item.Id, item.Name);
-    }
-
     private void OnDuplicateMenu(object sender, RoutedEventArgs e)
     {
         if (_menu is null) return;

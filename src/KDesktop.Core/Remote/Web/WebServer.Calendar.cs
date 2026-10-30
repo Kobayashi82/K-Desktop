@@ -15,15 +15,20 @@ public sealed partial class WebServer
     /// <summary>The calendar (set by K-Desktop); null: the phone has no agenda.</summary>
     public CalendarService? Calendar { get; set; }
 
-    private DateTime _calendarSaid;
+    private int _calendarPending;
 
-    /// <summary>Tells the phones the calendar changed (at most once a second).</summary>
+    /// <summary>
+    /// Tells the phones the calendar changed: a burst of changes (a sync, an import) is said once, a second after the
+    /// first, so the last change is never left untold.
+    /// </summary>
     public void NotifyCalendarChanged()
     {
-        var now = DateTime.UtcNow;
-        if (now - _calendarSaid < TimeSpan.FromSeconds(1)) return;
-        _calendarSaid = now;
-        Broadcast("calendar");
+        if (Interlocked.Exchange(ref _calendarPending, 1) == 1) return;
+        _ = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
+        {
+            Volatile.Write(ref _calendarPending, 0);
+            Broadcast("calendar");
+        }, TaskScheduler.Default);
     }
 
     private async Task<bool> CalendarAsync(WebRequest request, HttpListenerContext context)

@@ -285,11 +285,6 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
         return name;
     }
 
-    private void OnExport(object sender, RoutedEventArgs e)
-    {
-        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Snippet, item.Id, item.Abbreviation);
-    }
-
     private void OnDuplicate(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;
