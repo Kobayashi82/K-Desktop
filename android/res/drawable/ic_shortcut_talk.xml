@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An icon of the app's shortcuts (holding its icon): K-Desktop's gold circle with the glyph in dark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#FFF5B324" android:pathData="M24,0a24,24 0,1 1,0 48a24,24 0,1 1,0 -48z" />
+    <path android:fillColor="#FF1A1408" android:pathData="M24,12a4,4 0,0 1,4 4v8a4,4 0,0 1,-8 0v-8a4,4 0,0 1,4 -4zM16.5,23h2a5.5,5.5 0,0 0,11 0h2a7.5,7.5 0,0 1,-6.5 7.43v3.57h-2v-3.57a7.5,7.5 0,0 1,-6.5 -7.43z" />
+</vector>

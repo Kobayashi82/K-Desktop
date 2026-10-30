@@ -31,6 +31,9 @@ public interface IWebHost
     /// <summary>A voice order recorded on the phone: 16 kHz mono samples.</summary>
     Task<RemoteVoiceResult> VoiceAsync(float[] samples);
 
+    /// <summary>The OSD and the rest of the app's interface (what the phone shares says it arrived); null in tests.</summary>
+    IUiServices? Ui => null;
+
     /// <summary>Talking to the assistants from the phone; null where there are none (tests).</summary>
     IWebAssistants? Assistants { get; }
 }

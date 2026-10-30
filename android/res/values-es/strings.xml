@@ -17,4 +17,17 @@
     <string name="media_play">Reproducir</string>
     <string name="media_pause">Pausar</string>
     <string name="media_next">Siguiente</string>
+    <string name="shortcut_talk">Hablar</string>
+    <string name="shortcut_pad">Touchpad</string>
+    <string name="shortcut_wake">Encender el PC</string>
+    <string name="share_title">Enviar a %1$s</string>
+    <string name="share_open">Abrir en el PC</string>
+    <string name="share_copy">Copiar en el PC</string>
+    <string name="share_copied">Copiado en el portapapeles de %1$s</string>
+    <string name="share_opened">Abierto en %1$s</string>
+    <string name="share_saved">Guardado en Descargas de %1$s</string>
+    <string name="share_failed">%1$s no ha podido hacerlo</string>
+    <string name="share_offline">%1$s no contesta</string>
+    <string name="share_sending">Enviando a %1$s…</string>
+    <string name="share_nopc">Primero empareja un PC</string>
 </resources>

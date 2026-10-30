@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Holding the app's icon (Android 7.1+): talk, the touchpad and switching the PC on, straight away. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="talk"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_talk"
+        android:shortcutShortLabel="@string/shortcut_talk">
+        <intent
+            android:action="net.kobayashi82.kdesktop.TALK"
+            android:targetPackage="net.kobayashi82.kdesktop"
+            android:targetClass="net.kobayashi82.kdesktop.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="pad"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_pad"
+        android:shortcutShortLabel="@string/shortcut_pad">
+        <intent
+            android:action="net.kobayashi82.kdesktop.PAD"
+            android:targetPackage="net.kobayashi82.kdesktop"
+            android:targetClass="net.kobayashi82.kdesktop.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="wake"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_wake"
+        android:shortcutShortLabel="@string/shortcut_wake">
+        <intent
+            android:action="net.kobayashi82.kdesktop.WAKE"
+            android:targetPackage="net.kobayashi82.kdesktop"
+            android:targetClass="net.kobayashi82.kdesktop.MainActivity" />
+    </shortcut>
+</shortcuts>

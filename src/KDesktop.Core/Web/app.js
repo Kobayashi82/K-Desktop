@@ -3,7 +3,7 @@
 import { searchKey, tokens, score } from './fuzzy.js';
 import { setupPad, padActive, padTexts, padSettings } from './pad.js';
 import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
-import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, onDid, chatAsked, chatTexts } from './chat.js';
+import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, onDid, chatAsked, chatTexts, chatTalk } from './chat.js';
 import { setupInbox, fetchInbox } from './inbox.js';
 import { setupMedia, mediaActive, onMediaEvent, renderApps } from './media.js';
 import { setupSpeech, speakWhere, speechSettings, onSpeech, onSpeechEnd, stopSpeech } from './speech.js';
@@ -1957,6 +1957,12 @@ function wire() {
 async function start() {
   applyTheme(store.get('theme', 'system'));
   wire();
+  // The Android app's shortcuts (holding its icon): a tab, or talking (to the chosen assistant, else to the commands).
+  window.kdOpenTab = tab => setTab(tab);
+  window.kdTalk = () => {
+    if (state.session?.assistants && chatTalk()) return;
+    if (!$('voiceButton').hidden) $('voiceButton').click();
+  };
   setupInstall();
   if (state.texts) applyTexts();
 

@@ -415,6 +415,14 @@ async function stop() {
   try { await ctx.api('assistants/stop', { method: 'POST', body: { id: c.id } }); } catch { /* offline */ }
 }
 
+/** «Hablar» (a shortcut of the app): to the chosen assistant, in its tab; false when there is none. */
+export function chatTalk() {
+  if (!c.enabled || !c.id) return false;
+  ctx.openTab();
+  ctx.talk(c.id);
+  return true;
+}
+
 /** Said with this tab's microphone: the answer comes as for something written. */
 export function chatAsked(id) {
   c.asked.set(id, Date.now());

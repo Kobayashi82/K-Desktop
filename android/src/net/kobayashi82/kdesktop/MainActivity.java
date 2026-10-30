@@ -142,6 +142,17 @@ public class MainActivity extends Activity {
 
     /** Opened from a notification of K-Desktop: the page shows what arrived once it is loaded. */
     private boolean openInboxPending;
+
+    /** Holding the app's icon (res/xml/shortcuts.xml): the touchpad, talk, switch the PC on. */
+    static final String ACTION_PAD = "net.kobayashi82.kdesktop.PAD";
+    static final String ACTION_TALK = "net.kobayashi82.kdesktop.TALK";
+    static final String ACTION_WAKE = "net.kobayashi82.kdesktop.WAKE";
+
+    /** What the page does once it has loaded (a shortcut: open the touchpad, talk). */
+    private String pendingJs;
+
+    /** The PC to switch on once the page of PCs is up (the shortcut «Encender el PC»). */
+    private String pendingWake;
     private static final int VOICE_RATE = 16000;
     private static final int VOICE_MAX_BYTES = VOICE_RATE * 2 * 31 / 2; // 15.5 s, under what K-Desktop accepts
     private volatile boolean voiceRun;
@@ -190,7 +201,8 @@ public class MainActivity extends Activity {
         if (state != null && web.restoreState(state) != null) return;
         String shared = sharedLink(getIntent());
         if (shared != null) openLink(shared);
-        else openCurrent();
+        else if (!shortcut(getIntent().getAction())) openCurrent();
+        share(getIntent());
     }
 
     @Override
@@ -207,6 +219,59 @@ public class MainActivity extends Activity {
         }
         String shared = sharedLink(intent);
         if (shared != null) openLink(shared);
+        else if (shortcut(intent.getAction())) return;
+        share(intent);
+    }
+
+    /**
+     * A shortcut of the app's icon. Switching on opens the page of PCs and wakes the current one there (true: nothing else
+     * opens); the touchpad and talking wait for K-Desktop's page.
+     */
+    private boolean shortcut(String action) {
+        if (ACTION_WAKE.equals(action)) {
+            Pcs.Pc pc = currentPc();
+            if (pc != null && pc.canWake()) pendingWake = pc.id;
+            openPcs(pc == null ? null : pc.id, null);
+            return true;
+        }
+        String script = ACTION_PAD.equals(action) ? "window.kdOpenTab && window.kdOpenTab('pad')"
+                : ACTION_TALK.equals(action) ? "window.kdTalk && window.kdTalk()" : null;
+        if (script == null) return false;
+        if (current != null && !loading && !onSetup) handler.postDelayed(() -> js(script), 250);
+        else pendingJs = script;
+        return false;
+    }
+
+    /** «Compartir → K-Desktop»: what another app shares (not a pairing link) goes to the PC of the app. */
+    @SuppressWarnings("deprecation")
+    private void share(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction()) || sharedLink(intent) != null) return;
+        Pcs.Pc pc = currentPc();
+        if (pc == null || pc.token.isEmpty()) {
+            Toast.makeText(this, R.string.share_nopc, Toast.LENGTH_LONG).show();
+            return;
+        }
+        String at = onSetup ? null : current;
+        Uri stream = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (stream != null) {
+            ShareSender.file(this, pc, at, stream);
+            return;
+        }
+        String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (text == null || text.trim().isEmpty()) return;
+        java.util.regex.Matcher link = java.util.regex.Pattern.compile("https?://\\S+").matcher(text);
+        if (!link.find()) {
+            ShareSender.text(this, pc, at, text.trim(), false);
+            return;
+        }
+        // A link: open it on the PC, or keep all of it in its clipboard.
+        String url = link.group();
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(getString(R.string.share_title, pc.name))
+                .setMessage(url)
+                .setPositiveButton(R.string.share_open, (dialog, which) -> ShareSender.text(this, pc, at, url, true))
+                .setNegativeButton(R.string.share_copy, (dialog, which) -> ShareSender.text(this, pc, at, text.trim(), false))
+                .show();
     }
 
     @Override
@@ -484,7 +549,8 @@ public class MainActivity extends Activity {
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
             String text = intent.getStringExtra(Intent.EXTRA_TEXT);
             if (text == null) return null;
-            java.util.regex.Matcher m = java.util.regex.Pattern.compile("https?://\\S+").matcher(text);
+            // Only K-Desktop's pairing links (…/#pair=CODE): anything else shared goes to the PC (share).
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("https?://\\S+#pair=\\S+").matcher(text);
             return m.find() ? m.group() : null;
         }
         return null;
@@ -907,6 +973,11 @@ public class MainActivity extends Activity {
             loading = false;
             handler.removeCallbacks(loadTimeout);
             retried = false;
+            if (pendingJs != null) {
+                String script = pendingJs;
+                pendingJs = null;
+                handler.postDelayed(() -> js(script), 900);
+            }
             if (openInboxPending) {
                 openInboxPending = false;
                 handler.postDelayed(() -> js("window.kdOpenInbox && window.kdOpenInbox()"), 900);
@@ -917,6 +988,11 @@ public class MainActivity extends Activity {
             // The app's page starts its own history: back from it leaves the app, not to a PC that did not answer.
             web.clearHistory();
             if (url.contains("connecting=")) connectingVisible();
+            if (pendingWake != null) {
+                Pcs.Pc pc = pcs.get(pendingWake);
+                pendingWake = null;
+                if (pc != null) handler.postDelayed(() -> wake(pc, true), 700);
+            }
         }
 
         @Override

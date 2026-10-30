@@ -130,6 +130,12 @@ public sealed partial class WebServer
             case ("POST", "/api/wake"):
                 await WakeAsync(context, device).ConfigureAwait(false);
                 break;
+            case ("POST", "/api/share"):
+                await ShareTextAsync(context, device).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/share/file"):
+                await ShareFileAsync(context, device).ConfigureAwait(false);
+                break;
             case ("POST", "/api/logout"):
                 if (!trusted) Devices.Revoke(device.Id);
                 SetTokenCookie(response, request, null);

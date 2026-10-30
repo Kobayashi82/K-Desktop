@@ -62,6 +62,8 @@ public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, Achieve
 
     public IWebAssistants? Assistants { get; set; }
 
+    public IUiServices? Ui { get; init; }
+
     /// <summary>Any image as a PNG for the web app (UI thread), or null when it cannot be drawn.</summary>
     internal static WebIcon? Png(ImageSource? source)
     {

@@ -284,6 +284,28 @@ public sealed class WebServerTests : IDisposable
         Assert.Null(_assistants.Sent[^1].Speak);
     }
 
+    [Fact]
+    public async Task WhatThePhoneSharesReachesTheClipboardAndNeedsAName()
+    {
+        // Only the clipboard (allowed in the tests): no file reaches Downloads and no link opens.
+        var token = await PairAsync();
+        var text = "compartido desde el móvil " + Guid.NewGuid().ToString("N")[..6];
+        var copied = await ReadAsync(await _http.SendAsync(Request(HttpMethod.Post, "api/share", token, new { text })));
+        Assert.Equal("copied", copied.GetProperty("did").GetString());
+        Assert.True(copied.GetProperty("ok").GetBoolean());
+        using (var empty = await _http.SendAsync(Request(HttpMethod.Post, "api/share", token, new { text = "  " })))
+            Assert.Equal(HttpStatusCode.BadRequest, empty.StatusCode);
+        var noName = Request(HttpMethod.Post, "api/share/file", token);
+        noName.Content = new ByteArrayContent([1, 2, 3]);
+        using (var answer = await _http.SendAsync(noName)) Assert.Equal(HttpStatusCode.BadRequest, answer.StatusCode);
+
+        Assert.Equal("foto.jpg", WebServer.SafeName("../../Windows/foto.jpg"));
+        Assert.Equal("foto.jpg", WebServer.SafeName(@"C:\Users\x\foto.jpg"));
+        Assert.Equal("a_b.txt", WebServer.SafeName("a:b.txt"));
+        Assert.Null(WebServer.SafeName(".."));
+        Assert.Null(WebServer.SafeName("  "));
+    }
+
     private async Task<StreamReader> OpenEventsAsync(string token)
     {
         var answer = await _http.SendAsync(Request(HttpMethod.Get, "api/events", token), HttpCompletionOption.ResponseHeadersRead);
