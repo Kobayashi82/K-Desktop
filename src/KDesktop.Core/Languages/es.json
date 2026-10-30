@@ -6096,7 +6096,7 @@
   "telegram.notices.title": "Avisos por Telegram",
   "telegram.notices.intro": "Lo que K-Desktop te manda por su cuenta.",
   "telegram.notices.mail": "Correos importantes",
-  "telegram.notices.mailHint": "Los que Opciones › Correo marca como importantes.",
+  "telegram.notices.mailHint": "Los que Opciones › Correo marca como importantes. Si la cuenta y el bot lo tienen, llega una vez, por la cuenta.",
   "telegram.notice.mail": "Correo importante de {0}",
   "telegram.error.notToken": "Eso no parece un token de bot. Cópialo entero de @BotFather.",
   "telegram.error.badToken": "Telegram no acepta el token. Cópialo otra vez de @BotFather (o pídele uno nuevo con /token).",

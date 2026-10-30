@@ -6096,7 +6096,7 @@
   "telegram.notices.title": "Hinweise per Telegram",
   "telegram.notices.intro": "Was K-Desktop dir von sich aus schickt.",
   "telegram.notices.mail": "Wichtige E-Mails",
-  "telegram.notices.mailHint": "Die, die Einstellungen › E-Mail als wichtig markiert.",
+  "telegram.notices.mailHint": "Die, die Einstellungen › E-Mail als wichtig markiert. Haben Konto und Bot es an, kommt es einmal, über das Konto.",
   "telegram.notice.mail": "Wichtige E-Mail von {0}",
   "telegram.error.notToken": "Das sieht nicht nach einem Bot-Token aus. Kopiere es vollständig von @BotFather.",
   "telegram.error.badToken": "Telegram akzeptiert das Token nicht. Kopiere es erneut von @BotFather (oder hol dir mit /token ein neues).",

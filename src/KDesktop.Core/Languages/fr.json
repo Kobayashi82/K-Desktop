@@ -6096,7 +6096,7 @@
   "telegram.notices.title": "Alertes par Telegram",
   "telegram.notices.intro": "Ce que K-Desktop vous envoie de lui-même.",
   "telegram.notices.mail": "Courriers importants",
-  "telegram.notices.mailHint": "Ceux que Paramètres › Courrier marque comme importants.",
+  "telegram.notices.mailHint": "Ceux que Paramètres › Courrier marque comme importants. Si le compte et le bot l’ont activé, il arrive une seule fois, par le compte.",
   "telegram.notice.mail": "Courrier important de {0}",
   "telegram.error.notToken": "Cela ne ressemble pas à un jeton de bot. Copiez-le en entier depuis @BotFather.",
   "telegram.error.badToken": "Telegram refuse le jeton. Copiez-le de nouveau depuis @BotFather (ou demandez-en un nouveau avec /token).",

@@ -102,14 +102,16 @@ public partial class App
         }
     }
 
-    /// <summary>An important mail, to the owner by Telegram (› Avisos of the bot and of the account, each one if marked).</summary>
+    /// <summary>
+    /// An important mail, to the owner by Telegram (› Avisos): once, by the account with a number when it is on, linked and
+    /// has it marked; else by the bot.
+    /// </summary>
     private void TellMailByTelegram(Core.Mail.MailArrived arrived)
     {
         if (!arrived.Important || arrived.Account.Notify == Core.Mail.MailNotify.None) return;
         var m = arrived.Mail;
         var subject = string.IsNullOrWhiteSpace(m.Subject) ? Loc.T("mail.noSubject") : m.Subject;
-        foreach (var telegram in (TelegramService[])[Telegram, TelegramAccount])
-            if (telegram.Read(s => s.Notices.ImportantMail))
-                telegram.SendToOwner($"✉️ {Loc.T("telegram.notice.mail", m.From.Shown)}\n{subject}" + (m.Snippet.Length > 0 ? "\n\n" + m.Snippet : string.Empty));
+        if (((TelegramService[])[TelegramAccount, Telegram]).FirstOrDefault(t => t.On && t.Owner is not null && t.Read(s => s.Notices.ImportantMail)) is { } telegram)
+            telegram.SendToOwner($"✉️ {Loc.T("telegram.notice.mail", m.From.Shown)}\n{subject}" + (m.Snippet.Length > 0 ? "\n\n" + m.Snippet : string.Empty));
     }
 }

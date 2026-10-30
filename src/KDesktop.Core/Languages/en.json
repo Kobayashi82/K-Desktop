@@ -6096,7 +6096,7 @@
   "telegram.notices.title": "Telegram notices",
   "telegram.notices.intro": "What K-Desktop sends you on its own.",
   "telegram.notices.mail": "Important emails",
-  "telegram.notices.mailHint": "The ones Settings › Mail marks as important.",
+  "telegram.notices.mailHint": "The ones Settings › Mail marks as important. If both the account and the bot have it on, it comes once, by the account.",
   "telegram.notice.mail": "Important email from {0}",
   "telegram.error.notToken": "That doesn’t look like a bot token. Copy all of it from @BotFather.",
   "telegram.error.badToken": "Telegram doesn’t accept the token. Copy it again from @BotFather (or ask it for a new one with /token).",

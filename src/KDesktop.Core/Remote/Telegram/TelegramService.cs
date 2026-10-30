@@ -278,9 +278,8 @@ public sealed class TelegramService : IDisposable
             };
             if (fresh)
             {
-                // An account with a number is more careful than a bot (phase 6.5), and the bot already tells the mails.
+                // An account with a number is more careful than a bot (phase 6.5).
                 Settings.Limits.NewPerHour = 3;
-                Settings.Notices.ImportantMail = false;
             }
             SaveSettings();
         }
