@@ -678,13 +678,29 @@ public sealed class TelegramService : IDisposable
     {
         lock (_gate)
         {
-            if (Settings.Owner?.Id == id || Person(id) is not { } person) return;
+            if (Settings.Owner?.Id == id || Person(id) is not { } person || Settings.Blocked.Any(b => b.Id == id)) return;
+            var was = Settings.Contacts.FirstOrDefault(c => c.Id == id);
             Settings.Pending.RemoveAll(p => p.Id == id);
             Settings.Contacts.RemoveAll(c => c.Id == id);
-            if (Settings.Blocked.All(b => b.Id != id)) Settings.Blocked.Add(new TelegramPerson { Id = id, Name = person.Name, Username = person.Username, When = Now() });
+            Settings.Blocked.Add(new TelegramPerson { Id = id, Name = person.Name, Username = person.Username, When = Now(), Text = person.Text, Was = was });
             SaveSettings();
         }
         WriteLog($"bloqueado {id}");
+        Changed?.Invoke();
+    }
+
+    /// <summary>Unblocks <paramref name="id"/>: a contact comes back as it was (level and lists); anybody else waits for a decision again.</summary>
+    public void Unblock(long id)
+    {
+        lock (_gate)
+        {
+            if (Settings.Blocked.FirstOrDefault(b => b.Id == id) is not { } blocked) return;
+            Settings.Blocked.Remove(blocked);
+            if (blocked.Was is { } contact) Settings.Contacts.Add(contact);
+            else Settings.Pending.Add(new TelegramPerson { Id = id, Name = blocked.Name, Username = blocked.Username, When = Now(), Text = blocked.Text });
+            SaveSettings();
+        }
+        WriteLog($"desbloqueado {id}");
         Changed?.Invoke();
     }
 

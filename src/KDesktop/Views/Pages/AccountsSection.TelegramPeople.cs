@@ -171,8 +171,10 @@ public partial class AccountsSection
         var card = CalendarUi.Card(Root, Loc.T("telegram.blocked.title"), Loc.T("telegram.blocked.intro"));
         foreach (var person in blocked)
         {
-            var unblock = CalendarUi.IconButton(SymbolRegular.PersonAvailable24, Loc.T("telegram.blocked.unblock"), () => Telegram.Forget(person.Id));
-            card.Children.Add(PersonRow(person.Shown, Loc.T("telegram.blocked.since", person.When.ToLocalTime().ToString("d", Loc.Instance.Culture)), unblock));
+            var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+            actions.Children.Add(CalendarUi.IconButton(SymbolRegular.PersonAvailable24, Loc.T("telegram.blocked.unblock"), () => Telegram.Unblock(person.Id)));
+            actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Delete24, Loc.T("telegram.people.forget"), () => _ = ForgetAsync(person.Id, person.Shown), danger: true));
+            card.Children.Add(PersonRow(person.Shown, Loc.T("telegram.blocked.since", person.When.ToLocalTime().ToString("d", Loc.Instance.Culture)), actions));
         }
     }
 }

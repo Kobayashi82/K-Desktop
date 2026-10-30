@@ -181,6 +181,9 @@ public sealed class TelegramPerson
     /// <summary>What they wrote first (to decide).</summary>
     public string? Text { get; set; }
 
+    /// <summary>Blocked: the contact it was (unblocked, it comes back as it was); null: it was waiting for a decision.</summary>
+    public TelegramContact? Was { get; set; }
+
     [JsonIgnore] public string Shown => Username is { Length: > 0 } u ? $"{Name} (@{u})" : Name;
 }
 

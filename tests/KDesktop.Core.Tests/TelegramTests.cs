@@ -373,8 +373,26 @@ public sealed class TelegramTests : IDisposable
         await Task.Delay(100);
         Assert.Single(served);
         Assert.Equal(66, Assert.Single(service.Settings.Blocked).Id);
-        service.Forget(66);
+
+        // Unblocked, a contact comes back as it was.
+        service.Update(s => s.Blocked[0].Was!.Tools = ["weather"]);
+        service.Unblock(66);
         Assert.Empty(service.Settings.Blocked);
+        var back = Assert.Single(service.Settings.Contacts);
+        Assert.Equal((TelegramLevel.ChatOnly, "anamaria", "weather"), (back.Level, back.Username, back.Tools.Single()));
+
+        // Someone who was waiting goes back to waiting.
+        connection.Incoming.Add(Person(77, "Luis", "hola"));
+        await Until(() => service.Settings.Pending.Any(p => p.Id == 77));
+        service.Block(77);
+        Assert.Empty(service.Settings.Pending);
+        service.Unblock(77);
+        Assert.Equal("hola", Assert.Single(service.Settings.Pending).Text);
+
+        service.Block(66);
+        service.Forget(66);
+        Assert.DoesNotContain(service.Settings.Blocked, b => b.Id == 66);
+        Assert.DoesNotContain(service.Settings.Contacts, c => c.Id == 66);
     }
 
     [Fact]
