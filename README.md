@@ -27,7 +27,7 @@
 > it, expect rough edges.
 
 <p align="center">
-  <img src="docs/images/k-desktop-en.png" alt="K-Desktop main window with the command list and a command being edited" width="900">
+  <img src="assets/images/k-desktop-en.png" alt="K-Desktop main window with the command list and a command being edited" width="900">
 </p>
 
 K-Desktop turns any key, mouse button or combination into a sequence of actions: open programs, arrange windows,
@@ -47,7 +47,7 @@ icons of K-Desktop 4 are brought over once with a small program of their own, in
 https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 
 <p align="center">
-  <a href="docs/videos/K-Desktop-en.srt">Subtitles (.srt)</a>
+  <a href="assets/videos/K-Desktop-en.srt">Subtitles (.srt)</a>
 </p>
 
 ## Contents
@@ -314,9 +314,8 @@ templates/kdassistant         dotnet new template for a new assistant
 android/                      Android app (WebView of the PC's web app; native microphone, voice, widget, tiles…)
 tests/                        core tests, Assistant module tests and Dot, the test assistant
 site/                         documentation website (DocFX), published to GitHub Pages with site/publish.ps1
-docs/assistant/               pipe protocol and internal notes (in Spanish)
-docs/tutorial/                the tutorial video (Remotion) and its screenshots
-tools/                        release scripts, KaiSign, icon, APK, Pip's pictures, tutorial captures
+tutorial/                     the tutorial video (Remotion), its screenshots and the scripts that take them
+tools/                        release scripts, KaiSign, icon, APK, Pip's pictures
 catalog.json                  the official assistant catalog read by K-Desktop
 ```
 
@@ -325,7 +324,7 @@ The assistants live in their own repository,
 
 ## Third-party licences
 
-See [docs/THIRD-PARTY-NOTICES.md](docs/THIRD-PARTY-NOTICES.md).
+See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## License
 

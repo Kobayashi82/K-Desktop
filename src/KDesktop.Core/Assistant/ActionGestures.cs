@@ -63,7 +63,7 @@ public static class ActionGestures
         _ => string.Empty,
     };
 
-    /// <summary>The gestures by kind alone (no settings): what the table in docs/assistant/acciones.md lists.</summary>
+    /// <summary>The gestures by kind alone (no settings): what the table in Assistant/acciones.md lists.</summary>
     public static IReadOnlyList<GestureStep> ForKind(ActionKind kind) => kind switch
     {
         ActionKind.Window => ForWindow(WindowOperation.Snap, maximized: false),

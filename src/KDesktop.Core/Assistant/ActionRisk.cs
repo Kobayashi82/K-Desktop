@@ -72,7 +72,7 @@ public static class ActionRisk
         _ => OfKind(action.Kind),
     };
 
-    /// <summary>Risk by kind alone, ignoring the settings (the table of docs/assistant/acciones.md).</summary>
+    /// <summary>Risk by kind alone, ignoring the settings (the table of Assistant/acciones.md).</summary>
     public static ToolRisk OfKind(ActionKind kind) => kind switch
     {
         ActionKind.Power or ActionKind.RunScript or ActionKind.SendInput or ActionKind.PlayMacro or ActionKind.HttpRequest => ToolRisk.AskAlways,

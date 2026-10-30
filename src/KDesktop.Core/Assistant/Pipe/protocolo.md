@@ -6,7 +6,7 @@ de la etapa 2.3, deja el menú del clic derecho a K-Desktop —`menu`— y añad
 
 K-Desktop (proceso elevado) y el proceso del asistente (`KDesktop.exe --assistant`, usuario normal) se hablan por
 una *named pipe* local. Este documento es el contrato entre los dos. Cada mensaje tiene un ejemplo en
-[`ejemplos/`](ejemplos/), y las pruebas de las dos partes los usan.
+[`tests/KDesktop.Assistant.Tests/Contracts/Pipe`](../../../../tests/KDesktop.Assistant.Tests/Contracts/Pipe/), y las pruebas de las dos partes los usan.
 
 ## Transporte
 

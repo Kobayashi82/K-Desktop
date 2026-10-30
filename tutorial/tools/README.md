@@ -1,6 +1,6 @@
 # Capturas del vídeo tutorial
 
-Scripts para volver a hacer las capturas de `docs/tutorial/captures/en` (y `es`, más abajo) (la primera tanda se hizo el 24/10/2026 con el
+Scripts para volver a hacer las capturas de `tutorial/captures/en` (y `es`, más abajo) (la primera tanda se hizo el 24/10/2026 con el
 portable 5.0.188). Todo se hace con una **instancia de demo** de K-Desktop en inglés y tema oscuro, con datos inventados
 (un usuario «Alex»), sin tocar los datos reales ni el K-Desktop que está abierto.
 
@@ -9,7 +9,7 @@ portable 5.0.188). Todo se hace con una **instancia de demo** de K-Desktop en in
 `$env:KD_TUTORIAL_LANG = 'es'` en la consola antes de usar cualquier script: la demo sale en español (interfaz, comandos,
 menús, eventos, memoria, notas, documentos de `demo-docs\es` en `Documents\Manuales`, voz Helena para el micrófono simulado
 y «Ordenador» como palabra), con su propia carpeta de trabajo (`%TEMP%\kdesktop-tutorial-es`) y sus capturas en
-`docs\tutorial\captures\es` (el vídeo toma de ahí las de español y de `captures\en` las que falten). Los nombres de
+`tutorial\captures\es` (el vídeo toma de ahí las de español y de `captures\en` las que falten). Los nombres de
 los pasos cambian: `Instalar`, `Añadir acción`, `Emparejar dispositivo`, `Cerrar`, `--menu 'Menú principal'` (pasar el
 ratón por «Ventanas»), `--run 'Lander: saludar'`. Las webs del escritorio de demo siguen en inglés. La primera tanda en
 español se hizo el 24/10/2026 con el portable 5.0.189 y Lander 0.17.0, Kobii 0.13.0 y Pip 1.5.0.

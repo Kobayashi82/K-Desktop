@@ -254,7 +254,7 @@ def main() -> None:
         sf.write(sfx / f"{name}.wav", x.astype("float32"), SR)
     if not (sfx / "music.wav").exists():
         sf.write(sfx / "music.wav", music().astype("float32"), SR)
-    shutil.copy(ROOT.parent.parent.parent / "src" / "KDesktop.Core" / "Assets" / "Sounds" / "Logro.wav", sfx / "achievement.wav")
+    shutil.copy(ROOT.parent.parent / "src" / "KDesktop.Core" / "Assets" / "Sounds" / "Logro.wav", sfx / "achievement.wav")
 
     # The real screenshots (../captures/<lang>/: en, es…), with their sizes, keyed «<lang>/<name>».
     captures = ROOT.parent / "captures"

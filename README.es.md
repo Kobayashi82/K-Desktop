@@ -27,7 +27,7 @@
 > cuenta con que habrá cosas por pulir.
 
 <p align="center">
-  <img src="docs/images/k-desktop-es.png" alt="Ventana principal de K-Desktop con la lista de comandos y el editor de un comando" width="900">
+  <img src="assets/images/k-desktop-es.png" alt="Ventana principal de K-Desktop con la lista de comandos y el editor de un comando" width="900">
 </p>
 
 K-Desktop convierte cualquier tecla, botón del ratón o combinación en una secuencia de acciones: abrir programas,
@@ -47,7 +47,7 @@ que se ejecuta importa los comandos, QuickMenus e iconos de la versión anterior
 https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 
 <p align="center">
-  <a href="docs/videos/K-Desktop-es.srt">Subtítulos (.srt)</a>
+  <a href="assets/videos/K-Desktop-es.srt">Subtítulos (.srt)</a>
 </p>
 
 ## Contenido
@@ -313,9 +313,8 @@ templates/kdassistant         plantilla de dotnet new para un asistente nuevo
 android/                      app de Android (WebView de la app web del PC; micrófono, voz, widget, botones… nativos)
 tests/                        pruebas del núcleo, del módulo Asistente y Dot, el asistente de las pruebas
 site/                         la web de la documentación (DocFX), publicada en GitHub Pages con site/publish.ps1
-docs/assistant/               protocolo de la tubería y notas internas
-docs/tutorial/                el vídeo explicativo (Remotion) y sus capturas
-tools/                        scripts de publicación, KaiSign, icono, APK, imágenes de Pip, capturas del tutorial
+tutorial/                     el vídeo explicativo (Remotion), sus capturas y los scripts que las hacen
+tools/                        scripts de publicación, KaiSign, icono, APK, imágenes de Pip
 catalog.json                  el catálogo oficial de asistentes que lee K-Desktop
 ```
 
@@ -324,7 +323,7 @@ Los asistentes están en su propio repositorio,
 
 ## Licencias de terceros
 
-Ver [docs/THIRD-PARTY-NOTICES.md](docs/THIRD-PARTY-NOTICES.md).
+Ver [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Licencia
 

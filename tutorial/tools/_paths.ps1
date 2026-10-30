@@ -1,14 +1,14 @@
 ﻿# Paths shared by the tutorial capture scripts (dot-source it: . "$PSScriptRoot\_paths.ps1").
 # $Work holds everything temporary (demo data, raw captures, Edge profiles); KD_TUTORIAL overrides it.
 # KD_TUTORIAL_LANG picks the language of the demo (en, the default, or es): its own work folder, documents and captures
-# (docs\tutorial\captures\<lang>: en or es), so both can be made without touching the other.
+# (tutorial\captures\<lang>: en or es), so both can be made without touching the other.
 $Lang = if ($env:KD_TUTORIAL_LANG) { $env:KD_TUTORIAL_LANG } else { 'en' }
 $Repo = (Resolve-Path "$PSScriptRoot\..\..").Path
 $Work = if ($env:KD_TUTORIAL) { $env:KD_TUTORIAL } else { Join-Path $env:TEMP ('kdesktop-tutorial' + $(if ($Lang -ne 'en') { "-$Lang" })) }
 $Data = Join-Path $Work 'kddemo'
 $Raw = Join-Path $Work 'out'
 $Exe = Join-Path $Repo 'artifacts\portable\KDesktop.exe'
-$Captures = Join-Path $Repo "docs\tutorial\captures\$Lang"
+$Captures = Join-Path $Repo "tutorial\captures\$Lang"
 $Knowledge = Join-Path ([Environment]::GetFolderPath('MyDocuments')) $(if ($Lang -eq 'es') { 'Manuales' } else { 'Manuals' })
 $McpScript = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'MCP\servers.js'
 $DemoModels = 'E:\AI Models'

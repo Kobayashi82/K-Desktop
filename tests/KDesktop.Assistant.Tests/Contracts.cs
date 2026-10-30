@@ -21,7 +21,7 @@ internal static class Contracts
 
     public static string ToolSamples => Path.Combine(Root, "samples", "Tools");
 
-    public static string Protocol => Path.Combine(Root, "docs", "assistant", "protocolo.md");
+    public static string Protocol => Path.Combine(Root, "src", "KDesktop.Core", "Assistant", "Pipe", "protocolo.md");
 
     private static readonly Lazy<Dictionary<string, JsonSchema>> Schemas = new(LoadSchemas);
 

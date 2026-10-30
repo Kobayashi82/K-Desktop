@@ -117,7 +117,7 @@ node render.mjs --lang es           # → out/K-Desktop-es.mp4 y out/K-Desktop-e
   código, teclas). `node tools/i18n-check.mjs --lang es` lista los que faltan. El idioma lo toma `src/lib/i18n.ts` de
   las propiedades del render. En el lanzador, los resultados que resaltan las letras escritas («cmfy») conservan esas
   letras en su sitio («ComfyUI: resultados»), o se quedan en inglés.
-- Las capturas en español se hacen con `tools/tutorial` y `KD_TUTORIAL_LANG=es` (ver su README).
+- Las capturas en español se hacen con `tutorial/tools` (`../tools`) y `KD_TUTORIAL_LANG=es` (ver su README).
 
 ## Licencias
 

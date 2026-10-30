@@ -11,7 +11,7 @@ import { browserExecutable } from './common.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const repo = join(root, '..', '..', '..');
+const repo = join(root, '..', '..');
 const web = join(repo, 'src', 'KDesktop.Core', 'Web');
 const lang = process.argv.includes('--lang') ? process.argv[process.argv.indexOf('--lang') + 1] : 'en';
 const out = join(root, 'public', 'webapp', lang);

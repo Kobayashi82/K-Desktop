@@ -6,7 +6,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace KDesktop.Core.Assistant.Pipe;
 
 /// <summary>
-/// A message of the pipe between K-Desktop and the assistant process (docs/assistant/protocolo.md). On the wire:
+/// A message of the pipe between K-Desktop and the assistant process (protocolo.md, next to this file). On the wire:
 /// one compact JSON object per line, its type in <c>t</c>, camelCase fields.
 /// </summary>
 public abstract record PipeMessage
