@@ -99,9 +99,12 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 
 ### Remote control
 
-- **Phone**: an installable web app (PWA) and an Android app with your commands and menus, touchpad and keyboard,
-  audio controls, zoom, voice orders, and a chat with the assistants. Devices pair with a QR code and can be revoked
-  one by one.
+- **Phone**: an installable web app (PWA) and an Android app with your commands (favorites, events) and menus, a
+  touchpad with gestures and keyboard, what plays on the PC and the volume of each app, zoom, voice orders, and the
+  assistants, whose answers can play on the phone. Lock, sleep, restart or shut down the PC from the phone, and turn it
+  on with Wake-on-LAN (also from away, through a URL). The Android app keeps several PCs, shares texts, links and files
+  to the PC, and has a widget, Quick Settings tiles and a media notification. Devices pair with a QR code and can be
+  revoked one by one.
 - **UDP control**, compatible with the K-Desktop 4 protocol (port 2501).
 
 ### Everyday
@@ -277,7 +280,7 @@ src/KDesktop.Assistant.Tools  built-in tools, JSON tools, MCP client and server,
 src/KDesktop.Assistant.Voice  speech: Kokoro and Piper on the processor, Windows voices, voice effects
 samples/CharacterAssistant    Pip, the no-code sample assistant
 templates/kdassistant         dotnet new template for a new assistant
-android/                      Android app (WebView of the PC's web app, with a native microphone)
+android/                      Android app (WebView of the PC's web app; native microphone, voice, widget, tiles…)
 tests/                        core tests, Assistant module tests and Dot, the test assistant
 site/                         documentation website (DocFX), published to GitHub Pages with site/publish.ps1
 docs/assistant/               package schemas, pipe protocol and its examples, internal notes (in Spanish)

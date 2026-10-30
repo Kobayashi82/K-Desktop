@@ -12,16 +12,15 @@ de los asistentes. Se puede instalar en el móvil como aplicación (PWA).
 2. **Emparejar dispositivo**: escanea el código QR con el móvil (o abre el enlace que enseña).
 3. Ya está: el dispositivo queda emparejado hasta que lo **revoques** en *Dispositivos emparejados*.
 
-Las pestañas de la aplicación:
+Las pestañas de la aplicación (*Ajustes* se abre con el botón de arriba a la derecha):
 
 | Pestaña | Qué tiene |
 |---|---|
-| **Menús** | Tus QuickMenus |
-| **Comandos** | Todos los comandos marcados como *Disponible por control remoto* |
-| **Audio** | Volumen, silencio, reproducir/pausa, siguiente, anterior y la salida de audio |
+| **Comandos** | Todos los comandos marcados como *Disponible por control remoto*, en filas con lo que hacen, su atajo y dónde valen. Búsqueda, filtros por QuickMenu, **Favoritos** y los más usados arriba, y **Eventos** (los que se lanzan por su nombre). El resultado sale en la propia fila (✓ o ✕) |
+| **Menús** | Tus QuickMenus dibujados como en el PC: tocar ejecuta y vuelve al primer nivel, mantener ejecuta y deja el menú donde está |
 | **Touchpad** | Mover el ratón, hacer clic, desplazar y escribir en el PC (solo con *Touchpad y teclado* encendido) |
-| **Asistente** | El chat con los asistentes, por escrito o hablando |
-| **Ajustes** | Tema, idioma y las opciones de la aplicación |
+| **Multimedia** | Lo que suena en el PC (carátula, título, progreso y sus botones), el volumen, el **Volumen por aplicación** y la salida de audio |
+| **Asistente** | El chat con los asistentes, por escrito o hablando (solo con el módulo Asistente encendido) |
 
 A tener en cuenta:
 
@@ -31,6 +30,40 @@ A tener en cuenta:
 - *Dirección de internet* es opcional, solo si entras desde fuera a través de un proxy inverso.
 - *Aceptar órdenes de* dice desde dónde se puede entrar: *Solo este PC*, *Red local* o *Internet* (lo que llega por el
   proxy cuenta como internet). Emparejar hace falta siempre.
+
+Mantener pulsado un comando abre su hoja: qué hace, todos sus atajos y aplicaciones, **Favorito**, **Pedir confirmación**
+(pregunta antes de ejecutarlo desde este móvil) y *Ejecutar*. Los favoritos y *Pedir confirmación* se guardan por PC.
+
+### El touchpad
+
+Un dedo mueve, un toque hace clic, tocar y arrastrar (o mantener) arrastra, dos dedos desplazan, y un toque con dos o tres
+dedos es un clic derecho o central. Con **Gestos con 3 y 4 dedos**, como en un touchpad de Windows: tres dedos a los lados
+cambian de ventana, hacia arriba abren la vista de tareas y hacia abajo muestran el escritorio; cuatro dedos a los lados
+pasan al escritorio virtual de al lado. **Pellizcar para ampliar** amplía y reduce como Ctrl + rueda. Con el móvil tumbado
+el touchpad ocupa toda la pantalla. En *Ajustes* también se cambian la velocidad, la **Aceleración** y qué **Teclas
+especiales** salen y en qué orden. Estos ajustes se guardan por PC.
+
+### Lo que suena y el volumen
+
+**Multimedia** muestra lo que cada programa le dice a Windows que reproduce (Spotify, los navegadores, el Reproductor
+multimedia…) con su carátula, la barra de progreso (para ir a otro punto si el reproductor lo permite) y sus botones; con
+varios, unas pastillas para elegir. Debajo: el volumen del PC, el **Volumen por aplicación** (cada programa con sonido, como
+el mezclador de volumen de Windows) y la salida de audio. En la app de Android, **Lo que suena, en las notificaciones** lo
+muestra como una notificación multimedia (también en la pantalla de bloqueo) y las teclas de volumen del móvil cambian el
+volumen del PC mientras está.
+
+### Los asistentes en el móvil
+
+Una orden escrita o dicha en el móvil puede contestarse allí: en *Ajustes*, **Las respuestas suenan** *En este móvil*, *En
+el PC* o *En los dos*. El PC manda la voz frase a frase según está lista; con *En este móvil* el personaje del PC mueve la
+boca sin sonido. **Seguir escuchando** vuelve a abrir el micro al acabar de contestar. Bajo cada respuesta, lo que hizo sale
+en pastillas («✓ Abrió Spotify»).
+
+### El PC de arriba
+
+Arriba sale el PC y cómo va la conexión. Al tocarlo: volver a conectar, cambiar de PC (en la app de Android) y, con
+**Encender y apagar el PC** encendido en *Opciones → Aplicación web* (apagado de serie), **Bloquear**, **Suspender**,
+**Hibernar**, **Reiniciar** y **Apagar** (estos dos con 5 segundos para cancelar).
 
 ## Lo que manda el PC
 
@@ -43,15 +76,77 @@ de tu PC a tu móvil.
 
 ## Aplicación de Android
 
-La aplicación de Android es la misma aplicación web con micrófono propio. *Opciones → Aplicación móvil → Guardar la
+La aplicación de Android es la misma aplicación web con algunas cosas propias. *Opciones → Aplicación móvil → Guardar la
 APK…*, cópiala al móvil y ábrela (Android pide permitir instalar aplicaciones de ese origen). No necesita tienda: cuando se
 conecta un móvil con una versión más antigua, la aplicación ofrece actualizarse desde el PC.
 
-En sus *Ajustes*, **Avisos con la app cerrada** (desde la versión 1.1.0) deja la conexión con el PC abierta aunque cierres la
-aplicación, y lo que mande el PC te llega como una notificación normal (con *Abrir* y *Copiar*). Al encenderlo pide permiso
-para las notificaciones y que Android no la duerma para ahorrar batería; mientras está encendido, Android enseña un aviso
-fijo «Conexión con K-Desktop». Funciona donde el móvil llegue al PC: en casa siempre, y fuera solo si tienes la dirección
-de internet (proxy).
+- **Varios PCs.** Guarda una lista de PCs, cada uno con sus direcciones (en casa y fuera). Abre el último por la dirección
+  que conteste; si ninguna contesta, enseña **Mis PCs** con cómo está cada uno, para conectar, encender, cambiar el nombre u
+  olvidarlos. *Añadir PC* escanea el QR de *Emparejar dispositivo* con la cámara del móvil, o toma la dirección escrita.
+- **Encender** (más abajo) y la energía del PC desde arriba.
+- **Compartir → K-Desktop** desde cualquier app: un texto queda en el portapapeles del PC, un enlace pregunta si abrirlo en
+  el navegador del PC o copiarlo, y un archivo se guarda en Descargas del PC. El PC lo dice con un aviso.
+- **Accesos directos**: al mantener el icono de la app salen *Hablar*, *Touchpad* y *Encender el PC*.
+- **Widget** para la pantalla de inicio con tus comandos favoritos (se ejecutan sin abrir la app) y un botón para hablar, y
+  **botones de los ajustes rápidos**: hablar, encender el PC y tu primer comando favorito.
+- Las respuestas de los asistentes suenan en el móvil también en segundo plano o con la pantalla apagada.
+
+En sus *Ajustes*, **Avisos con la app cerrada** mantiene la conexión con el PC aunque cierres la app, y lo que manda el PC te
+llega como una notificación normal (con *Abrir* y *Copiar*); lo que suena en el PC también se mantiene al día en su
+notificación. Al encenderlo pide permiso para las notificaciones y que Android no la duerma para ahorrar batería; mientras
+está encendido, Android enseña una notificación fija «Conexión con K-Desktop». Funciona donde el móvil llegue al PC: en
+casa siempre, y fuera solo si tienes la dirección de internet (proxy).
+
+## Encender el PC desde el móvil
+
+Con **Encender y apagar el PC** encendido, la app de Android guarda lo que necesita para encender el PC mientras está
+apagado y ofrece **Encender** en la página de PCs. Hace dos cosas a la vez: el aviso de Wake-on-LAN por la red de casa y, si
+lo configuras, **Encender mediante URL** (para encenderlo fuera de casa). Después espera hasta 2 minutos y entra sola.
+
+Para Wake-on-LAN, en *Opciones → Aplicación web*, **Comprobar** (*Encendido por red*) dice si alguna tarjeta de red puede
+encender el PC. Suele hacer falta: Wake-on-LAN encendido en la BIOS, permitir que la tarjeta active el equipo
+(Administrador de dispositivos → la tarjeta → Administración de energía, y «Wake on Magic Packet» en Opciones avanzadas),
+cable mejor que Wi-Fi, y el inicio rápido de Windows apagado (después de «Suspender» suele funcionar igualmente).
+
+**Encender mediante URL** es una dirección de tu red que manda el aviso por ti y a la que se llega desde fuera: *Método*,
+*Cuerpo de la petición* (`{mac}` se cambia por la MAC del PC) y una *Cabecera* opcional para su contraseña (se guarda
+cifrada). Por ejemplo, una Raspberry Pi unida a tu proxy por WireGuard, con un pequeño servicio que solo escucha en ese
+túnel:
+
+```python
+# POST /wol {"mac": "AA:BB:CC:DD:EE:FF"} con Authorization: Bearer <TOKEN>
+import json, os, socket, hmac
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+TOKEN = os.environ["WOL_TOKEN"]
+ALLOWED = {m.upper() for m in os.environ["WOL_MACS"].split(",")}   # solo tus PCs
+
+def magic(mac):
+    packet = b"\xff" * 6 + bytes.fromhex(mac.replace(":", "")) * 16
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        for port in (9, 7):
+            s.sendto(packet, (os.environ.get("WOL_BROADCAST", "192.168.1.255"), port))
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != "/wol" or not hmac.compare_digest(self.headers.get("Authorization", ""), f"Bearer {TOKEN}"):
+            return self.send_response(401) or self.end_headers()
+        body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0)) or 0) or b"{}")
+        mac = str(body.get("mac", "")).upper()
+        if mac not in ALLOWED:
+            return self.send_response(400) or self.end_headers()
+        magic(mac)
+        self.send_response(204)
+        self.end_headers()
+
+HTTPServer((os.environ.get("WOL_LISTEN", "10.0.0.2"), 8099), Handler).serve_forever()
+```
+
+En el proxy, una ruta `/wol` hacia esa dirección, fuera de cualquier página de inicio de sesión y con un límite de
+intentos. En K-Desktop: *Encender mediante URL* `https://tudominio.net/wol`, *Método* POST, *Cuerpo de la petición*
+`{"mac": "{mac}"}` y *Cabecera* `Authorization: Bearer <TOKEN>`. Si otro de tus PCs está encendido, la app también le pide
+a él que encienda este.
 
 ## UDP
 

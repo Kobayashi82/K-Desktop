@@ -12,16 +12,15 @@ chat. It can be installed on the phone as an app (PWA).
 2. **Pair a device**: scan the QR code with the phone (or open the link it shows).
 3. That is it: the device stays paired until you **revoke** it in *Paired devices*.
 
-The tabs of the app:
+The tabs of the app (*Settings* opens from the button at the top right):
 
 | Tab | What it has |
 |---|---|
-| **Menus** | Your QuickMenus |
-| **Commands** | Every command marked *Available for remote control* |
-| **Audio** | Volume, mute, play/pause, next, previous, and the audio output |
+| **Commands** | Every command marked *Available for remote control*, as rows with what it does, its hotkey and where it works. Search, filters by QuickMenu, **Favorites** and the most used at the top, and **Events** (the ones fired by name). The result shows on the row itself (✓ or ✕) |
+| **Menus** | Your QuickMenus drawn like on the PC: a tap runs and goes back to the first level, holding runs and keeps the menu where it is |
 | **Touchpad** | Move the mouse, click, scroll and type on the PC (only with *Touchpad and keyboard* on) |
-| **Assistant** | The chat with the assistants, written or spoken |
-| **Settings** | Theme, language, the app's options |
+| **Media** | What plays on the PC (cover, title, progress and its buttons), the volume, the **Volume by app** and the audio output |
+| **Assistant** | The chat with the assistants, written or spoken (only with the assistant module on) |
 
 Notes:
 
@@ -31,6 +30,39 @@ Notes:
 - *Internet address* is optional, only if you come in from outside through a reverse proxy.
 - *Accept orders from* says where it can be reached from: *This PC only*, *Local network* or *Internet* (what comes
   through the proxy counts as internet). Pairing is always needed.
+
+Holding a command opens its sheet: what it does, all its hotkeys and apps, **Favorite**, **Ask first** (it asks before
+running it from this phone) and *Run*. Favorites and *Ask first* are kept per PC.
+
+### The touchpad
+
+One finger moves, a tap clicks, tap and drag (or hold) drags, two fingers scroll, and a two- or three-finger tap is a
+right or middle click. With **Three- and four-finger gestures**, like a Windows touchpad: three fingers sideways switch
+windows, up opens the task view and down shows the desktop; four fingers sideways go to the next virtual desktop.
+**Pinch to zoom** zooms in and out like Ctrl + wheel. With the phone on its side the touchpad takes the whole screen. In
+*Settings* you can also change the speed, the **Acceleration** and which **Special keys** show and in which order. These
+settings are kept per PC.
+
+### What plays and the volume
+
+**Media** shows what each program tells Windows it is playing (Spotify, browsers, the Media Player…) with its cover, the
+progress bar (to move to another point when the player allows it) and its buttons; with several, chips to pick one. Below:
+the PC's volume, **Volume by app** (each program with sound, like Windows' volume mixer) and the audio output. In the
+Android app, **What plays, in the notifications** shows it as a media notification (also on the lock screen) and the
+phone's volume keys change the PC's volume while it is there.
+
+### The assistants on the phone
+
+An order written or said on the phone can be answered there: in *Settings*, **Answers play** *On this phone*, *On the PC*
+or *On both*. The PC sends the voice sentence by sentence as it is ready; with *On this phone* the character on the PC moves
+its mouth in silence. **Keep listening** opens the microphone again when it finishes answering. Under each answer, what it
+did shows as chips («✓ Opened Spotify»).
+
+### The PC at the top
+
+The top shows the PC and how the connection is. Touching it: connect again, change PC (in the Android app) and, with
+**Turn the PC on and off** on in *Settings → Web app* (off by default), **Lock**, **Sleep**, **Hibernate**, **Restart** and
+**Shut down** (these two with 5 seconds to cancel).
 
 ## What the PC sends
 
@@ -42,15 +74,75 @@ to a week and it reaches you as soon as you open it. It goes through no outside 
 
 ## Android app
 
-The Android app is the same web app with a native microphone. *Settings → Mobile app → Save the APK…*, copy it to the
+The Android app is the same web app with a few things of its own. *Settings → Mobile app → Save the APK…*, copy it to the
 phone and open it (Android asks to allow installing apps from that source). It needs no store: when a phone with an older
 version connects, the app offers to update itself from the PC.
 
-In its *Settings*, **Messages with the app closed** (since version 1.1.0) keeps the connection with the PC open even when
-you close the app, and what the PC sends reaches you as a normal notification (with *Open* and *Copy*). Turning it on asks
-for the notifications and for Android not to put it to sleep to save battery; while it is on, Android shows a fixed
-«Connection with K-Desktop» notification. It works wherever the phone can reach the PC: at home always, and away only if
-you have the internet address (proxy).
+- **Several PCs.** It keeps a list of PCs, each with its addresses (at home and away). It opens the last one at the address
+  that answers; if none answers, it shows **My PCs** with how each one is, to connect, turn on, rename or forget them. *Add
+  PC* scans the QR code of *Pair a device* with the phone's camera, or takes the address typed in.
+- **Turn on** (see below) and the PC's power from the top.
+- **Share → K-Desktop** from any app: a text goes to the PC's clipboard, a link asks whether to open it in the PC's browser
+  or copy it, and a file is saved in the PC's Downloads. The PC says so with a notice.
+- **Shortcuts**: holding the app's icon gives *Talk*, *Touchpad* and *Switch on the PC*.
+- **Widget** for the home screen with your favorite commands (they run without opening the app) and a button to talk, and
+  **Quick Settings tiles**: talk, switch on the PC and your first favorite command.
+- The assistants' answers play on the phone also in the background or with the screen off.
+
+In its *Settings*, **Messages with the app closed** keeps the connection with the PC open even when you close the app, and
+what the PC sends reaches you as a normal notification (with *Open* and *Copy*); what plays on the PC also stays up to date
+in its notification. Turning it on asks for the notifications and for Android not to put it to sleep to save battery; while
+it is on, Android shows a fixed «Connection with K-Desktop» notification. It works wherever the phone can reach the PC: at
+home always, and away only if you have the internet address (proxy).
+
+## Turning the PC on from the phone
+
+With **Turn the PC on and off** on, the Android app keeps what it needs to turn the PC on while it is off and offers
+**Turn on** on the page of PCs. It does two things at once: the Wake-on-LAN signal on the home network and, if you set it,
+**Turn on with a URL** (to turn it on away from home). It then waits up to 2 minutes and goes in by itself.
+
+For Wake-on-LAN, in *Settings → Web app*, **Check** (*Wake over the network*) says whether a network card can turn the PC
+on. Usually it needs: Wake-on-LAN on in the BIOS, the card allowed to wake the PC (Device Manager → the card → Power
+Management, and «Wake on Magic Packet» in Advanced), a cable rather than Wi-Fi, and Windows fast startup off (after
+«Sleep» it usually works anyway).
+
+**Turn on with a URL** is an address on your network that sends the signal for you, reachable from outside: *Method*,
+*Request body* (`{mac}` becomes the PC's MAC) and an optional *Header* for its password (kept encrypted). For example, a
+Raspberry Pi joined to your proxy by WireGuard, with a small service that only listens on that tunnel:
+
+```python
+# POST /wol {"mac": "AA:BB:CC:DD:EE:FF"} with Authorization: Bearer <TOKEN>
+import json, os, socket, hmac
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+TOKEN = os.environ["WOL_TOKEN"]
+ALLOWED = {m.upper() for m in os.environ["WOL_MACS"].split(",")}   # only your PCs
+
+def magic(mac):
+    packet = b"\xff" * 6 + bytes.fromhex(mac.replace(":", "")) * 16
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        for port in (9, 7):
+            s.sendto(packet, (os.environ.get("WOL_BROADCAST", "192.168.1.255"), port))
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != "/wol" or not hmac.compare_digest(self.headers.get("Authorization", ""), f"Bearer {TOKEN}"):
+            return self.send_response(401) or self.end_headers()
+        body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0)) or 0) or b"{}")
+        mac = str(body.get("mac", "")).upper()
+        if mac not in ALLOWED:
+            return self.send_response(400) or self.end_headers()
+        magic(mac)
+        self.send_response(204)
+        self.end_headers()
+
+HTTPServer((os.environ.get("WOL_LISTEN", "10.0.0.2"), 8099), Handler).serve_forever()
+```
+
+In the proxy, a route `/wol` to that address, outside any login page, and with a limit of attempts. In K-Desktop:
+*Turn on with a URL* `https://yourdomain.net/wol`, *Method* POST, *Request body* `{"mac": "{mac}"}` and *Header*
+`Authorization: Bearer <TOKEN>`. If another of your PCs is on, the app also asks it to turn this one on.
 
 ## UDP
 

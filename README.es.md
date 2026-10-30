@@ -101,9 +101,12 @@ https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 
 ### Control remoto
 
-- **Móvil**: app web instalable (PWA) y app de Android con tus comandos y menús, touchpad y teclado, controles de
-  audio, zoom, órdenes por voz y un chat con los asistentes. Cada dispositivo se empareja con un código QR y se puede
-  revocar por separado.
+- **Móvil**: app web instalable (PWA) y app de Android con tus comandos (favoritos, eventos) y menús, touchpad con
+  gestos y teclado, lo que suena en el PC y el volumen de cada aplicación, zoom, órdenes por voz y los asistentes, cuyas
+  respuestas pueden sonar en el móvil. Bloquear, suspender, reiniciar o apagar el PC desde el móvil, y encenderlo con
+  Wake-on-LAN (también desde fuera, mediante una URL). La app de Android guarda varios PCs, comparte textos, enlaces y
+  archivos con el PC, y tiene widget, botones de ajustes rápidos y notificación multimedia. Cada dispositivo se empareja
+  con un código QR y se puede revocar por separado.
 - **Control por UDP**, compatible con el protocolo de K-Desktop 4 (puerto 2501).
 
 ### Día a día
@@ -284,7 +287,7 @@ src/KDesktop.Assistant.Tools  herramientas incluidas, herramientas JSON, cliente
 src/KDesktop.Assistant.Voice  su voz: Kokoro y Piper en el procesador, voces de Windows, efectos de voz
 samples/CharacterAssistant    Pip, el asistente de ejemplo sin código
 templates/kdassistant         plantilla de dotnet new para un asistente nuevo
-android/                      app de Android (WebView de la app web del PC, con micrófono nativo)
+android/                      app de Android (WebView de la app web del PC; micrófono, voz, widget, botones… nativos)
 tests/                        pruebas del núcleo, del módulo Asistente y Dot, el asistente de las pruebas
 site/                         la web de la documentación (DocFX), publicada en GitHub Pages con site/publish.ps1
 docs/assistant/               esquemas de los paquetes, protocolo de la tubería y sus ejemplos, notas internas

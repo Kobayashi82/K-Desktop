@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="timeout">K-Desktop antwortet nicht</string>
+    <string name="inbox_channel_link">Verbindung mit K-Desktop</string>
+    <string name="inbox_channel_messages">Nachrichten von K-Desktop</string>
+    <string name="inbox_connecting">Verbinde mit dem PC…</string>
+    <string name="inbox_waiting">Bereit für Nachrichten vom PC</string>
+    <string name="inbox_offline">Der PC antwortet nicht: neuer Versuch</string>
+    <string name="inbox_unpaired">Öffne die App und kopple sie mit K-Desktop</string>
+    <string name="inbox_from">Von %1$s</string>
+    <string name="inbox_open">Öffnen</string>
+    <string name="inbox_copy">Kopieren</string>
+    <string name="inbox_copied">Kopiert</string>
+    <string name="media_channel">Was am PC läuft</string>
+    <string name="media_unknown">Ohne Titel</string>
+    <string name="media_previous">Zurück</string>
+    <string name="media_play">Abspielen</string>
+    <string name="media_pause">Pause</string>
+    <string name="media_next">Weiter</string>
+    <string name="shortcut_talk">Sprechen</string>
+    <string name="shortcut_pad">Touchpad</string>
+    <string name="shortcut_wake">PC einschalten</string>
+    <string name="share_title">An %1$s senden</string>
+    <string name="share_open">Am PC öffnen</string>
+    <string name="share_copy">Am PC kopieren</string>
+    <string name="share_copied">In die Zwischenablage von %1$s kopiert</string>
+    <string name="share_opened">Auf %1$s geöffnet</string>
+    <string name="share_saved">In den Downloads von %1$s gespeichert</string>
+    <string name="share_failed">%1$s konnte es nicht tun</string>
+    <string name="share_offline">%1$s antwortet nicht</string>
+    <string name="share_sending">Wird an %1$s gesendet…</string>
+    <string name="share_nopc">Kopple zuerst einen PC</string>
+    <string name="tile_talk">Sprechen</string>
+    <string name="tile_wake">PC einschalten</string>
+    <string name="tile_run">Lieblingsbefehl</string>
+    <string name="widget_desc">Deine Lieblingsbefehle und Sprechen</string>
+    <string name="widget_empty">Markiere in der App Befehle als Favoriten</string>
+    <string name="run_ok">%1$s: erledigt</string>
+    <string name="run_failed">%1$s: hat nicht funktioniert</string>
+    <string name="run_offline">Der PC antwortet nicht</string>
+</resources>
