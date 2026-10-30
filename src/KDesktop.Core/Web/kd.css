@@ -147,6 +147,10 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 }
 .icon-btn:active { background: var(--line); transform: scale(.9); }
 .icon-btn.small { width: 36px; height: 36px; }
+/* At least 44 px to touch, whatever their drawn size */
+.icon-btn { position: relative; }
+.icon-btn::before { content: ""; position: absolute; inset: -2px; }
+.icon-btn.small::before { inset: -4px; }
 .icon-btn.spin svg { animation: spin .8s linear infinite; }
 
 /* ── motion ────────────────────────────────────────────────── */

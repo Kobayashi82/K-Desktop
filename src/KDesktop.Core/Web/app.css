@@ -811,3 +811,14 @@ body.pad-full .keys { grid-column: 1 / 3; grid-row: 3; }
 .app-volume.muted input, .app-volume.muted .app-volume-value { opacity: .4; }
 .app-volume.muted .app-mute { color: var(--danger); }
 .app-volume:not(.active) .app-icon { filter: grayscale(.6); opacity: .75; }
+
+/* ── wide screens (a phone on its side, a tablet): two columns where it helps ── */
+
+@media (min-width: 700px) {
+  .cmd-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Multimedia: what plays, each program and the outputs on the left; the volume dial on the right, in sight */
+  .view[data-view="audio"].active { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 14px; grid-auto-flow: row dense; align-items: start; }
+  .view[data-view="audio"].active > * { grid-column: 1; }
+  .view[data-view="audio"].active > .volume-card { grid-column: 2; grid-row: 1 / span 4; position: sticky; top: 76px; }
+  .view[data-view="audio"].active > .now-card { margin-bottom: 0; }
+}
