@@ -9,14 +9,18 @@ using UiTextBox = Wpf.Ui.Controls.TextBox;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options › Cuentas (calendar, phase 6): the connected Google accounts with what each one is used for, connecting one
-/// (the browser opens; cancellable), connecting it again when the server forgot it, disconnecting it (revoked in the
-/// server), and the application they connect with (the user's own Google Client ID).
+/// Options › Cuentas (calendar, phase 6; in two pages since 5.0.430, «Part»): <c>accounts</c>, the connected accounts
+/// with what each one is used for, connecting one again when the server forgot it and disconnecting it (revoked in the
+/// server); and <c>accounts/google</c>, connecting one (the browser opens; cancellable) and the application it connects
+/// with (the user's own Google Client ID).
 /// </summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "The token source lives only while a connection is under way, and is disposed then.")]
 public partial class AccountsSection : UserControl
 {
     private static AccountService Accounts => App.Current.Accounts;
+
+    /// <summary>Which page it is: <c>accounts</c> (the connected ones) or <c>accounts/google</c>.</summary>
+    public string Part { get; set; } = "accounts";
 
     private bool _subscribed;
     private CancellationTokenSource? _connecting;
@@ -53,9 +57,12 @@ public partial class AccountsSection : UserControl
     {
         if (!IsLoaded) return;
         Root.Children.Clear();
-        BuildList();
-        BuildConnect();
-        BuildApps();
+        if (Part == "accounts/google")
+        {
+            BuildConnect();
+            BuildApps();
+        }
+        else BuildList();
     }
 
     private void BuildList()
@@ -85,6 +92,7 @@ public partial class AccountsSection : UserControl
             grid.Children.Add(actions);
             card.Children.Add(grid);
         }
+        card.Children.Add(CalendarUi.NavLink(this, "accounts.goGoogle", "settings/accounts/google", new Thickness(0, 8, 0, 0)));
     }
 
     private void BuildConnect()

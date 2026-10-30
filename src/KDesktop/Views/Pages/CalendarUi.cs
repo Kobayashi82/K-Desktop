@@ -83,6 +83,17 @@ internal static class CalendarUi
         return line;
     }
 
+    /// <summary>A link (like <see cref="GuideLink"/>) to another page of K-Desktop (<c>settings/accounts/google</c>…).</summary>
+    public static TextBlock NavLink(FrameworkElement from, string textKey, string page, Thickness margin)
+    {
+        var line = Caption(string.Empty, margin);
+        var link = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run(Loc.T(textKey)));
+        link.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "Kd.AccentText");
+        link.Click += (_, _) => (Window.GetWindow(from) as MainWindow)?.Navigate(page);
+        line.Inlines.Add(link);
+        return line;
+    }
+
     public static UiButton IconButton(SymbolRegular icon, string tip, Action click, bool danger = false)
     {
         var button = new UiButton { Icon = new SymbolIcon { Symbol = icon }, ToolTip = tip, Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };

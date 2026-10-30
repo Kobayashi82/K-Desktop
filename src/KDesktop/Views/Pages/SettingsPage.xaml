@@ -2463,7 +2463,8 @@
             </Border>
 
             <!-- Calendar and accounts -->
-            <local:AccountsSection Tag="accounts" />
+            <local:AccountsSection Tag="accounts" Part="accounts" />
+            <local:AccountsSection Tag="accounts/google" Part="accounts/google" />
             <local:MailSection Tag="mail" />
             <local:CalendarsSection Tag="calendars" />
 
