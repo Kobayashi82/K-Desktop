@@ -8,7 +8,8 @@ public sealed record WebAssistantInfo(string Id, string Name, bool Busy, WebIcon
 
 /// <summary>A line of a conversation (<c>user</c> or <c>assistant</c>); not <paramref name="Final"/> while it is being written.</summary>
 /// <param name="Written">A long answer's whole text in Markdown (stage 14.2; null: none): <paramref name="Text"/> is its summary.</param>
-public sealed record WebChatLine(string Role, string Turn, string Text, bool Final, DateTime At, string? Written = null);
+/// <param name="Images">Its pictures, by their key (never the path on the PC): <c>api/assistants/image?id=…&amp;k=…</c>.</param>
+public sealed record WebChatLine(string Role, string Turn, string Text, bool Final, DateTime At, string? Written = null, IReadOnlyList<string>? Images = null);
 
 /// <summary>
 /// A piece of an answer's voice for the phone that asked (16-bit mono PCM at <paramref name="Rate"/>), or, with
@@ -34,6 +35,9 @@ public interface IWebAssistants
 
     /// <summary>The conversation with one this session, oldest first.</summary>
     IReadOnlyList<WebChatLine> Chat(string id);
+
+    /// <summary>The path of a picture of the conversation with <paramref name="id"/> by its key; null: not one of its pictures.</summary>
+    string? Image(string id, string key);
 
     /// <summary>What it did lately (its activity), oldest first.</summary>
     IReadOnlyList<WebDid> Activity(string id);

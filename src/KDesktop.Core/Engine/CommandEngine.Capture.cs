@@ -124,6 +124,8 @@ public sealed partial class CommandEngine
             var bytes = await ImageFiles.EncodeAsync(image, s.CaptureFormat, s.CaptureQuality, ctx.Token).ConfigureAwait(false);
             await File.WriteAllBytesAsync(path, bytes, ctx.Token).ConfigureAwait(false);
             Log.Info($"Captura: {image.Width}×{image.Height} → {path} ({bytes.Length / 1024} KB)");
+            // Asked by an assistant: it shows in its answer in the chat.
+            Assistant.ChatImages.Made([path]);
         }
         Gave(a, path ?? string.Empty);
         if (!a.ShowOsd) return;

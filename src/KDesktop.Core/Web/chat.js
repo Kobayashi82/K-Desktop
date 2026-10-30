@@ -348,6 +348,27 @@ function fill(b, l) {
     body.innerHTML = markdown(l.written);
     b.append(body);
   }
+  // Its pictures (the ones given with the order, or the ones of the answer), by their key; a tap opens them whole.
+  if (l.images?.length && c.id) {
+    const pics = document.createElement('div');
+    pics.className = 'pics';
+    for (const key of l.images) {
+      const url = 'api/assistants/image?id=' + encodeURIComponent(c.id) + '&k=' + encodeURIComponent(key);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      const img = document.createElement('img');
+      img.src = url;
+      img.loading = 'lazy';
+      img.alt = '';
+      // Gone from the PC: nothing is left of it.
+      img.addEventListener('error', () => link.remove());
+      link.append(img);
+      pics.append(link);
+    }
+    b.append(pics);
+  }
   if (l.did?.length) {
     const chips = document.createElement('div');
     chips.className = 'did';

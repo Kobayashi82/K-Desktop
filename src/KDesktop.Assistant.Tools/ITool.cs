@@ -83,6 +83,9 @@ public sealed record ToolResult(string Text)
     /// </summary>
     public bool Outside { get; init; }
 
+    /// <summary>Pictures it made (a screenshot), full paths: they show under the answer in the chat.</summary>
+    public IReadOnlyList<string> Images { get; init; } = [];
+
     public static implicit operator ToolResult(string text) => new(text);
 
     public static ToolResult Fail(string text) => new(text) { Failed = true };

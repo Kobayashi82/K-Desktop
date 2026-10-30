@@ -530,8 +530,10 @@ public sealed record CancelMessage(string Source, string? Assistant = null) : Pi
 /// summary, what is said. K-Desktop shows it on a reading sheet next to the assistant.</param>
 /// <param name="X">With <paramref name="Written"/>, where the assistant is on the screen (its bubble's point, screen pixels;
 /// null: it has no body or it is not known).</param>
+/// <param name="Images">Pictures of the line, full paths on this PC: the user's, the ones given with the order; the
+/// assistant's, the ones its tools made (a screenshot) or it named in its answer. Null: none.</param>
 public sealed record ChatLineMessage(string Role, string Text, string Turn, bool Final = true, string? Assistant = null, string? Written = null,
-    int? X = null, int? Y = null) : PipeMessage
+    int? X = null, int? Y = null, IReadOnlyList<string>? Images = null) : PipeMessage
 {
     public override string Type => "chat";
 }
@@ -883,7 +885,9 @@ public sealed record WindowDoneMessage(string Id, bool Ok) : PipeMessage
 /// <param name="Messages">What the command said (its messages, warnings and errors), in the user's language.</param>
 /// <param name="Name">For an <c>act</c>: the program it found, by its own name («Google Chrome» for «chrome»).</param>
 /// <param name="Reason">For an <c>act</c> that did not happen: <c>noWindow</c>, <c>noProcess</c>, <c>notAllowed</c> (K-Desktop itself or the desktop).</param>
-public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages, string? Name = null, string? Reason = null) : PipeMessage
+/// <param name="Files">Files it made (a screenshot saved), full paths; null: none.</param>
+public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages, string? Name = null, string? Reason = null,
+    IReadOnlyList<string>? Files = null) : PipeMessage
 {
     public override string Type => "end";
 }

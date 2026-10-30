@@ -107,7 +107,18 @@ internal sealed class WebAssistants : IWebAssistants
             : _app.Voice.RunRemoteAsync(samples, to);
     }
 
-    private static WebChatLine LineOf(ChatItem item) => new(item.Role, item.Turn, item.Text, item.Final, item.At, item.Written);
+    private static WebChatLine LineOf(ChatItem item) => new(item.Role, item.Turn, item.Text, item.Final, item.At, item.Written,
+        item.Images.Count > 0 ? [.. item.Images.Select(KeyOf)] : null);
+
+    /// <summary>A picture's key for the phone: the path is never sent.</summary>
+    private static string KeyOf(string path) =>
+        Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(path.ToLowerInvariant())))[..20];
+
+    /// <summary>Only a picture that is in that conversation, by its key.</summary>
+    public string? Image(string id, string key) =>
+        Enabled && App.IsAssistant(id) && key.Length > 0
+            ? _app.AssistantChat(id).SelectMany(i => i.Images).FirstOrDefault(p => KeyOf(p) == key)
+            : null;
 
     private WebIcon? IconOf(string id)
     {

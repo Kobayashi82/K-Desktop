@@ -35,6 +35,11 @@ public sealed class WebServerTests : IDisposable
         public bool Enabled => true;
         public IReadOnlyList<WebAssistantInfo> List() => [new WebAssistantInfo("kobii", "Kobii", false, null)];
         public IReadOnlyList<WebChatLine> Chat(string id) => [];
+
+        /// <summary>The one picture of Kobii's conversation (key «pic»).</summary>
+        public string? Picture { get; set; }
+
+        public string? Image(string id, string key) => id == "kobii" && key == "pic" ? Picture : null;
         public IReadOnlyList<WebDid> Activity(string id) => [new WebDid("Abrió Spotify", true, DateTimeOffset.Now)];
         public string? Send(string id, string text, string? device = null, string? speak = null)
         {
@@ -282,6 +287,26 @@ public sealed class WebServerTests : IDisposable
         // Where the PC hears it: anything else than phone or both is the PC.
         using (await _http.SendAsync(Request(HttpMethod.Post, "api/assistants/say", asker, new { id = "kobii", text = "otra", speak = "loud" }))) { }
         Assert.Null(_assistants.Sent[^1].Speak);
+
+        // A picture of the conversation, by its key; nothing else of the PC.
+        var picture = Path.Combine(Path.GetTempPath(), "kd-chat-" + Guid.NewGuid().ToString("N")[..8] + ".png");
+        await File.WriteAllBytesAsync(picture, [0x89, 0x50, 0x4E, 0x47]);
+        try
+        {
+            _assistants.Picture = picture;
+            using (var image = await _http.SendAsync(Request(HttpMethod.Get, "api/assistants/image?id=kobii&k=pic", asker)))
+            {
+                Assert.Equal(HttpStatusCode.OK, image.StatusCode);
+                Assert.Equal("image/png", image.Content.Headers.ContentType?.MediaType);
+                Assert.Equal(4, (await image.Content.ReadAsByteArrayAsync()).Length);
+            }
+            using (var byPath = await _http.SendAsync(Request(HttpMethod.Get, "api/assistants/image?id=kobii&k=" + Uri.EscapeDataString(picture), asker)))
+                Assert.Equal(HttpStatusCode.NotFound, byPath.StatusCode);
+        }
+        finally
+        {
+            File.Delete(picture);
+        }
     }
 
     [Fact]

@@ -142,7 +142,9 @@ public static class AssistantSystem
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Localization.Loc.T("pause.refused")]);
         var plan = Build(request);
         if (plan.Command is null) return new EndMessage(request.Run, "failed", [], plan.Name, plan.Reason);
+        // What it makes (a screenshot saved) goes back with it, for the chat.
+        using var made = ChatImages.Collect();
         var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, request.Run, who, ask, choreography, allowed, remote: remote, source: AssistantCommands.SourceOf(request.Shared)).ConfigureAwait(false);
-        return end with { Name = plan.Name };
+        return end with { Name = plan.Name, Files = made.Taken is { Count: > 0 } files ? files : null };
     }
 }

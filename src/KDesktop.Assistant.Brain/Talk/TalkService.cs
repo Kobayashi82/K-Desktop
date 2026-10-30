@@ -172,7 +172,10 @@ public sealed class TalkService
         using var scheduled = heard.Source == HeardMessage.SourceScheduled && heard.Scheduled is { } key ? ScheduledOrder.Enter(key, heard.Allowed) : null;
         // The conversation is kept only in K-Desktop's memory: the log has each line, to look at it afterwards.
         Log.Info($"Asistente: a «{who ?? "K-Desktop"}» por {heard.Source}{(reply is null ? "" : " (sin decirlo)")}: «{said}»");
-        _output.Chat(new ChatLineMessage("user", said, turn, true, who));
+        // The pictures given with the order show in its line; the ones the tools make, in the answer's.
+        IReadOnlyList<string> given = [.. (heard.Files ?? []).Where(ChatImages.IsPicture).Take(ChatImages.MaxPerLine)];
+        _output.Chat(new ChatLineMessage("user", said, turn, true, who, Images: given.Count > 0 ? given : null));
+        using var pictures = ChatImages.Collect();
         try
         {
             var persona = _persona(who);
@@ -185,7 +188,11 @@ public sealed class TalkService
                 answer = answer with { Text = (answer.Text + " " + learned).Trim() };
             conversation.Missed = Acted(answer) ? null : (said, _time.GetUtcNow());
             Log.Info($"Asistente: «{who ?? "K-Desktop"}» contesta: «{answer.Text}»");
-            _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who, answer.Written));
+            var (shownText, named) = ChatImages.FromText(answer.Text);
+            var (shownWritten, namedWritten) = answer.Written is { } whole ? ChatImages.FromText(whole) : (null, []);
+            IReadOnlyList<string> images = [.. pictures.Taken.Concat(named).Concat(namedWritten).Distinct(StringComparer.OrdinalIgnoreCase).Take(ChatImages.MaxPerLine)];
+            _output.Chat(new ChatLineMessage("assistant", images.Count > 0 ? shownText : answer.Text, turn, true, who, images.Count > 0 ? shownWritten : answer.Written,
+                Images: images.Count > 0 ? images : null));
             if (answer.Remember) conversation.History.Add(said, LongAnswers.ForHistory(answer.Text, answer.Written), answer.Tools, answer.Steps);
             // A text to work on (the selection) is not something to learn about the user.
             if (reply is null || origin is { Owner: true }) Learn(who, said, answer, token);

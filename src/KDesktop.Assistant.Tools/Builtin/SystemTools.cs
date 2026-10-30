@@ -36,7 +36,7 @@ public abstract class SystemTool(ICommandBridge bridge) : ITool
         var name = end.Name is { Length: > 0 } found ? found : Loc.T($"tool.{Name}.title");
         return end.Status switch
         {
-            "ok" => new ToolResult($"Done: {name}.") { Done = name, Reply = Loc.T("tool.system.reply", name), Acted = true },
+            "ok" => new ToolResult($"Done: {name}.") { Done = name, Reply = Loc.T("tool.system.reply", name), Acted = true, Images = Pictures(end.Files) },
             "declined" => new ToolResult("Not done: the user said no to it. Tell them you did not do it.")
             {
                 Done = Loc.T("tool.run_command.declined", name),
@@ -47,6 +47,9 @@ public abstract class SystemTool(ICommandBridge bridge) : ITool
             _ => new ToolResult("Failed. " + string.Join(" ", end.Messages)) { Done = Loc.T("tool.run_command.failed", name), Failed = true },
         };
     }
+
+    /// <summary>The pictures among the files it made (a screenshot).</summary>
+    private static string[] Pictures(IReadOnlyList<string>? files) => [.. (files ?? []).Where(ChatImages.IsPicture)];
 
     /// <summary>Why K-Desktop did not do it, for the model and the user.</summary>
     protected virtual ToolResult NotDone(string reason, string text) => ToolResult.Fail($"Not done ({reason}).");

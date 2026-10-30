@@ -33,6 +33,9 @@ public sealed partial class ChatItem(string role, string turn, DateTime at) : Ob
     /// <summary>False while the answer is still being written.</summary>
     [ObservableProperty] private bool _final;
 
+    /// <summary>Its pictures (full paths): the ones given with the order, or the ones of the answer. Empty: none.</summary>
+    [ObservableProperty] private IReadOnlyList<string> _images = [];
+
     public override string ToString() => Text;
 }
 
@@ -74,7 +77,7 @@ public partial class App
 
     private bool _chatsLoaded;
 
-    private sealed record SavedChatLine(string Role, string Turn, DateTime At, string Text, string? Written);
+    private sealed record SavedChatLine(string Role, string Turn, DateTime At, string Text, string? Written, IReadOnlyList<string>? Images = null);
 
     /// <summary>The conversations of before (once, the first time one is asked for).</summary>
     private void LoadChats()
@@ -86,7 +89,7 @@ public partial class App
             if (!File.Exists(ChatsFile)) return;
             var saved = JsonSerializer.Deserialize<Dictionary<string, List<SavedChatLine>>>(File.ReadAllText(ChatsFile), ChatsJson) ?? [];
             foreach (var (id, lines) in saved)
-                _chats[id] = [.. lines.TakeLast(KeptChat).Select(l => new ChatItem(l.Role, l.Turn, l.At) { Text = l.Text, Written = l.Written, Final = true })];
+                _chats[id] = [.. lines.TakeLast(KeptChat).Select(l => new ChatItem(l.Role, l.Turn, l.At) { Text = l.Text, Written = l.Written, Final = true, Images = l.Images ?? [] })];
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
@@ -101,7 +104,7 @@ public partial class App
         {
             Directory.CreateDirectory(Path.GetDirectoryName(ChatsFile)!);
             var all = _chats.Where(c => c.Value.Count > 0).ToDictionary(c => c.Key,
-                c => c.Value.Where(l => l.Final || l.IsUser).Select(l => new SavedChatLine(l.Role, l.Turn, l.At, l.Text, l.Written)).ToList());
+                c => c.Value.Where(l => l.Final || l.IsUser).Select(l => new SavedChatLine(l.Role, l.Turn, l.At, l.Text, l.Written, l.Images.Count > 0 ? l.Images : null)).ToList());
             File.WriteAllText(ChatsFile, JsonSerializer.Serialize(all, ChatsJson));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -125,6 +128,7 @@ public partial class App
         item.Text = line.Text;
         item.Written = line.Written;
         item.Final = line.Final;
+        if (line.Images is { Count: > 0 } images) item.Images = images;
         if (line.Role == "assistant") OnLongAnswer(who, line);
         // Said aloud by one on the desktop: heard back through the microphone it is not an order (stage 5.7).
         // What K-Desktop or one that is not there says is said aloud too (5.0.111).

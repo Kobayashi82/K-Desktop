@@ -106,6 +106,11 @@ public sealed partial class WebServer
                 var (lines, did) = _host.Invoke(() => (assistants.Chat(id), assistants.Activity(id)));
                 await WriteJsonAsync(response, new { lines, did }).ConfigureAwait(false);
                 break;
+            case ("GET", "/api/assistants/image"):
+                var of = context.Request.QueryString["id"] ?? string.Empty;
+                var key = context.Request.QueryString["k"] ?? string.Empty;
+                await ChatImageAsync(_host.Invoke(() => assistants.Image(of, key)), response).ConfigureAwait(false);
+                break;
             case ("GET", "/api/assistants/audio"):
                 await SpeechAudioAsync(context, device).ConfigureAwait(false);
                 break;
@@ -137,6 +142,36 @@ public sealed partial class WebServer
                 break;
         }
         return true;
+    }
+
+    /// <summary>A chat's picture is never bigger than this for the phone.</summary>
+    private const long MaxChatImage = 25L << 20;
+
+    /// <summary>
+    /// GET api/assistants/image?id=…&amp;k=…: a picture of a conversation (<paramref name="path"/>, found by its key among the
+    /// pictures of that conversation; null: none, nothing else of the PC can be asked for).
+    /// </summary>
+    private static async Task ChatImageAsync(string? path, HttpListenerResponse response)
+    {
+        var info = path is null ? null : new FileInfo(path);
+        if (info is not { Exists: true } || info.Length > MaxChatImage)
+        {
+            await WriteJsonAsync(response, new { error = "notFound" }, 404).ConfigureAwait(false);
+            return;
+        }
+        response.ContentType = info.Extension.ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".bmp" => "image/bmp",
+            ".webp" => "image/webp",
+            _ => "image/jpeg",
+        };
+        response.Headers["Cache-Control"] = "private, max-age=3600";
+        response.ContentLength64 = info.Length;
+        var file = File.OpenRead(info.FullName);
+        await using (file.ConfigureAwait(false))
+            await file.CopyToAsync(response.OutputStream).ConfigureAwait(false);
     }
 
     /// <summary>GET api/assistants/audio?turn=…&amp;n=…: a piece of the voice, only for the device it was said for.</summary>

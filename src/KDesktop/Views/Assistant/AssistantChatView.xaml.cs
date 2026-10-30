@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Platform;
 using TextBlock = System.Windows.Controls.TextBlock;
 
 namespace KDesktop.Views.Assistant;
@@ -100,7 +102,7 @@ public partial class AssistantChatView : UserControl
         _thinking = _app.IsAssistantThinking(_id);
         var atEnd = Scroller.VerticalOffset >= Scroller.ScrollableHeight - 4;
         Rows.Children.Clear();
-        foreach (var item in chat) Rows.Children.Add(Row(item.IsUser, item.Text, item.Final, item.Written is { Length: > 0 } ? item : null));
+        foreach (var item in chat) Rows.Children.Add(Row(item.IsUser, item.Text, item.Final, item.Written is { Length: > 0 } ? item : null, item.Images));
         // Thinking, and nothing of the answer yet.
         if (_thinking && chat.Count > 0 && chat[^1].IsUser) Rows.Children.Add(Row(false, "…", false));
         if (chat.Count == 0)
@@ -117,7 +119,7 @@ public partial class AssistantChatView : UserControl
     /// One line: the user's on the right in the accent, the assistant's on the left. A long answer (stage 14.2): its summary,
     /// then the whole text, and «Leer entero» for its reading sheet.
     /// </summary>
-    private Border Row(bool user, string text, bool final, ChatItem? written = null)
+    private Border Row(bool user, string text, bool final, ChatItem? written = null, IReadOnlyList<string>? images = null)
     {
         var block = new TextBlock
         {
@@ -161,6 +163,15 @@ public partial class AssistantChatView : UserControl
             }
             content = whole;
         }
+        // Its pictures (the ones given, or the ones of the answer), small; a click opens them.
+        if (images is { Count: > 0 } && Pictures(images) is { } pictures)
+        {
+            var withPictures = new StackPanel();
+            if (text.Length > 0) withPictures.Children.Add(content);
+            pictures.Margin = new Thickness(0, text.Length > 0 ? 8 : 0, 0, 0);
+            withPictures.Children.Add(pictures);
+            content = withPictures;
+        }
         var row = new Border
         {
             Child = content,
@@ -172,6 +183,31 @@ public partial class AssistantChatView : UserControl
         };
         AutomationProperties.SetName(row, (user ? Loc.T("assistantChat.you") : _name) + ": " + text);
         return row;
+    }
+
+    /// <summary>The pictures as thumbnails that open with a click; null when none of them is there any more.</summary>
+    private static WrapPanel? Pictures(IReadOnlyList<string> paths)
+    {
+        var panel = new WrapPanel();
+        foreach (var path in paths)
+        {
+            if (ChatThumbnails.Of(path) is not { } thumbnail) continue;
+            var picture = new Border
+            {
+                CornerRadius = new CornerRadius(8),
+                ClipToBounds = true,
+                Margin = new Thickness(0, 0, 6, 6),
+                Cursor = Cursors.Hand,
+                ToolTip = Path.GetFileName(path),
+                Child = new Image { Source = thumbnail, MaxWidth = 240, MaxHeight = 180, Stretch = System.Windows.Media.Stretch.Uniform },
+            };
+            // The rounded corners clip the picture too.
+            picture.SizeChanged += (_, e) => picture.Clip = new System.Windows.Media.RectangleGeometry(new Rect(e.NewSize), 8, 8);
+            AutomationProperties.SetName(picture, Path.GetFileName(path));
+            picture.MouseLeftButtonUp += (_, _) => ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false);
+            panel.Children.Add(picture);
+        }
+        return panel.Children.Count > 0 ? panel : null;
     }
 
     private void OnTextChanged(object sender, TextChangedEventArgs e) => SendButton.IsEnabled = Input.Text.Trim().Length > 0;

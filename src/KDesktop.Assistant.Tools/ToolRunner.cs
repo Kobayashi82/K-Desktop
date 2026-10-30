@@ -228,6 +228,7 @@ public sealed class ToolRunner
         }
 
         if (result.Outside) context.Trust.MarkOutside();
+        if (!result.Failed && result.Images.Count > 0) ChatImages.Made(result.Images);
 
         string? undoId = null;
         var did = result.Done ?? Capitalize(intent);
