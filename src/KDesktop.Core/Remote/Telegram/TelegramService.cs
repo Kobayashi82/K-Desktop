@@ -29,7 +29,7 @@ public sealed class TelegramService : IDisposable
 
     private const long LogLimit = 512 * 1024;
 
-    private sealed record Outgoing(long Chat, string Text, string To, TaskCompletionSource<bool>? Done);
+    private sealed record Outgoing(long Chat, string Text, string To, TaskCompletionSource<bool>? Done, IReadOnlyList<IReadOnlyList<TelegramButton>>? Buttons = null);
 
     private readonly string _folder;
     private readonly Func<string, string> _protect;
@@ -39,6 +39,7 @@ public sealed class TelegramService : IDisposable
     private readonly Lock _logGate = new();
     private readonly Channel<Outgoing> _queue = Channel.CreateUnbounded<Outgoing>(new UnboundedChannelOptions { SingleReader = true });
     private readonly CancellationTokenSource _life = new();
+    private readonly TelegramLimiter _limiter = new();
     private readonly Task _sender;
     private (CancellationTokenSource Stop, Task Loop)? _run;
     private volatile ITelegramConnection? _connection;
@@ -71,8 +72,17 @@ public sealed class TelegramService : IDisposable
     /// <summary>The owner was linked (the connection's task).</summary>
     public event Action<TelegramOwner>? OwnerLinked;
 
-    /// <summary>The owner wrote something that is not for the linking (the connection's task; for the next phases).</summary>
-    public event Action<TelegramIncoming>? Received;
+    /// <summary>
+    /// A message to be served (the owner's, a contact's or someone new's with a level that is not «Ignorar»), with the
+    /// verdict (the connection's task; for the next phases).
+    /// </summary>
+    public event Action<TelegramIncoming, TelegramVerdict>? Received;
+
+    /// <summary>Someone new wrote for the first time and waits for the owner's decision (the connection's task).</summary>
+    public event Action<TelegramPerson>? StrangerArrived;
+
+    /// <summary>Whether a game (or anything) is at full screen now: with «solo yo mientras juego», only the owner is served.</summary>
+    public Func<bool> Busy { get; set; } = () => false;
 
     /// <summary>The first wait after a failure (it doubles up to 5 minutes); shorter in the tests.</summary>
     internal TimeSpan RetryBase { get; set; } = TimeSpan.FromSeconds(5);
@@ -212,7 +222,27 @@ public sealed class TelegramService : IDisposable
         return _queue.Writer.TryWrite(new Outgoing(owner.Id, text, "dueño", done));
     }
 
-    private void Reply(long chat, string text, string to) => _queue.Writer.TryWrite(new Outgoing(chat, text, to, null));
+    private void Reply(long chat, string text, string to, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons = null) =>
+        _queue.Writer.TryWrite(new Outgoing(chat, text, to, null, buttons));
+
+    /// <summary>
+    /// Whether K-Desktop may write to <paramref name="id"/> now (phase 2.3): the owner always; the blocked and the contacts
+    /// without «puede escribirle» never; a contact who never wrote, within the limit an hour (each yes counts).
+    /// </summary>
+    public bool CanWriteTo(long id)
+    {
+        TelegramContact? contact;
+        int perHour;
+        lock (_gate)
+        {
+            if (Settings.Owner?.Id == id) return true;
+            if (Settings.Blocked.Any(b => b.Id == id)) return false;
+            contact = Settings.Contacts.FirstOrDefault(c => c.Id == id);
+            perHour = Settings.Limits.NewPerHour;
+        }
+        if (contact is not { MayWrite: true }) return false;
+        return contact.LastWrote is not null || _limiter.AllowNew(Now(), perHour);
+    }
 
     /// <summary>Texts longer than Telegram allows, cut at a line or a space.</summary>
     public static IReadOnlyList<string> Split(string text, int max = MaxText)
@@ -243,9 +273,10 @@ public sealed class TelegramService : IDisposable
             await foreach (var item in _queue.Reader.ReadAllAsync(stop).ConfigureAwait(false))
             {
                 var ok = true;
-                foreach (var part in Split(item.Text))
+                var parts = Split(item.Text);
+                for (var i = 0; i < parts.Count; i++)
                 {
-                    if (!await SendPartAsync(item, part, stop).ConfigureAwait(false))
+                    if (!await SendPartAsync(item, parts[i], i == parts.Count - 1 ? item.Buttons : null, stop).ConfigureAwait(false))
                     {
                         ok = false;
                         break;
@@ -258,7 +289,7 @@ public sealed class TelegramService : IDisposable
         while (_queue.Reader.TryRead(out var left)) left.Done?.TrySetResult(false);
     }
 
-    private async Task<bool> SendPartAsync(Outgoing item, string text, CancellationToken stop)
+    private async Task<bool> SendPartAsync(Outgoing item, string text, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons, CancellationToken stop)
     {
         var waited = TimeSpan.Zero;
         var wait = RetryBase;
@@ -275,7 +306,7 @@ public sealed class TelegramService : IDisposable
             }
             try
             {
-                await connection.SendTextAsync(item.Chat, text, stop).ConfigureAwait(false);
+                await connection.SendTextAsync(item.Chat, text, buttons, stop).ConfigureAwait(false);
                 WriteLog($"→ {item.To}: {Short(text)}");
                 return true;
             }
@@ -405,55 +436,286 @@ public sealed class TelegramService : IDisposable
     }
 
     /// <summary>
-    /// What arrived: the code while linking (in a private chat: «/start 123456» from the link, or the code alone), the
-    /// owner's messages, and the rest, ignored (phase 2 decides about the others).
+    /// What arrived: a button of the owner's, the code while linking (in a private chat: «/start 123456» from the link, or
+    /// the code alone), and the rest sorted by <see cref="TelegramInbox"/>: dropped, someone new (told to the owner once),
+    /// held by a limit («ahora no puedo», once a while) or served with its level.
     /// </summary>
     internal void Handle(TelegramIncoming m)
     {
-        WriteLog($"← {m.From.Shown} [{m.From.Id}]: {Short(m.Text)}");
-        if (m.ChatKind != TelegramChatKind.Private) return;
-        var text = m.Text.Trim();
-        var start = text.StartsWith("/start", StringComparison.OrdinalIgnoreCase);
-        var said = start ? text[6..].Trim() : text;
-        var owner = Owner;
-        string? code;
-        lock (_gate) code = _linkCode is not null && Now() < _linkExpires ? _linkCode : null;
-        if (code is not null && owner?.Id != m.From.Id && (start || (said.Length == 6 && said.All(char.IsAsciiDigit))))
+        if (m.IsButton)
         {
-            if (said == code)
-            {
-                var linked = new TelegramOwner { Id = m.From.Id, Name = m.From.Name, Username = m.From.Username, Linked = Now() };
-                lock (_gate)
-                {
-                    Settings.Owner = linked;
-                    _linkCode = null;
-                    SaveSettings();
-                }
-                WriteLog($"dueño vinculado: {linked.Shown} [{linked.Id}]");
-                Log.Info($"Telegram: dueño vinculado ({linked.Id})");
-                Reply(m.ChatId, Loc.T("telegram.linked.reply", Environment.MachineName), "dueño");
-                Changed?.Invoke();
-                OwnerLinked?.Invoke(linked);
-                return;
-            }
-            bool give;
-            lock (_gate)
-            {
-                give = ++_linkWrong >= LinkTries;
-                if (give) _linkCode = null;
-            }
-            WriteLog($"código incorrecto de {m.From.Id}");
-            Reply(m.ChatId, Loc.T(give ? "telegram.link.gaveUp" : "telegram.link.wrong"), m.From.Shown);
-            if (give) Changed?.Invoke();
+            HandleButton(m);
             return;
         }
-        if (owner?.Id != m.From.Id) return;
-        if (start && said.Length == 0)
+        WriteLog($"← {m.From.Shown} [{m.From.Id}]{(m.ChatKind == TelegramChatKind.Group ? $" en «{m.ChatTitle}»" : string.Empty)}: {Short(m.Text)}");
+        if (m.ChatKind == TelegramChatKind.Private && TryLink(m)) return;
+        if (m.ChatKind == TelegramChatKind.Group) SeeGroup(m);
+        var bot = Bot;
+        TelegramVerdict verdict;
+        lock (_gate) verdict = TelegramInbox.Classify(m, Settings, bot?.Id ?? 0, bot?.Username ?? string.Empty);
+        if (verdict.Route == TelegramRoute.Drop)
+        {
+            WriteLog($"  descartado ({verdict.Why})");
+            return;
+        }
+        if (verdict.Route == TelegramRoute.Contact) Remember(m.From);
+        if (verdict.Route == TelegramRoute.Stranger)
+        {
+            NewStranger(m);
+            if (verdict.Level == TelegramLevel.Ignore)
+            {
+                WriteLog("  descartado (desconocido)");
+                return;
+            }
+        }
+        if (verdict.Route == TelegramRoute.Owner && m.ChatKind == TelegramChatKind.Private && m.Text.Trim().Equals("/start", StringComparison.OrdinalIgnoreCase))
         {
             Reply(m.ChatId, Loc.T("telegram.owner.hello", Environment.MachineName), "dueño");
             return;
         }
-        Received?.Invoke(m);
+        if (verdict.Route != TelegramRoute.Owner && Held(m)) return;
+        Received?.Invoke(m, verdict);
+    }
+
+    /// <summary>The limits of whoever is not the owner: only the owner while gaming, and so many messages a minute.</summary>
+    private bool Held(TelegramIncoming m)
+    {
+        TelegramLimits limits;
+        lock (_gate) limits = Settings.Limits;
+        var now = Now();
+        var why = limits.OnlyOwnerWhileGaming && Busy() ? "gaming" : !_limiter.AllowIn(m.From.Id, now, limits.PerMinute) ? "rate" : null;
+        if (why is null) return false;
+        WriteLog($"  en espera ({why})");
+        if (_limiter.ShouldTell(m.From.Id, now, TimeSpan.FromMinutes(10)))
+            Reply(m.ChatId, Loc.T(why == "gaming" ? "telegram.busy.gaming" : "telegram.busy.rate"), m.From.Shown);
+        return true;
+    }
+
+    /// <summary>The code while linking; true when the message was about it.</summary>
+    private bool TryLink(TelegramIncoming m)
+    {
+        var text = m.Text.Trim();
+        var start = text.StartsWith("/start", StringComparison.OrdinalIgnoreCase);
+        var said = start ? text[6..].Trim() : text;
+        string? code;
+        lock (_gate) code = _linkCode is not null && Now() < _linkExpires ? _linkCode : null;
+        if (code is null || Owner?.Id == m.From.Id || !(start || (said.Length == 6 && said.All(char.IsAsciiDigit)))) return false;
+        if (said == code)
+        {
+            var linked = new TelegramOwner { Id = m.From.Id, Name = m.From.Name, Username = m.From.Username, Linked = Now() };
+            lock (_gate)
+            {
+                Settings.Owner = linked;
+                Settings.Pending.RemoveAll(p => p.Id == linked.Id);
+                Settings.Blocked.RemoveAll(p => p.Id == linked.Id);
+                Settings.Contacts.RemoveAll(c => c.Id == linked.Id);
+                _linkCode = null;
+                SaveSettings();
+            }
+            WriteLog($"dueño vinculado: {linked.Shown} [{linked.Id}]");
+            Log.Info($"Telegram: dueño vinculado ({linked.Id})");
+            Reply(m.ChatId, Loc.T("telegram.linked.reply", Environment.MachineName), "dueño");
+            Changed?.Invoke();
+            OwnerLinked?.Invoke(linked);
+            return true;
+        }
+        bool give;
+        lock (_gate)
+        {
+            give = ++_linkWrong >= LinkTries;
+            if (give) _linkCode = null;
+        }
+        WriteLog($"código incorrecto de {m.From.Id}");
+        Reply(m.ChatId, Loc.T(give ? "telegram.link.gaveUp" : "telegram.link.wrong"), m.From.Shown);
+        if (give) Changed?.Invoke();
+        return true;
+    }
+
+    /// <summary>A group seen: kept (and its name refreshed) so it can be ignored from Options.</summary>
+    private void SeeGroup(TelegramIncoming m)
+    {
+        var changed = false;
+        lock (_gate)
+        {
+            var group = Settings.Groups.FirstOrDefault(g => g.Id == m.ChatId);
+            if (group is null)
+            {
+                Settings.Groups.Add(new TelegramGroup { Id = m.ChatId, Title = m.ChatTitle ?? string.Empty, Seen = Now() });
+                changed = true;
+            }
+            else if (m.ChatTitle is { Length: > 0 } title && group.Title != title)
+            {
+                group.Title = title;
+                changed = true;
+            }
+            if (changed) SaveSettings();
+        }
+        if (changed) Changed?.Invoke();
+    }
+
+    /// <summary>A contact's name and @user follow what Telegram says (the id never changes), and when they last wrote.</summary>
+    private void Remember(TelegramUser from)
+    {
+        bool renamed;
+        lock (_gate)
+        {
+            if (Settings.Contacts.FirstOrDefault(c => c.Id == from.Id) is not { } contact) return;
+            renamed = contact.Name != from.Name || contact.Username != from.Username;
+            contact.Name = from.Name;
+            contact.Username = from.Username;
+            contact.LastWrote = Now();
+            SaveSettings();
+        }
+        if (renamed) Changed?.Invoke();
+    }
+
+    /// <summary>Someone new: waits for the owner's decision; told once (PC and Telegram, with buttons).</summary>
+    private void NewStranger(TelegramIncoming m)
+    {
+        TelegramPerson person;
+        bool notify;
+        lock (_gate)
+        {
+            if (Settings.Pending.Any(p => p.Id == m.From.Id)) return;
+            person = new TelegramPerson { Id = m.From.Id, Name = m.From.Name, Username = m.From.Username, When = Now(), Text = Short(m.Text) };
+            Settings.Pending.Add(person);
+            notify = Settings.Others.Notify;
+            SaveSettings();
+        }
+        WriteLog($"  nuevo: {person.Shown} espera tu decisión");
+        Changed?.Invoke();
+        if (!notify) return;
+        StrangerArrived?.Invoke(person);
+        if (Owner is not { } owner) return;
+        var text = Loc.T("telegram.stranger.text", person.Shown) + (person.Text is { Length: > 0 } said ? $"\n\n«{said}»" : string.Empty);
+        Reply(owner.Id, text, "dueño",
+        [
+            [new(Loc.T("telegram.stranger.allow"), $"p:allow:{person.Id}"), new(Loc.T("telegram.stranger.ignore"), $"p:ignore:{person.Id}"), new(Loc.T("telegram.stranger.block"), $"p:block:{person.Id}")],
+        ]);
+    }
+
+    /// <summary>A button pressed: only the owner's count («Permitir», «Ignorar», «Bloquear» of someone new).</summary>
+    private void HandleButton(TelegramIncoming m)
+    {
+        var connection = _connection;
+        string answer;
+        if (Owner?.Id != m.From.Id) answer = Loc.T("telegram.button.notYours");
+        else
+        {
+            var parts = (m.CallbackData ?? string.Empty).Split(':');
+            answer = parts.Length == 3 && parts[0] == "p" && long.TryParse(parts[2], CultureInfo.InvariantCulture, out var id) && Decide(id, parts[1]) is { } done
+                ? done
+                : Loc.T("telegram.button.old");
+            WriteLog($"botón del dueño: {m.CallbackData} → {answer}");
+            if (connection is not null) _ = Quiet(() => connection.EditTextAsync(m.ChatId, m.MessageId, answer, _life.Token));
+        }
+        if (connection is not null && m.CallbackId is { } callback) _ = Quiet(() => connection.AnswerButtonAsync(callback, answer, _life.Token));
+    }
+
+    private string? Decide(long id, string what)
+    {
+        if (Person(id) is not { } person) return null;
+        switch (what)
+        {
+            case "allow":
+                Allow(id, TelegramLevel.ChatOnly);
+                return Loc.T("telegram.decided.allow", person.Shown);
+            case "ignore":
+                Allow(id, TelegramLevel.Ignore);
+                return Loc.T("telegram.decided.ignore", person.Shown);
+            case "block":
+                Block(id);
+                return Loc.T("telegram.decided.block", person.Shown);
+            default:
+                return null;
+        }
+    }
+
+    private static async Task Quiet(Func<Task> call)
+    {
+        try { await call().ConfigureAwait(false); }
+        catch (Exception ex) when (ex is TelegramException or HttpRequestException or IOException or OperationCanceledException or JsonException) { }
+    }
+
+    // ── contacts and decisions ───────────────────────────────────────────
+
+    /// <summary>Someone known by its id: waiting, blocked or a contact.</summary>
+    public TelegramPerson? Person(long id)
+    {
+        lock (_gate)
+        {
+            if (Settings.Pending.FirstOrDefault(p => p.Id == id) is { } pending) return pending;
+            if (Settings.Blocked.FirstOrDefault(p => p.Id == id) is { } blocked) return blocked;
+            return Settings.Contacts.FirstOrDefault(c => c.Id == id) is { } c ? new TelegramPerson { Id = c.Id, Name = c.Name, Username = c.Username, When = c.Added } : null;
+        }
+    }
+
+    /// <summary>Makes <paramref name="id"/> a contact with <paramref name="level"/> (from waiting or blocked; a contact keeps its lists).</summary>
+    public void Allow(long id, TelegramLevel level)
+    {
+        lock (_gate)
+        {
+            if (Settings.Owner?.Id == id) return;
+            var person = Settings.Pending.Concat(Settings.Blocked).FirstOrDefault(p => p.Id == id);
+            Settings.Pending.RemoveAll(p => p.Id == id);
+            Settings.Blocked.RemoveAll(p => p.Id == id);
+            var contact = Settings.Contacts.FirstOrDefault(c => c.Id == id);
+            if (contact is null)
+            {
+                if (person is null) return;
+                contact = new TelegramContact { Id = id, Name = person.Name, Username = person.Username, Added = Now(), LastWrote = person.When };
+                Settings.Contacts.Add(contact);
+            }
+            contact.Level = level;
+            SaveSettings();
+        }
+        WriteLog($"contacto {id}: {level}");
+        Changed?.Invoke();
+    }
+
+    /// <summary>Blocks <paramref name="id"/>: its messages are dropped without telling, and nothing is sent to it.</summary>
+    public void Block(long id)
+    {
+        lock (_gate)
+        {
+            if (Settings.Owner?.Id == id || Person(id) is not { } person) return;
+            Settings.Pending.RemoveAll(p => p.Id == id);
+            Settings.Contacts.RemoveAll(c => c.Id == id);
+            if (Settings.Blocked.All(b => b.Id != id)) Settings.Blocked.Add(new TelegramPerson { Id = id, Name = person.Name, Username = person.Username, When = Now() });
+            SaveSettings();
+        }
+        WriteLog($"bloqueado {id}");
+        Changed?.Invoke();
+    }
+
+    /// <summary>Forgets <paramref name="id"/> (a contact, someone waiting or blocked): next time it writes, it is someone new.</summary>
+    public void Forget(long id)
+    {
+        lock (_gate)
+        {
+            Settings.Pending.RemoveAll(p => p.Id == id);
+            Settings.Blocked.RemoveAll(p => p.Id == id);
+            Settings.Contacts.RemoveAll(c => c.Id == id);
+            SaveSettings();
+        }
+        Changed?.Invoke();
+    }
+
+    /// <summary>Reads the options while the connection may be changing them (a copy of the lists, a value…).</summary>
+    public T Read<T>(Func<TelegramSettings, T> read)
+    {
+        lock (_gate) return read(Settings);
+    }
+
+    /// <summary>Changes the options (a contact's level or lists, a group, «todos los demás», the limits) and saves them.</summary>
+    public void Update(Action<TelegramSettings> change)
+    {
+        lock (_gate)
+        {
+            change(Settings);
+            SaveSettings();
+        }
+        Changed?.Invoke();
     }
 
     private void SetState(TelegramState state, string? problem)

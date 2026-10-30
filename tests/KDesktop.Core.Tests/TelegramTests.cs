@@ -44,16 +44,26 @@ public sealed class TelegramTests : IDisposable
             return list;
         }, cancel);
 
-        public Task<int> SendTextAsync(long chat, string text, CancellationToken cancel)
+        public ConcurrentQueue<IReadOnlyList<IReadOnlyList<TelegramButton>>> Keyboards { get; } = new();
+        public ConcurrentQueue<(int Message, string Text)> Edited { get; } = new();
+
+        public Task<int> SendTextAsync(long chat, string text, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons, CancellationToken cancel)
         {
             if (SendFailures.TryDequeue(out var f)) throw f;
+            if (buttons is not null) Keyboards.Enqueue(buttons);
             Sent.Enqueue((chat, text));
             return Task.FromResult(Sent.Count);
         }
 
         public Task<int> SendFileAsync(long chat, TelegramFileKind kind, string path, string? caption, CancellationToken cancel) => Task.FromResult(1);
         public Task SendChatActionAsync(long chat, string action, CancellationToken cancel) => Task.CompletedTask;
-        public Task EditTextAsync(long chat, int message, string text, CancellationToken cancel) => Task.CompletedTask;
+        public Task EditTextAsync(long chat, int message, string text, CancellationToken cancel)
+        {
+            Edited.Enqueue((message, text));
+            return Task.CompletedTask;
+        }
+
+        public Task AnswerButtonAsync(string callbackId, string? text, CancellationToken cancel) => Task.CompletedTask;
         public Task DeleteAsync(long chat, int message, CancellationToken cancel) => Task.CompletedTask;
         public Task DownloadAsync(string fileId, string destination, CancellationToken cancel) => Task.CompletedTask;
         public void Dispose() { }
@@ -151,7 +161,8 @@ public sealed class TelegramTests : IDisposable
         Assert.Equal("hola", Assert.Single(await connection.ReceiveAsync(default)).Text);
         await connection.ReceiveAsync(default);
         Assert.Contains("offset=51", handler.Bodies[^1], StringComparison.Ordinal);
-        Assert.Equal(9, await connection.SendTextAsync(42, "¡hola!", default));
+        Assert.Equal(9, await connection.SendTextAsync(42, "¡hola!", [[new("Sí", "y")]], default));
+        Assert.Contains("inline_keyboard", Uri.UnescapeDataString(handler.Bodies[^1]), StringComparison.Ordinal);
         Assert.All(asked, a => Assert.StartsWith("/bot" + Token + "/", a, StringComparison.Ordinal));
     }
 
@@ -297,6 +308,136 @@ public sealed class TelegramTests : IDisposable
         Assert.Null(service.Owner);
         Assert.Null(service.Bot);
         Assert.Equal(TelegramState.Off, service.State);
+    }
+
+    /// <summary>A service connected and with its owner (42).</summary>
+    private async Task<(TelegramService Service, FakeConnection Connection)> Linked()
+    {
+        var (service, connection) = Make();
+        await service.SetBotAsync(Token);
+        await Until(() => service.State == TelegramState.Connected);
+        connection.Incoming.Add(From(42, service.StartLinking()));
+        await Until(() => service.Owner is not null && connection.Sent.Any(s => s.Chat == 42));
+        return (service, connection);
+    }
+
+    private static TelegramIncoming Person(long user, string name, string text, string? username = null, TelegramChatKind kind = TelegramChatKind.Private, long? chat = null) =>
+        new(1, chat ?? user, kind, kind == TelegramChatKind.Group ? "Casa" : null, 1, new TelegramUser(user, name, username), DateTimeOffset.UtcNow, text);
+
+    private static TelegramIncoming Button(long user, string data) =>
+        new(1, user, TelegramChatKind.Private, null, 99, new TelegramUser(user, "X", null), DateTimeOffset.UtcNow, string.Empty, TelegramContent.Other, CallbackId: "cb", CallbackData: data);
+
+    [Fact]
+    public async Task SomeoneNewIsToldOnceAndTheOwnerDecides()
+    {
+        var (service, connection) = await Linked();
+        using var _ = service;
+        TelegramPerson? told = null;
+        var served = new ConcurrentQueue<(TelegramIncoming, TelegramVerdict)>();
+        service.StrangerArrived += p => told = p;
+        service.Received += (m, v) => served.Enqueue((m, v));
+
+        connection.Incoming.Add(Person(66, "Ana", "hola, ¿me ayudas?", "ana"));
+        await Until(() => told is not null && !connection.Keyboards.IsEmpty);
+        Assert.Equal(66, Assert.Single(service.Settings.Pending).Id);
+        var keyboard = Assert.Single(connection.Keyboards);
+        Assert.Equal(["p:allow:66", "p:ignore:66", "p:block:66"], keyboard[0].Select(b => b.Data));
+        Assert.Empty(served); // «todos los demás» is «Ignorar» by default
+
+        // Again: not told twice.
+        connection.Incoming.Add(Person(66, "Ana", "¿hola?", "ana"));
+        await Task.Delay(100);
+        Assert.Single(connection.Keyboards);
+
+        // A button of someone else's does nothing.
+        connection.Incoming.Add(Button(66, "p:allow:66"));
+        await Task.Delay(100);
+        Assert.Empty(service.Settings.Contacts);
+
+        // The owner allows her: a contact, «Solo charla»; the message says what was done.
+        connection.Incoming.Add(Button(42, "p:allow:66"));
+        await Until(() => service.Settings.Contacts.Count == 1 && !connection.Edited.IsEmpty);
+        Assert.Equal(TelegramLevel.ChatOnly, service.Settings.Contacts[0].Level);
+        Assert.Empty(service.Settings.Pending);
+
+        // Now she is served, and her new name is kept.
+        connection.Incoming.Add(Person(66, "Ana María", "gracias", "anamaria"));
+        await Until(() => !served.IsEmpty);
+        Assert.Equal(TelegramRoute.Contact, served.Single().Item2.Route);
+        Assert.Equal("anamaria", service.Settings.Contacts[0].Username);
+        Assert.NotNull(service.Settings.Contacts[0].LastWrote);
+
+        // Blocked: dropped without telling.
+        service.Block(66);
+        connection.Incoming.Add(Person(66, "Ana María", "¿hola?"));
+        await Task.Delay(100);
+        Assert.Single(served);
+        Assert.Equal(66, Assert.Single(service.Settings.Blocked).Id);
+        service.Forget(66);
+        Assert.Empty(service.Settings.Blocked);
+    }
+
+    [Fact]
+    public async Task LimitsAndGames()
+    {
+        var (service, connection) = await Linked();
+        using var _ = service;
+        var served = new ConcurrentQueue<long>();
+        service.Received += (m, _) => served.Enqueue(m.From.Id);
+        service.Update(s =>
+        {
+            s.Contacts.Add(new TelegramContact { Id = 2, Name = "Ana", Level = TelegramLevel.ChatOnly });
+            s.Limits.PerMinute = 2;
+        });
+        var before = connection.Sent.Count;
+        for (var i = 0; i < 4; i++) connection.Incoming.Add(Person(2, "Ana", "hola " + i));
+        await Until(() => served.Count == 2 && connection.Sent.Count == before + 1);
+        await Task.Delay(100);
+        Assert.Equal(2, served.Count);
+        Assert.Equal(before + 1, connection.Sent.Count); // «ahora no puedo», once
+
+        // While gaming, only the owner.
+        service.Busy = () => true;
+        connection.Incoming.Add(Person(42, "Yo", "hola"));
+        await Until(() => served.Count == 3);
+        Assert.Equal(42, served.Last());
+        service.Update(s => s.Limits.OnlyOwnerWhileGaming = false);
+        service.Update(s => s.Limits.PerMinute = 10);
+        connection.Incoming.Add(Person(2, "Ana", "ya"));
+        await Until(() => served.Count == 4);
+    }
+
+    [Fact]
+    public async Task GroupsAndWritingFirst()
+    {
+        var (service, connection) = await Linked();
+        using var _ = service;
+        var served = new ConcurrentQueue<TelegramIncoming>();
+        service.Received += (m, _) => served.Enqueue(m);
+        connection.Incoming.Add(Person(42, "Yo", "hola a todos", kind: TelegramChatKind.Group, chat: -10));
+        connection.Incoming.Add(Person(42, "Yo", "@kd_ana_bot hola", kind: TelegramChatKind.Group, chat: -10));
+        await Until(() => served.Count == 1);
+        Assert.Equal("Casa", Assert.Single(service.Settings.Groups).Title);
+        service.Update(s => s.Groups[0].Ignore = true);
+        connection.Incoming.Add(Person(42, "Yo", "@kd_ana_bot otra", kind: TelegramChatKind.Group, chat: -10));
+        await Task.Delay(100);
+        Assert.Single(served);
+
+        // Who K-Desktop may write to: the owner; a contact who wrote; one who never did, so many an hour.
+        service.Update(s =>
+        {
+            s.Limits.NewPerHour = 1;
+            s.Contacts.Add(new TelegramContact { Id = 2, Name = "Ana", LastWrote = DateTimeOffset.UtcNow });
+            s.Contacts.Add(new TelegramContact { Id = 3, Name = "Pepe" });
+            s.Contacts.Add(new TelegramContact { Id = 5, Name = "Luis", MayWrite = false, LastWrote = DateTimeOffset.UtcNow });
+        });
+        Assert.True(service.CanWriteTo(42));
+        Assert.True(service.CanWriteTo(2));
+        Assert.True(service.CanWriteTo(2));
+        Assert.True(service.CanWriteTo(3));
+        Assert.False(service.CanWriteTo(3));
+        Assert.False(service.CanWriteTo(5));
+        Assert.False(service.CanWriteTo(99));
     }
 
     [Fact]

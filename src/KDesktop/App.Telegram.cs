@@ -1,6 +1,7 @@
 using KDesktop.Core;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using KDesktop.Core.Remote.Telegram;
 
@@ -19,6 +20,12 @@ public partial class App
         Telegram = new TelegramService(TelegramService.DefaultFolder, Secrets.Protect, Secrets.Unprotect);
         Telegram.OwnerLinked += owner => Dispatcher.BeginInvoke(() =>
             Ui.ShowOsd(Loc.T("telegram.linked", owner.Shown), OsdKind.Success, null, OsdLook.Of("Send24")));
+        // Someone new wrote: told here too (the owner decides on the PC or with the buttons in Telegram).
+        Telegram.StrangerArrived += person => Dispatcher.BeginInvoke(() =>
+            _ = Ui.ShowNotificationAsync(new Notification(Loc.T("telegram.stranger.title"), Loc.T("telegram.stranger.text", person.Shown), "kd:Send24:blue", NotifyColor.Blue,
+                ShowNotificationAction.GlobalSound, TimeSpan.FromSeconds(15), null, () => ShowMainWindow(w => w.Navigate("settings/accounts/telegram")))));
+        // «Solo yo mientras juego»: something covers the monitor of the window in front.
+        Telegram.Busy = () => Native.UiNative.FullscreenOn(Native.UiNative.MonitorFor(Core.Model.ScreenChoice.ActiveWindow).Monitor);
     }
 
     private void StartTelegram()

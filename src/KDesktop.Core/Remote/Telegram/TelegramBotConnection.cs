@@ -55,7 +55,7 @@ public sealed class TelegramBotConnection : ITelegramConnection
         [
             new("offset", _offset.ToString(CultureInfo.InvariantCulture)),
             new("timeout", PollSeconds.ToString(CultureInfo.InvariantCulture)),
-            new("allowed_updates", "[\"message\"]"),
+            new("allowed_updates", "[\"message\",\"callback_query\"]"),
         ], cancel).ConfigureAwait(false);
         var list = new List<TelegramIncoming>();
         foreach (var update in result.EnumerateArray())
@@ -67,9 +67,10 @@ public sealed class TelegramBotConnection : ITelegramConnection
         return list;
     }
 
-    /// <summary>An update as a message; null when it is not one of a person (a channel post, an edit, a bot…).</summary>
+    /// <summary>An update as a message (or a button pressed); null when it is not one of a person (a channel post, an edit, a bot…).</summary>
     public static TelegramIncoming? ParseUpdate(JsonElement update)
     {
+        if (update.TryGetProperty("callback_query", out var callback)) return ParseButton(update, callback);
         if (!update.TryGetProperty("message", out var m) || !m.TryGetProperty("from", out var from)) return null;
         if (from.TryGetProperty("is_bot", out var bot) && bot.GetBoolean()) return null;
         var chat = m.GetProperty("chat");
@@ -98,6 +99,7 @@ public sealed class TelegramBotConnection : ITelegramConnection
             file = FileOf(doc, Str(doc, "file_name"));
         }
         else if (!m.TryGetProperty("text", out _)) content = TelegramContent.Other;
+        long? replyTo = m.TryGetProperty("reply_to_message", out var reply) && reply.TryGetProperty("from", out var replyFrom) ? replyFrom.GetProperty("id").GetInt64() : null;
         return new TelegramIncoming(
             update.GetProperty("update_id").GetInt64(),
             chat.GetProperty("id").GetInt64(),
@@ -108,7 +110,26 @@ public sealed class TelegramBotConnection : ITelegramConnection
             DateTimeOffset.FromUnixTimeSeconds(m.TryGetProperty("date", out var date) ? date.GetInt64() : 0),
             text,
             content,
-            file);
+            file,
+            replyTo);
+    }
+
+    private static TelegramIncoming? ParseButton(JsonElement update, JsonElement callback)
+    {
+        if (!callback.TryGetProperty("from", out var from) || !callback.TryGetProperty("message", out var m) || !m.TryGetProperty("chat", out var chat)) return null;
+        var kind = Str(chat, "type") == "private" ? TelegramChatKind.Private : TelegramChatKind.Group;
+        return new TelegramIncoming(
+            update.GetProperty("update_id").GetInt64(),
+            chat.GetProperty("id").GetInt64(),
+            kind,
+            Str(chat, "title"),
+            m.GetProperty("message_id").GetInt32(),
+            User(from),
+            DateTimeOffset.UtcNow,
+            string.Empty,
+            TelegramContent.Other,
+            CallbackId: Str(callback, "id"),
+            CallbackData: Str(callback, "data") ?? string.Empty);
     }
 
     private static TelegramFile FileOf(JsonElement f, string? name) =>
@@ -122,11 +143,22 @@ public sealed class TelegramBotConnection : ITelegramConnection
 
     private static string? Str(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
-    public async Task<int> SendTextAsync(long chat, string text, CancellationToken cancel)
+    public async Task<int> SendTextAsync(long chat, string text, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons, CancellationToken cancel)
     {
-        var sent = await CallAsync("sendMessage", [new("chat_id", Id(chat)), new("text", text), new("link_preview_options", "{\"is_disabled\":true}")], cancel).ConfigureAwait(false);
+        List<KeyValuePair<string, string>> args = [new("chat_id", Id(chat)), new("text", text), new("link_preview_options", "{\"is_disabled\":true}")];
+        if (buttons is { Count: > 0 }) args.Add(new("reply_markup", Keyboard(buttons)));
+        var sent = await CallAsync("sendMessage", [.. args], cancel).ConfigureAwait(false);
         return sent.GetProperty("message_id").GetInt32();
     }
+
+    /// <summary>Rows of buttons as Telegram's inline keyboard.</summary>
+    public static string Keyboard(IReadOnlyList<IReadOnlyList<TelegramButton>> rows) => JsonSerializer.Serialize(new
+    {
+        inline_keyboard = rows.Select(row => row.Select(b => new { text = b.Text, callback_data = b.Data })),
+    });
+
+    public Task AnswerButtonAsync(string callbackId, string? text, CancellationToken cancel) =>
+        CallAsync("answerCallbackQuery", text is { Length: > 0 } ? [new("callback_query_id", callbackId), new("text", text)] : [new("callback_query_id", callbackId)], cancel);
 
     public async Task<int> SendFileAsync(long chat, TelegramFileKind kind, string path, string? caption, CancellationToken cancel)
     {

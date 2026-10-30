@@ -46,6 +46,8 @@ public partial class AccountsSection
         BuildBot();
         if (Telegram.Bot is null) return;
         BuildOwner();
+        // Who else may write to it only matters once it works for someone.
+        if (Telegram.Owner is not null) BuildPeople();
         BuildNotices();
     }
 
