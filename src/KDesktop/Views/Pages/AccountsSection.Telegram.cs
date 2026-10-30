@@ -47,9 +47,41 @@ public partial class AccountsSection
         if (Telegram.Bot is null) return;
         BuildOwner();
         // Who else may write to it only matters once it works for someone.
-        if (Telegram.Owner is not null) BuildPeople();
+        if (Telegram.Owner is not null)
+        {
+            BuildTalk();
+            BuildPeople();
+        }
         BuildNotices();
     }
+
+    /// <summary>
+    /// Talking to the assistant by Telegram (telegram, phase 4.4): who answers (the one on the screen, or one of them; each
+    /// contact may have their own) and whether what it did goes under the answer.
+    /// </summary>
+    private void BuildTalk()
+    {
+        var card = CalendarUi.Card(Root, Loc.T("telegram.talk.title"), Loc.T("telegram.talk.intro"));
+        var who = new ComboBox
+        {
+            DisplayMemberPath = "Name", SelectedValuePath = "Id",
+            ItemsSource = TelegramAssistantChoices(Loc.T("telegram.talk.onScreen")),
+            SelectedValue = Telegram.Settings.Assistant ?? string.Empty,
+        };
+        who.SelectionChanged += (_, _) =>
+        {
+            if (who.SelectedValue is string id) Telegram.Update(s => s.Assistant = id.Length == 0 ? null : id);
+        };
+        card.Children.Add(CalendarUi.Row(Loc.T("telegram.talk.who"), Loc.T("telegram.talk.whoHint"), who, 240));
+        var did = new ToggleSwitch { IsChecked = Telegram.Settings.ShowDid };
+        did.Click += (_, _) => Telegram.Update(s => s.ShowDid = did.IsChecked == true);
+        card.Children.Add(CalendarUi.Row(Loc.T("telegram.talk.did"), Loc.T("telegram.talk.didHint"), did, 0));
+        if (App.Current.Assistant is null) card.Children.Add(CalendarUi.Status(Loc.T("telegram.talk.moduleOff"), "Kd.Warning"));
+    }
+
+    /// <summary>The assistants that may answer by Telegram, after a first choice with an empty id.</summary>
+    internal static IReadOnlyList<AssistantChoice> TelegramAssistantChoices(string first) =>
+        [new(string.Empty, first, null), .. Lookups.AssistantList];
 
     private void BuildBot()
     {

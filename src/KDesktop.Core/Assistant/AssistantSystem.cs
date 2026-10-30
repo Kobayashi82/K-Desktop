@@ -137,12 +137,12 @@ public static class AssistantSystem
 
     /// <summary>Finds what to do and does it, like <see cref="AssistantActs.ActAsync"/>.</summary>
     public static async Task<EndMessage> RunAsync(Engine.CommandEngine engine, SystemMessage request, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null, RemoteLimits? remote = null)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Localization.Loc.T("pause.refused")]);
         var plan = Build(request);
         if (plan.Command is null) return new EndMessage(request.Run, "failed", [], plan.Name, plan.Reason);
-        var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, request.Run, who, ask, choreography, allowed, AssistantCommands.SourceOf(request.Shared)).ConfigureAwait(false);
+        var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, request.Run, who, ask, choreography, allowed, remote: remote, source: AssistantCommands.SourceOf(request.Shared)).ConfigureAwait(false);
         return end with { Name = plan.Name };
     }
 }

@@ -20,6 +20,8 @@ public partial class TelegramContactDialog : FluentWindow
     private readonly ComboBox _level;
     private readonly TextBlock _levelHint;
     private readonly CheckBox _mayWrite;
+    private readonly ComboBox _assistant;
+    private readonly StackPanel _assistantPanel = new();
     private readonly StackPanel _commandsPanel = new();
     private readonly StackPanel _toolsPanel = new();
     private readonly List<(CheckBox Box, string Id)> _commands = [];
@@ -45,6 +47,18 @@ public partial class TelegramContactDialog : FluentWindow
         Form.Children.Add(_levelHint);
         _mayWrite = new CheckBox { Content = Loc.T("telegram.contact.mayWrite"), IsChecked = c.MayWrite, Margin = new Thickness(0, 0, 0, 12) };
         Form.Children.Add(_mayWrite);
+
+        // Who answers them when they talk to the assistant (telegram, phase 4.4).
+        _assistantPanel.Children.Add(CalendarUi.Label(Loc.T("telegram.contact.assistant")));
+        _assistant = new ComboBox
+        {
+            DisplayMemberPath = "Name", SelectedValuePath = "Id", HorizontalAlignment = HorizontalAlignment.Stretch,
+            ItemsSource = AccountsSection.TelegramAssistantChoices(Loc.T("telegram.contact.assistantDefault")),
+            SelectedValue = c.Assistant ?? string.Empty,
+        };
+        _assistantPanel.Children.Add(_assistant);
+        _assistantPanel.Children.Add(CalendarUi.Caption(Loc.T("telegram.contact.assistantHint"), new Thickness(0, 4, 0, 12)));
+        Form.Children.Add(_assistantPanel);
 
         // The commands, by name (kept by id: renaming one does not lose it).
         _commandsPanel.Children.Add(CalendarUi.Label(Loc.T("telegram.contact.commands")));
@@ -98,12 +112,14 @@ public partial class TelegramContactDialog : FluentWindow
         _levelHint.Text = Loc.T("telegram.level." + Level + ".hint");
         _commandsPanel.Visibility = Level is TelegramLevel.ChosenCommands or TelegramLevel.ChosenTools ? Visibility.Visible : Visibility.Collapsed;
         _toolsPanel.Visibility = Level == TelegramLevel.ChosenTools ? Visibility.Visible : Visibility.Collapsed;
+        _assistantPanel.Visibility = Level is TelegramLevel.Ignore or TelegramLevel.ChosenCommands ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void OnSave(object sender, RoutedEventArgs e)
     {
         var level = Level;
         var mayWrite = _mayWrite.IsChecked == true;
+        var assistant = _assistant.SelectedValue is string { Length: > 0 } id ? id : null;
         List<string> commands = [.. _commands.Where(x => x.Box.IsChecked == true).Select(x => x.Id)];
         List<string> tools = [.. _tools.Where(x => x.Box.IsChecked == true).Select(x => x.Name), .. _unknownTools];
         Telegram.Update(s =>
@@ -113,6 +129,7 @@ public partial class TelegramContactDialog : FluentWindow
             contact.MayWrite = mayWrite;
             contact.Commands = commands;
             contact.Tools = tools;
+            contact.Assistant = assistant;
         });
         DialogResult = true;
     }

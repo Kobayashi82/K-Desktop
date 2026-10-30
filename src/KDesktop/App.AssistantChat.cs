@@ -158,8 +158,9 @@ public partial class App
     /// <param name="files">Files given with it (stage 14.1: dropped on the assistant); <paramref name="act"/>: what to do with them without the AI.</param>
     /// <param name="permit">An order an assistant programmed (source <c>scheduled</c>): what was approved for it then.</param>
     /// <param name="reply">«Asistente: preguntar» with an answer (D1): answered quietly, and it comes back as <c>replied</c> with this id.</param>
+    /// <param name="origin">An order from another channel (telegram, phase 4.1): who wrote it and what they may use.</param>
     public bool SendToAssistant(string? id, string text, string source, IReadOnlyList<string>? files = null, string? act = null, ScheduledPermit? permit = null,
-        string? reply = null)
+        string? reply = null, HeardOrigin? origin = null)
     {
         text = text.Trim();
         if (text.Length == 0) return false;
@@ -181,13 +182,13 @@ public partial class App
                 && !AssistantTargeting.IsSystem(id) && IsOnDesktop(id) && !IsAssistantLoaded(id)))
         {
             _pendingOrders.RemoveAll(o => DateTime.UtcNow - o.At > PendingOrderTime);
-            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act, permit, reply));
+            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act, permit, reply, Origin: origin));
             Log.Info($"Asistente: orden por {source} para «{id}» en espera de que esté listo");
             return true;
         }
         var heard = new HeardMessage(text, source, ProcessIdOf(id), files is { Count: > 0 } ? files : null, act,
             permit?.Key, permit is null ? null : [.. permit.Tools.Order(StringComparer.Ordinal)], reply,
-            source == "phone" ? PhoneSpeak.GetValueOrDefault(id) : null);
+            source == "phone" ? PhoneSpeak.GetValueOrDefault(id) : null, origin);
         if (!_assistant.IsRunning || !_assistant.Send(heard))
         {
             Ui.ShowOsd(Loc.T("assistantChat.notRunning"), Core.Engine.OsdKind.Warning);
@@ -205,7 +206,7 @@ public partial class App
 
     /// <param name="Say">Not an order: «Asistente: decir» (D4), catching the eye first or not.</param>
     private sealed record PendingOrder(string Id, string Text, string Source, DateTime At, IReadOnlyList<string>? Files = null, string? Act = null,
-        ScheduledPermit? Permit = null, string? Reply = null, bool? Say = null);
+        ScheduledPermit? Permit = null, string? Reply = null, bool? Say = null, HeardOrigin? Origin = null);
 
     private readonly List<PendingOrder> _pendingOrders = [];
 
@@ -231,7 +232,7 @@ public partial class App
                 SayToAssistant(id, order.Text, catchEye);
                 continue;
             }
-            if (!SendToAssistant(id, order.Text, order.Source, order.Files, order.Act, order.Permit, order.Reply) && order.Reply is { } failed) EndReply(failed, null);
+            if (!SendToAssistant(id, order.Text, order.Source, order.Files, order.Act, order.Permit, order.Reply, order.Origin) && order.Reply is { } failed) EndReply(failed, null);
         }
     }
 

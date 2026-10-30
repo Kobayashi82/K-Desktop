@@ -402,7 +402,9 @@ public sealed record BrainStateMessage(
 /// <param name="Did">What it did, in words for people.</param>
 /// <param name="Undo">Id to undo it with (<see cref="UndoMessage"/>), when it can be undone.</param>
 /// <param name="Undid">For <c>undo</c>: the <see cref="Undo"/> id it undid.</param>
-public sealed record ActivityEntry(string Id, DateTimeOffset At, string Heard, string Route, string Did, bool Ok, string? Undo = null, string? Undid = null);
+/// <param name="By">Asked from another channel (<see cref="HeardOrigin.By"/>): «pedido por Ana vía Telegram».</param>
+public sealed record ActivityEntry(string Id, DateTimeOffset At, string Heard, string Route, string Did, bool Ok, string? Undo = null, string? Undid = null,
+    string? By = null);
 
 /// <param name="Assistant">Who did it (null: the module without a body).</param>
 public sealed record LogMessage(ActivityEntry Entry, string? Assistant = null) : PipeMessage
@@ -420,7 +422,9 @@ public sealed record UndoMessage(string Undo, string? Assistant = null) : PipeMe
 /// A tool needs the user's permission (plan §8): K-Desktop asks («¿Lo hago?») and answers with <see cref="AnswerMessage"/>.
 /// <paramref name="CanTrust"/>: «yes, and don't ask again» may be offered (a tool that asks only the first time).
 /// </summary>
-public sealed record AskMessage(string Id, string Tool, string Text, bool CanTrust, int Seconds, string? Assistant = null) : PipeMessage
+/// <param name="Origin">Asked in an order from another channel (<see cref="HeardOrigin.Key"/>): K-Desktop asks the owner (on the PC if they
+/// are there, else by Telegram).</param>
+public sealed record AskMessage(string Id, string Tool, string Text, bool CanTrust, int Seconds, string? Assistant = null, string? Origin = null) : PipeMessage
 {
     public override string Type => "ask";
 }
@@ -449,9 +453,12 @@ public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
 /// <param name="Speak">Where its answer sounds (phase 6 of the phone app, 5.0.410): <c>phone</c> (only on the phone that asked:
 /// the voice goes to K-Desktop with <see cref="SpeechAudioMessage"/>, the character moves its mouth in silence) or
 /// <c>both</c>; null: on the PC.</param>
+/// <param name="Origin">An order from another channel (telegram, phase 4.1; source <c>telegram</c>): who wrote it and what they may use.</param>
 public sealed record HeardMessage(string Text, string Source, string? Assistant = null, IReadOnlyList<string>? Files = null, string? Act = null,
-    string? Scheduled = null, IReadOnlyList<string>? Allowed = null, string? Reply = null, string? Speak = null) : PipeMessage
+    string? Scheduled = null, IReadOnlyList<string>? Allowed = null, string? Reply = null, string? Speak = null, HeardOrigin? Origin = null) : PipeMessage
 {
+    public const string SourceTelegram = "telegram";
+
     public const string SpeakPhone = "phone";
     public const string SpeakBoth = "both";
 
@@ -776,7 +783,9 @@ public sealed record MatchedMessage(string Id, double Score, IReadOnlyList<strin
 /// <summary>Runs a command for an assistant (without choreography until phase 6). Answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Scheduled">For an order programmed by an assistant: its key (<see cref="HeardMessage.Scheduled"/>); nobody is asked.</param>
 /// <param name="Shared">Asked by another program through the MCP server (<see cref="Sharing.McpShare"/>): its name, for the history.</param>
-public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false, string? Scheduled = null, string? Shared = null) : PipeMessage
+/// <param name="Origin">In an order from another channel: its key (<see cref="HeardOrigin.Key"/>); K-Desktop applies that person's limits.</param>
+public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false, string? Scheduled = null, string? Shared = null,
+    string? Origin = null) : PipeMessage
 {
     public override string Type => "run";
 }
@@ -1111,9 +1120,25 @@ public sealed record MailDoneMessage(string Id, Mail.MailAnswer Answer) : PipeMe
     public override string Type => "mailDone";
 }
 
+/// <summary>
+/// Telegram for the assistants (telegram, phase 4.5: telegram_send, telegram_read, telegram_send_file): K-Desktop answers it
+/// with its <see cref="Remote.Telegram.TelegramService"/> (<see cref="Remote.Telegram.TelegramAssistant"/>), which applies
+/// again who may be written to; the token never leaves K-Desktop. Answered with <see cref="TelegramDoneMessage"/>.
+/// </summary>
+/// <param name="Origin">In an order from Telegram: its key (only the chats that person may see are read).</param>
+public sealed record TelegramMessage(string Id, Remote.Telegram.TelegramRequest Request, string? Assistant = null, string? Origin = null) : PipeMessage
+{
+    public override string Type => "telegram";
+}
+
+public sealed record TelegramDoneMessage(string Id, Remote.Telegram.TelegramAnswer Answer) : PipeMessage
+{
+    public override string Type => "telegramDone";
+}
+
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
-public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null, string? Shared = null) : PipeMessage
+public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null, string? Shared = null, string? Origin = null) : PipeMessage
 {
     public override string Type => "runEvent";
 }
@@ -1176,13 +1201,13 @@ public sealed record PhoneSentMessage(string Id, bool Ok, IReadOnlyList<string> 
 }
 
 public sealed record SystemMessage(string Assistant, string Run, string Group, string Op, int? Value = null, string Text = "", bool Choreography = false,
-    string? Scheduled = null, string? Shared = null) : PipeMessage
+    string? Scheduled = null, string? Shared = null, string? Origin = null) : PipeMessage
 {
     public override string Type => "system";
 }
 
 public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null, string? Shared = null,
-    IReadOnlyList<string>? Apps = null, string? Layout = null) : PipeMessage
+    IReadOnlyList<string>? Apps = null, string? Layout = null, string? Origin = null) : PipeMessage
 {
     public override string Type => "act";
 }
@@ -1425,6 +1450,8 @@ public static class PipeJson
         ["calendarDone"] = typeof(CalendarDoneMessage),
         ["mail"] = typeof(MailMessage),
         ["mailDone"] = typeof(MailDoneMessage),
+        ["telegram"] = typeof(TelegramMessage),
+        ["telegramDone"] = typeof(TelegramDoneMessage),
         ["act"] = typeof(ActMessage),
         ["system"] = typeof(SystemMessage),
         ["phone"] = typeof(SendPhoneMessage),

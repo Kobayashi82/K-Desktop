@@ -89,6 +89,9 @@ public interface ICommandBridge
     /// <summary>The mail: list, read, draft, send, move or undo (mail_*; <see cref="MailMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
     Task<MailDoneMessage?> MailAsync(MailMessage request, CancellationToken cancellationToken) => Task.FromResult<MailDoneMessage?>(null);
 
+    /// <summary>Telegram: send, read, contacts or undo (telegram_*; <see cref="TelegramMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
+    Task<TelegramDoneMessage?> TelegramAsync(TelegramMessage request, CancellationToken cancellationToken) => Task.FromResult<TelegramDoneMessage?>(null);
+
     /// <summary>An event made and saved, or removed again (B8, <see cref="MakeEventMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
     Task<MadeEventMessage?> MakeEventAsync(MakeEventMessage request, CancellationToken cancellationToken) => Task.FromResult<MadeEventMessage?>(null);
 }
@@ -163,6 +166,9 @@ public static class CommandTools
         registry.Add(new MailSendTool(bridge));
         registry.Add(new MailMoveTool(bridge));
         registry.Add(new MailInvitationTool(bridge));
+        registry.Add(new TelegramSendTool(bridge));
+        registry.Add(new TelegramReadTool(bridge));
+        registry.Add(new TelegramSendFileTool(bridge));
         registry.Add(new ListScheduledTool(bridge, builtin));
         registry.Add(new CancelScheduledTool(bridge));
     }

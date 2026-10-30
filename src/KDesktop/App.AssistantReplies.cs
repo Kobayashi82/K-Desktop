@@ -61,7 +61,8 @@ public partial class App
     /// An order (or, with <paramref name="say"/>, something to say) from a command for one that is still coming out (hidden and brought out now, or not loaded yet): it waits
     /// for it, and goes as soon as it is loaded. False: it is there (or it has no body), send it now.
     /// </summary>
-    private bool BringingOut(string id, string text, string source, string? reply = null, bool? say = null)
+    private bool BringingOut(string id, string text, string source, string? reply = null, bool? say = null, IReadOnlyList<string>? files = null,
+        HeardOrigin? origin = null)
     {
         if (AssistantTargeting.IsSystem(id))
         {
@@ -69,7 +70,7 @@ public partial class App
             return false;
         }
         if (IsOnDesktop(id) && IsAssistantLoaded(id)) return false;
-        _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, Reply: reply, Say: say));
+        _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, Reply: reply, Say: say, Origin: origin));
         Log.Info($"Asistente: orden por {source} para «{id}» en espera de que salga");
         if (!IsOnDesktop(id)) ShowAssistant(id);
         return true;

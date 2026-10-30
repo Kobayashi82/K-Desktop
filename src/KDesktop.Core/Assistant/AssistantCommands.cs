@@ -134,12 +134,12 @@ public static class AssistantCommands
     /// <param name="choreography">With <see cref="RunMessage.Choreography"/>: the assistant's turn before each step (stage
     /// 6.3); cancelling it ends the run <c>cancelled</c>.</param>
     public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null, RemoteLimits? remote = null)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
-        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography, allowed, SourceOf(request.Shared)).ConfigureAwait(false);
+        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography, allowed, SourceOf(request.Shared), remote).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -151,11 +151,25 @@ public static class AssistantCommands
     /// this says it was approved, whatever the user's policy.
     /// </param>
     /// <param name="source"><see cref="TriggerSource.Mcp"/> when another program asked through the MCP server.</param>
+    /// <param name="remote">An order from another channel (telegram, phase 4.2): which commands that person may run, and
+    /// whether whatever is not safe asks the owner (someone else, or text of third parties), whatever the user's policy.</param>
     public static async Task<EndMessage> RunCommandAsync(CommandEngine engine, Command command, string run, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null, TriggerSource source = TriggerSource.Assistant)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null, TriggerSource source = TriggerSource.Assistant, RemoteLimits? remote = null)
     {
-        var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
-        if (allowed is not null)
+        if (remote is not null && !remote.Allows(command))
+        {
+            Log.Info($"Asistente: «{command.Name}» no está permitido a quien lo pide: no se ejecuta");
+            return new EndMessage(run, "declined", [Loc.T("assistantCommand.notAllowedRemote", command.Name)], Reason: "notAllowed");
+        }
+        // Someone else's order: the commands the user trusted do not count as trusted for them.
+        var trusted = remote is not { AsksUnlessSafe: true } && engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id);
+        var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, trusted);
+        if (remote is { AsksUnlessSafe: true })
+        {
+            if (risk != ToolRisk.Safe && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
+                return new EndMessage(run, "declined", [Loc.T("assistantCommand.declined", command.Name)]);
+        }
+        else if (allowed is not null)
         {
             if (risk != ToolRisk.Safe && !allowed(command))
             {
@@ -234,7 +248,7 @@ public static class AssistantCommands
     /// </summary>
     /// <param name="allowed">An order programmed by an assistant: whether running events was approved (nobody is asked).</param>
     public static async Task<EndMessage> RunEventAsync(CommandEngine engine, RunEventMessage request, string who, Func<EventRule, ToolRisk, Task<string>> ask,
-        bool? allowed = null)
+        bool? allowed = null, RemoteLimits? remote = null)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         var config = engine.Config;
@@ -246,9 +260,14 @@ public static class AssistantCommands
             .FirstOrDefault();
         if (rule is null) return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.noEvent", request.Event)]);
         var risk = rule.Commands.Select(config.FindCommand).OfType<Command>()
-            .Select(c => ActionRisk.OfCommand(c, config.FindCommand, config.Settings.AssistantTrustedCommands.Contains(c.Id)))
+            .Select(c => ActionRisk.OfCommand(c, config.FindCommand, remote is not { AsksUnlessSafe: true } && config.Settings.AssistantTrustedCommands.Contains(c.Id)))
             .DefaultIfEmpty(ToolRisk.Safe).Max();
-        if (allowed is { } approved)
+        if (remote is { AsksUnlessSafe: true })
+        {
+            if (risk != ToolRisk.Safe && await ask(rule, risk).ConfigureAwait(false) is not ("yes" or "always"))
+                return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", rule.Name)]);
+        }
+        else if (allowed is { } approved)
         {
             if (risk != ToolRisk.Safe && !approved)
                 return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.notApproved", rule.Name)], Reason: "notApproved");

@@ -152,6 +152,15 @@ public sealed class ToolRunner
     {
         var name = tool.Name;
         var risk = _registry.RiskOf(tool, arguments);
+        // An order from another channel (telegram, phase 4.2): only what that person may use runs (the rest was not even offered).
+        var origin = shared ? null : TurnOrigin.Current;
+        if (origin is not null && !origin.Allows(name, tool.ReadsOnly))
+        {
+            Log.Info($"Asistente: {name} no está permitida a {origin.Who} ({origin.Channel}): no se ejecuta");
+            return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.notAllowedRemote", intent), ok: false));
+        }
+        // Text of third parties in the turn (a mail read, a group, a forwarded message): what acts asks first.
+        var outside = context.Trust.ReadOutside || origin is { Untrusted: true };
         if (route is ActionRoute or UnattendedActionRoute)
         {
             if (unseen || _registry.ChosenRisk(tool) == ToolRisk.AskAlways)
@@ -179,14 +188,17 @@ public sealed class ToolRunner
                 return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.notApproved", intent), ok: false));
             }
         }
-        else if (unseen || MustAsk(tool, risk, shared, context.SharedFree) || (context.Trust.ReadOutside && !tool.ReadsOnly))
+        else if (unseen || MustAsk(tool, risk, shared, context.SharedFree, origin) || (outside && !tool.ReadsOnly))
         {
             Use(context, tool, ToolPhase.Asking);
             // After reading a mail, what acts says so: the order may come from the mail, not from the user.
             var text = shared ? Loc.T("tools.askShared", context.Caller ?? "?", intent)
                 : context.Trust.ReadOutside && !tool.ReadsOnly ? Loc.T("tools.askAfterMail", intent)
+                : outside && !tool.ReadsOnly ? Loc.T("tools.askAfterOutside", intent)
                 : Loc.T(unseen ? "tools.askNew" : "tools.ask", intent);
-            var choice = await AskAsync(tool, risk, text, fingerprint is not null || (shared && risk != ToolRisk.AskAlways), context, cancellationToken).ConfigureAwait(false);
+            // Asked from another channel, the owner says yes once: «don't ask again» is only offered at the PC.
+            var approvable = origin is null && (fingerprint is not null || (shared && risk != ToolRisk.AskAlways));
+            var choice = await AskAsync(tool, origin is null ? risk : ToolRisk.AskAlways, text, approvable, context, cancellationToken, origin).ConfigureAwait(false);
             if (choice is not ("yes" or "always"))
             {
                 var why = Loc.T(choice == "no" ? "tools.denied" : "tools.unanswered", intent);
@@ -264,7 +276,7 @@ public sealed class ToolRunner
     /// <summary>Writes a line of the activity that is not a tool call (a timer that rang…).</summary>
     public ActivityEntry Record(string? assistant, string heard, string route, string did, bool ok, string? undo = null, string? undid = null)
     {
-        var entry = new ActivityEntry(NewId(), DateTimeOffset.Now, heard, route, did, ok, undo, undid);
+        var entry = new ActivityEntry(NewId(), DateTimeOffset.Now, heard, route, did, ok, undo, undid, TurnOrigin.Current?.By);
         _log(new LogMessage(entry, assistant));
         return entry;
     }
@@ -273,8 +285,10 @@ public sealed class ToolRunner
     /// Whether to ask first. Another program (<paramref name="shared"/>): whatever does more than read asks, whatever the
     /// user's policy, until «yes, and don't ask again»; what always asks, always.
     /// </summary>
-    private bool MustAsk(ITool tool, ToolRisk risk, bool shared, bool free) =>
-        shared && free && !_registry.AlwaysAsks(tool) ? risk == ToolRisk.AskAlways
+    /// <param name="origin">An order from someone who is not the owner (by Telegram): whatever is not safe asks the owner, whatever the policy.</param>
+    private bool MustAsk(ITool tool, ToolRisk risk, bool shared, bool free, HeardOrigin? origin = null) =>
+        origin is { Owner: false } ? !tool.ReadsOnly && (risk != ToolRisk.Safe || _registry.AlwaysAsks(tool))
+        : shared && free && !_registry.AlwaysAsks(tool) ? risk == ToolRisk.AskAlways
         : _registry.AlwaysAsks(tool) || shared
         ? risk == ToolRisk.AskAlways || (!tool.ReadsOnly && !_trusted().Contains(tool.Name))
         : AskPolicy.Asks(risk, _askBefore(), _trusted().Contains(tool.Name));
@@ -320,12 +334,15 @@ public sealed class ToolRunner
         return _approved;
     }
 
-    private async Task<string> AskAsync(ITool tool, ToolRisk risk, string text, bool approvable, ToolContext context, CancellationToken cancellationToken)
+    private async Task<string> AskAsync(ITool tool, ToolRisk risk, string text, bool approvable, ToolContext context, CancellationToken cancellationToken,
+        HeardOrigin? origin = null)
     {
-        var question = new AskMessage(NewId(), tool.Name, text, risk == ToolRisk.AskOnce || approvable, (int)AskTime.TotalSeconds, context.Assistant);
+        // From another channel the owner may answer by Telegram: it waits as long as K-Desktop says.
+        var seconds = origin is { AskSeconds: > 0 } ? origin.AskSeconds : (int)AskTime.TotalSeconds;
+        var question = new AskMessage(NewId(), tool.Name, text, origin is null && (risk == ToolRisk.AskOnce || approvable), seconds, context.Assistant, origin?.Key);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // A little more than the user's time: K-Desktop says «timeout» itself when it runs out.
-        timeout.CancelAfter(AskTime + TimeSpan.FromSeconds(3));
+        timeout.CancelAfter(TimeSpan.FromSeconds(seconds) + TimeSpan.FromSeconds(3));
         try
         {
             return await _ask(question, timeout.Token).ConfigureAwait(false);

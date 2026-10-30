@@ -236,6 +236,9 @@ internal sealed class AssistantSession : IDisposable
                     case MailDoneMessage mailDone when Commands is { } commands:
                         commands.OnMailDone(mailDone);
                         return;
+                    case TelegramDoneMessage telegramDone when Commands is { } commands:
+                        commands.OnTelegramDone(telegramDone);
+                        return;
                     case CalendarDoneMessage calendarDone when Commands is { } commands:
                         commands.OnCalendarDone(calendarDone);
                         return;

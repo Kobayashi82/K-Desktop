@@ -1,0 +1,12 @@
+{
+  "t": "telegram",
+  "id": "c-72",
+  "request": {
+    "do": "send",
+    "to": "Ana",
+    "text": "Llego diez minutos tarde",
+    "max": 20
+  },
+  "assistant": "kobii",
+  "origin": "9f2c4a1b7e3d5c60"
+}

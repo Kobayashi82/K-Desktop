@@ -686,7 +686,8 @@ public sealed class CommandRoutingTests : IDisposable
 
         await talk.HandleAsync(new HeardMessage("mándame al telegram que compre pan", "panel", "lander"));
         Assert.Empty(_bridge.Done);
-        Assert.Equal(2, _model.Requests.Count);
+        // Since telegram_send (5.0.438) it is reminded once that nothing was sent; never made to run a command.
+        Assert.InRange(_model.Requests.Count, 2, 3);
     }
 
     [Fact]

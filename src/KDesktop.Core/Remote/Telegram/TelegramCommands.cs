@@ -51,6 +51,12 @@ public sealed class TelegramCommands
     /// <summary>How long a confirmation by Telegram waits.</summary>
     public TimeSpan ConfirmFor { get; set; } = TimeSpan.FromMinutes(5);
 
+    /// <summary>
+    /// A message that is not a command, for the assistant (phase 4): the message, how it was sorted, its text (without the
+    /// mention of the bot) and the path of its file if it was kept. Null: the module is not there, nothing is done.
+    /// </summary>
+    public Func<TelegramIncoming, TelegramVerdict, string, string?, Task>? Talk { get; set; }
+
     /// <summary>A message to be served arrived (its file, if any, already kept: its path); for the events.</summary>
     public event Action<TelegramIncoming, TelegramVerdict, string?>? Arrived;
 
@@ -90,7 +96,18 @@ public sealed class TelegramCommands
         Arrived?.Invoke(m, v, path);
 
         var text = m.ChatKind == TelegramChatKind.Group ? TelegramInbox.WithoutMention(m.Text, _telegram.Bot?.Username ?? string.Empty) : m.Text.Trim();
-        if (!text.StartsWith('/')) return;
+        if (!text.StartsWith('/'))
+        {
+            // Not a command: for the assistant (phase 4), if that person may talk to it.
+            if (text.Length == 0 || Talk is not { } talk) return;
+            if (v.Level == TelegramLevel.ChosenCommands)
+            {
+                _telegram.Post(m.ChatId, Loc.T("telegram.talk.onlyCommands", "/" + Loc.T("telegram.cmd.word")));
+                return;
+            }
+            await talk(m, v, text, path).ConfigureAwait(false);
+            return;
+        }
         var word = text[1..].Trim();
         var at = word.IndexOf('@', StringComparison.Ordinal);
         if (at >= 0) word = word[..at];

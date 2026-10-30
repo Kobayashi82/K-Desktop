@@ -37,6 +37,7 @@ public partial class App
             Policy = () => Config.Settings.AssistantAskBefore,
         };
         Events.Telegram = TelegramCommands;
+        WireTelegramTalk();
     }
 
     /// <summary>What is asked by Telegram without the assistant: /comandos, running them, confirming, the files that arrive.</summary>

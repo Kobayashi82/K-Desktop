@@ -1,0 +1,9 @@
+{
+  "t": "telegramDone",
+  "id": "c-72",
+  "answer": {
+    "ok": true,
+    "to": "Ana (@ana)",
+    "undo": "123456789:4521"
+  }
+}

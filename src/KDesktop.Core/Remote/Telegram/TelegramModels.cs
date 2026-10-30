@@ -30,11 +30,15 @@ public sealed record TelegramIncoming(
     TelegramFile? File = null,
     long? ReplyToUserId = null,
     string? CallbackId = null,
-    string? CallbackData = null)
+    string? CallbackData = null,
+    bool Forwarded = false)
 {
     /// <summary>A button of a message pressed (<see cref="CallbackData"/>), not a message.</summary>
     public bool IsButton => CallbackId is not null;
 }
+
+/// <summary>A message of a chat lately (telegram_read): who said it, when, and whether the bot sent it.</summary>
+public sealed record TelegramLine(long Chat, string From, DateTimeOffset At, string Text, bool Sent);
 
 /// <summary>A button under a message; pressed, it comes back as <see cref="TelegramIncoming.CallbackData"/>.</summary>
 public sealed record TelegramButton(string Text, string Data);
@@ -162,6 +166,9 @@ public sealed class TelegramContact
     /// <summary>With <see cref="TelegramLevel.ChosenTools"/>: the names of the tools.</summary>
     public List<string> Tools { get; set; } = [];
 
+    /// <summary>Who answers them (an assistant's id); null: the one of «Quién contesta» for everybody.</summary>
+    public string? Assistant { get; set; }
+
     public DateTimeOffset Added { get; set; }
 
     /// <summary>The last time they wrote (null: never; then writing to them counts in the hourly limit).</summary>
@@ -239,6 +246,12 @@ public sealed class TelegramSettings
     public List<TelegramGroup> Groups { get; set; } = [];
     public TelegramOthers Others { get; set; } = new();
     public TelegramLimits Limits { get; set; } = new();
+
+    /// <summary>Who answers by Telegram (an assistant's id); null: the one on the screen (the last one talked to).</summary>
+    public string? Assistant { get; set; }
+
+    /// <summary>Under an answer, what it did («✓ Abrió Spotify»).</summary>
+    public bool ShowDid { get; set; } = true;
 }
 
 /// <summary>How the connection is now.</summary>

@@ -27,6 +27,21 @@ public class PipeMessageTests
         Assert.Equal(PipeJson.KnownTypes.Order(), checkedTypes.Order());
     }
 
+    /// <summary>Telegram, phase 4.1: the origin of an order comes back whole, and an order without one has none.</summary>
+    [Fact]
+    public void TheOriginOfAnOrderComesBack()
+    {
+        var origin = new KDesktop.Core.Assistant.HeardOrigin("k1", "telegram", "Ana", false, "chosen", ["weather", "run_command"], ["Luces"], true, "telegram:2",
+            "pedido por Ana vía Telegram", 345);
+        var heard = (HeardMessage)PipeJson.Parse(PipeJson.Serialize(new HeardMessage("hola", HeardMessage.SourceTelegram, "lander", Reply: "r1", Origin: origin)));
+        Assert.Equal(PipeJson.Serialize(new HeardMessage("hola", "telegram", "lander", Reply: "r1", Origin: origin)), PipeJson.Serialize(heard));
+        Assert.Equal(["weather", "run_command"], heard.Origin!.Tools);
+        Assert.True(heard.Origin.Untrusted);
+        Assert.Null(((HeardMessage)PipeJson.Parse(PipeJson.Serialize(new HeardMessage("hola", "voice")))).Origin);
+        var ask = (AskMessage)PipeJson.Parse(PipeJson.Serialize(new AskMessage("a", "t", "¿?", false, 345, "lander", "k1")));
+        Assert.Equal("k1", ask.Origin);
+    }
+
     /// <summary>Stage 6.3: what is null is left out, and must still come back (a minimised window has no rectangle).</summary>
     [Fact]
     public void StepsWithoutAPlaceOrARectangleComeBack()

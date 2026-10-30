@@ -39,6 +39,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<CalendarDoneMessage?>> _calendar = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MailDoneMessage?>> _mail = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<PhoneSentMessage?>> _phones = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<TelegramDoneMessage?>> _telegram = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -52,8 +53,8 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         return AskAsync(_runs, id =>
         {
             if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
-            return new RunMessage(assistant ?? string.Empty, id, command, gestures, ScheduledOrder.Current?.Key, McpShare.Caller);
-        }, RunWait, cancellationToken);
+            return new RunMessage(assistant ?? string.Empty, id, command, gestures, ScheduledOrder.Current?.Key, McpShare.Caller, Origin);
+        }, Waiting, cancellationToken);
     }
 
     public Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken)
@@ -62,8 +63,8 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         return AskAsync(_runs, id =>
         {
             if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
-            return new ActMessage(assistant ?? string.Empty, id, op, app, value, gestures, ScheduledOrder.Current?.Key, McpShare.Caller);
-        }, RunWait, cancellationToken);
+            return new ActMessage(assistant ?? string.Empty, id, op, app, value, gestures, ScheduledOrder.Current?.Key, McpShare.Caller, Origin: Origin);
+        }, Waiting, cancellationToken);
     }
 
     public Task<EndMessage?> SystemAsync(string group, string op, int? value, string text, string? assistant, CancellationToken cancellationToken)
@@ -72,8 +73,8 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         return AskAsync(_runs, id =>
         {
             if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
-            return new SystemMessage(assistant ?? string.Empty, id, group, op, value, text, gestures, ScheduledOrder.Current?.Key, McpShare.Caller);
-        }, RunWait, cancellationToken);
+            return new SystemMessage(assistant ?? string.Empty, id, group, op, value, text, gestures, ScheduledOrder.Current?.Key, McpShare.Caller, Origin);
+        }, Waiting, cancellationToken);
     }
 
     public Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken)
@@ -82,9 +83,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         return AskAsync(_runs, id =>
         {
             if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
-            return new ActMessage(assistant ?? string.Empty, id, AssistantActs.Arrange, string.Empty, monitor, gestures, ScheduledOrder.Current?.Key, McpShare.Caller, apps, layout);
-        }, RunWait, cancellationToken);
+            return new ActMessage(assistant ?? string.Empty, id, AssistantActs.Arrange, string.Empty, monitor, gestures, ScheduledOrder.Current?.Key, McpShare.Caller, apps, layout, Origin);
+        }, Waiting, cancellationToken);
     }
+
+    /// <summary>An order from another channel (telegram): its key goes with what it runs (K-Desktop applies that person's limits).</summary>
+    private static string? Origin => McpShare.Caller is null ? TurnOrigin.Current?.Key : null;
+
+    /// <summary>How long a run is waited for: from another channel the owner may confirm it by Telegram, minutes later.</summary>
+    private static TimeSpan Waiting => TurnOrigin.Current is { AskSeconds: > 0 } origin ? RunWait + TimeSpan.FromSeconds(origin.AskSeconds) : RunWait;
 
     /// <summary>The steps of the runs with gestures (stage 6.3).</summary>
     public ModuleChoreography? Choreography { get; set; }
@@ -99,7 +106,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         AskAsync(_descriptions, id => new DescribeMessage(id, command), MatchWait, cancellationToken);
 
     public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) =>
-        AskAsync(_runs, id => new RunEventMessage(assistant ?? string.Empty, id, name, ScheduledOrder.Current?.Key, McpShare.Caller), RunWait, cancellationToken);
+        AskAsync(_runs, id => new RunEventMessage(assistant ?? string.Empty, id, name, ScheduledOrder.Current?.Key, McpShare.Caller, Origin), Waiting, cancellationToken);
 
     /// <summary>Programs, lists or removes an order for later (schedule, list_scheduled, cancel_scheduled).</summary>
     public Task<ScheduleDoneMessage?> ScheduleAsync(ScheduleMessage request, CancellationToken cancellationToken) =>
@@ -150,6 +157,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     /// <summary>The mail (mail_*): a server may be slow (searching, sending with attachments).</summary>
     public Task<MailDoneMessage?> MailAsync(MailMessage request, CancellationToken cancellationToken) =>
         AskAsync(_mail, id => request with { Id = id }, TimeSpan.FromSeconds(90), cancellationToken);
+
+    /// <summary>Telegram (telegram_*): sending a file or a capture takes a while.</summary>
+    public Task<TelegramDoneMessage?> TelegramAsync(TelegramMessage request, CancellationToken cancellationToken) =>
+        AskAsync(_telegram, id => request with { Id = id, Origin = Origin }, TimeSpan.FromSeconds(90), cancellationToken);
+
+    public void OnTelegramDone(TelegramDoneMessage done)
+    {
+        if (_telegram.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
+    }
 
     public void OnMailDone(MailDoneMessage done)
     {

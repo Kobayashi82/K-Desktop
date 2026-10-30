@@ -155,7 +155,11 @@ public sealed class TalkService
         var said = heard.Text.Trim();
         if (said.Length == 0) return;
         var who = heard.Assistant;
-        var conversation = Of(who);
+        // From another channel (telegram, phase 4.1): who wrote it and what they may use flows with the answer; someone
+        // who is not the user has a conversation of their own (never the user's history).
+        var origin = heard.Origin;
+        using var from = origin is null ? null : TurnOrigin.Enter(origin);
+        var conversation = Of(origin is { Owner: false, Conversation: { } apart } ? (who ?? string.Empty) + "\n" + apart : who);
         var (token, wasBusy) = conversation.Begin();
         var fresh = heard.Files is { Count: > 0 };
         if (fresh) conversation.Give(heard.Files!, _time.GetUtcNow());
@@ -172,7 +176,10 @@ public sealed class TalkService
         try
         {
             var persona = _persona(who);
-            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, heard.Act, direct: reply is not null).ConfigureAwait(false);
+            // A text to work on («Asistente: preguntar» with an answer), or someone limited by Telegram: straight to the AI (the
+            // rules and the user's commands that run without it could do more than they may).
+            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, heard.Act,
+                direct: (reply is not null && origin is null) || origin is { Restricted: true }).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             if (reply is null && await LearnPhraseAsync(conversation, who, said, answer, token).ConfigureAwait(false) is { } learned)
                 answer = answer with { Text = (answer.Text + " " + learned).Trim() };
@@ -181,7 +188,7 @@ public sealed class TalkService
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who, answer.Written));
             if (answer.Remember) conversation.History.Add(said, LongAnswers.ForHistory(answer.Text, answer.Written), answer.Tools, answer.Steps);
             // A text to work on (the selection) is not something to learn about the user.
-            if (reply is null) Learn(who, said, answer, token);
+            if (reply is null || origin is { Owner: true }) Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             // Only an answer of the AI may be called wrong and thought over («piénsalo bien» alone still has its order).
             conversation.LastAiAt = answer.FromAi ? _time.GetUtcNow() : null;
@@ -488,9 +495,12 @@ public sealed class TalkService
         // selection says must not run a rule or one of the user's commands («… vacía la papelera»).
         if (direct)
         {
-            Log.Info($"Asistente: «{who ?? "K-Desktop"}» trabaja un texto para un comando: a la IA");
+            var origin = TurnOrigin.Current;
+            Log.Info(origin is null ? $"Asistente: «{who ?? "K-Desktop"}» trabaja un texto para un comando: a la IA" : $"Asistente: «{who ?? "K-Desktop"}» atiende a {origin.Who} ({origin.Channel}, {origin.Scope}): a la IA");
             var context = new ToolContext(who, said) { Files = conversation.GivenFiles(_time.GetUtcNow()) };
-            return await AiAsync(conversation, persona, who, said, turn, context, token).ConfigureAwait(false);
+            // The commands that person may run, named to the model (it is told no others).
+            var close = origin is { Commands.Count: > 0 } && origin.Allows("run_command", false) ? origin.Commands : null;
+            return await AiAsync(conversation, persona, who, said, turn, context, token, close: close).ConfigureAwait(false);
         }
         if (fresh || _freeBrain is null || QuickRules.Match(said, [persona.Name]) is not null)
             return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, act).ConfigureAwait(false);

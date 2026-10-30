@@ -94,6 +94,8 @@ public partial class ActivityView : UserControl
         var line = entry.At.ToLocalTime().ToString("g", Loc.Instance.Culture) + (Everyone ? " · " + App.ActivityWho(item) : string.Empty);
         if (entry.Heard.Length > 0) line += " · «" + entry.Heard + "»";
         line += " · " + Loc.T("assistantActivity.route." + entry.Route);
+        // Asked from another channel (telegram, phase 4.6): «pedido por Ana vía Telegram».
+        if (entry.By is { Length: > 0 } by) line += " · " + by;
         text.Children.Add(new TextBlock { Text = line, Style = (Style)FindResource("Caption"), Margin = new Thickness(0, 2, 0, 0) });
 
         var grid = new Grid();

@@ -71,6 +71,8 @@ public sealed class CreateEventTool(ICommandBridge bridge, ToolRegistry registry
     {
         var spec = Spec(arguments, out var folderError);
         if (folderError is not null) return folderError;
+        // From text of third parties (telegram, phase 4.3): its order gets no tools approved.
+        if (!ScheduleTool.MayApprove(context)) spec = spec with { Tools = null };
         if (!AssistantEvents.Kinds.Contains(spec.When)) return ToolResult.Fail("Say what fires it (when): one of " + string.Join(", ", AssistantEvents.Kinds) + ".");
         var made = await bridge.MakeEventAsync(new MakeEventMessage(string.Empty, "add", context.Assistant, spec), cancellationToken).ConfigureAwait(false);
         if (made is null) return ToolResult.Fail("K-Desktop did not answer: no event was made.");

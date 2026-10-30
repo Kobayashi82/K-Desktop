@@ -105,6 +105,12 @@ public partial class App
     /// <summary>A tool asks before doing something: the window, and its answer back (UI thread).</summary>
     private async void OnAssistantAsk(AskMessage ask)
     {
+        // In an order from Telegram: the owner answers, on the PC if they are there or by Telegram (telegram, phase 4.2).
+        if (ask.Origin is { } origin)
+        {
+            _assistant?.Send(new AnswerMessage(ask.Id, await AskForTelegramAsync(origin, ask.Id, ask.Assistant, ask.Text)));
+            return;
+        }
         var choice = await AskUserAsync(ask.Id, ask.Assistant, ask.Text, ask.CanTrust, ask.Seconds);
         if (choice == "always" && !Config.Settings.AssistantTrustedTools.Contains(ask.Tool))
             Config.Settings.AssistantTrustedTools = [.. Config.Settings.AssistantTrustedTools, ask.Tool];

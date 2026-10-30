@@ -32,21 +32,27 @@ public partial class App
                 });
                 return true;
             case RunMessage run:
-                RunForAssistant(supervisor, run.Assistant, run.Shared, run.Run, run.Choreography,
-                    (who, choreography) => AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run.Run, run.Assistant, command, risk, remember: true), choreography,
-                        CommandPermit(run.Scheduled, act: false)));
+                if (RefusedRemote(supervisor, run.Origin, run.Run)) return true;
+                RunForAssistant(supervisor, run.Assistant, run.Shared ?? RemoteWho(run.Origin, run.Assistant), run.Run, run.Choreography,
+                    (who, choreography) => AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run.Run, run.Assistant, command, risk, remember: true, run.Origin), choreography,
+                        CommandPermit(run.Scheduled, act: false), RemoteOf(run.Origin, userCommands: true)));
                 return true;
             case ActMessage act:
                 // A command made for the occasion (stage 8.1): nothing to trust for next time.
-                RunForAssistant(supervisor, act.Assistant, act.Shared, act.Run, act.Choreography,
-                    (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography,
-                        CommandPermit(act.Scheduled, act: true)));
+                if (RefusedRemote(supervisor, act.Origin, act.Run)) return true;
+                RunForAssistant(supervisor, act.Assistant, act.Shared ?? RemoteWho(act.Origin, act.Assistant), act.Run, act.Choreography,
+                    (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false, act.Origin), choreography,
+                        CommandPermit(act.Scheduled, act: true), RemoteOf(act.Origin, userCommands: false)));
                 return true;
             case SystemMessage system:
                 // One action of the catalogue for one group of tools (B9), made for the occasion: nothing to trust for next time.
-                RunForAssistant(supervisor, system.Assistant, system.Shared, system.Run, system.Choreography,
-                    (who, choreography) => AssistantSystem.RunAsync(Engine, system, who, (command, risk) => AskCommandAsync(system.Run, system.Assistant, command, risk, remember: false), choreography,
-                        CommandPermit(system.Scheduled, act: true)));
+                if (RefusedRemote(supervisor, system.Origin, system.Run)) return true;
+                RunForAssistant(supervisor, system.Assistant, system.Shared ?? RemoteWho(system.Origin, system.Assistant), system.Run, system.Choreography,
+                    (who, choreography) => AssistantSystem.RunAsync(Engine, system, who, (command, risk) => AskCommandAsync(system.Run, system.Assistant, command, risk, remember: false, system.Origin), choreography,
+                        CommandPermit(system.Scheduled, act: true), RemoteOf(system.Origin, userCommands: false)));
+                return true;
+            case TelegramMessage telegram:
+                OnTelegramTool(supervisor, telegram);
                 return true;
             case SendPhoneMessage phone:
                 _ = Task.Run(() => supervisor.Send(AssistantPhone.Handle(phone, AssistantName(phone.Assistant))));
@@ -133,14 +139,17 @@ public partial class App
                 });
                 return true;
             case RunEventMessage runEvent:
+                if (RefusedRemote(supervisor, runEvent.Origin, runEvent.Run, events: true)) return true;
                 _ = Task.Run(async () =>
                 {
-                    var who = runEvent.Shared ?? AssistantName(runEvent.Assistant);
+                    var who = runEvent.Shared ?? RemoteWho(runEvent.Origin, runEvent.Assistant) ?? AssistantName(runEvent.Assistant);
                     // An order programmed by an assistant: events run only if run_event was approved for it.
                     bool? allowed = runEvent.Scheduled is null ? null : PermitOf(runEvent.Scheduled)?.Tools.Contains("run_event") == true;
                     var end = await AssistantCommands.RunEventAsync(Engine, runEvent, who,
-                        (rule, risk) => Dispatcher.InvokeAsync(() => AskUserAsync("event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name), false, CommandAskSeconds)).Task.Unwrap(),
-                        allowed).ConfigureAwait(false);
+                        (rule, risk) => runEvent.Origin is { } origin
+                            ? AskForTelegramAsync(origin, "event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name))
+                            : Dispatcher.InvokeAsync(() => AskUserAsync("event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name), false, CommandAskSeconds)).Task.Unwrap(),
+                        allowed, RemoteOf(runEvent.Origin, userCommands: false)).ConfigureAwait(false);
                     supervisor.Send(end);
                 });
                 return true;
@@ -218,7 +227,9 @@ public partial class App
     /// for its tools. «Yes, and don't ask again» (only for what asks once, and a command that stays: <paramref name="remember"/>)
     /// makes the command trusted.
     /// </summary>
-    private Task<string> AskCommandAsync(string run, string assistant, Core.Model.Command command, Core.Assistant.ToolRisk risk, bool remember) =>
+    /// <param name="origin">Asked in an order from Telegram: the owner answers (on the PC if they are there, else by Telegram), and nothing becomes trusted.</param>
+    private Task<string> AskCommandAsync(string run, string assistant, Core.Model.Command command, Core.Assistant.ToolRisk risk, bool remember, string? origin = null) =>
+        origin is not null ? AskForTelegramAsync(origin, "run-" + run, assistant, Loc.T("assistantCommand.ask", command.Name)) :
         Dispatcher.InvokeAsync(async () =>
         {
             var choice = await AskUserAsync("run-" + run, assistant, Loc.T("assistantCommand.ask", command.Name), remember && risk == Core.Assistant.ToolRisk.AskOnce, CommandAskSeconds);

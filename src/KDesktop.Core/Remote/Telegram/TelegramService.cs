@@ -235,6 +235,84 @@ public sealed class TelegramService : IDisposable
         return _queue.Writer.TryWrite(new Outgoing(chat, text, NameOf(chat), done, null, file, kind)) ? done.Task : Task.FromResult(false);
     }
 
+    /// <summary>As <see cref="SendAsync"/>, with the id of the (last) message sent, to delete it later; null when it was not sent.</summary>
+    public async Task<int?> SendForIdAsync(long chat, string text, string? file = null, TelegramFileKind kind = TelegramFileKind.Document)
+    {
+        if (Bot is not { Enabled: true } || (string.IsNullOrWhiteSpace(text) && file is null)) return null;
+        var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var sent = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!_queue.Writer.TryWrite(new Outgoing(chat, text, NameOf(chat), done, null, file, kind, sent))) return null;
+        if (!await done.Task.ConfigureAwait(false)) return null;
+        return sent.Task.IsCompletedSuccessfully ? sent.Task.Result : 0;
+    }
+
+    /// <summary>Deletes a message the bot sent (undoing telegram_send); false when it could not (gone, too old: 48 h).</summary>
+    public async Task<bool> DeleteAsync(long chat, int message)
+    {
+        if (_connection is not { Capabilities.CanDelete: true } connection || message <= 0) return false;
+        try
+        {
+            await connection.DeleteAsync(chat, message, _life.Token).ConfigureAwait(false);
+            WriteLog($"borrado un mensaje a {NameOf(chat)}");
+            return true;
+        }
+        catch (Exception ex) when (ex is TelegramException or HttpRequestException or IOException or OperationCanceledException or JsonException)
+        {
+            WriteLog($"no borrado ({NameOf(chat)}): {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>«Escribiendo…» in a chat (it lasts about 5 s, or until the bot writes).</summary>
+    public void Typing(long chat)
+    {
+        if (_connection is { } connection) _ = Quiet(() => connection.SendChatActionAsync(chat, "typing", _life.Token));
+    }
+
+    // ── what was said lately (telegram_read) ─────────────────────────────
+
+    /// <summary>Messages kept per chat, and for how long (only in memory: telegram_read sees what is recent).</summary>
+    public const int KeptPerChat = 50;
+
+    public static readonly TimeSpan KeptFor = TimeSpan.FromDays(2);
+
+    private readonly Dictionary<long, LinkedList<TelegramLine>> _recent = [];
+
+    /// <summary>The file of a message kept last (telegram_send_file «lo último que llegó»).</summary>
+    public string? LastDownload { get; private set; }
+
+    private void Keep(long chat, string from, string text, bool sent)
+    {
+        if (text.Trim().Length == 0) return;
+        var now = Now();
+        lock (_recent)
+        {
+            if (!_recent.TryGetValue(chat, out var lines)) _recent[chat] = lines = new LinkedList<TelegramLine>();
+            lines.AddLast(new TelegramLine(chat, from, now, text.Length > 2000 ? text[..2000] + "…" : text, sent));
+            while (lines.Count > KeptPerChat || (lines.First is { } first && now - first.Value.At > KeptFor)) lines.RemoveFirst();
+        }
+    }
+
+    /// <summary>The last <paramref name="max"/> messages of a chat (oldest first), the bot's own too.</summary>
+    public IReadOnlyList<TelegramLine> Recent(long chat, int max = 20)
+    {
+        var since = Now() - KeptFor;
+        lock (_recent)
+            return _recent.TryGetValue(chat, out var lines) ? [.. lines.Where(l => l.At >= since).TakeLast(Math.Clamp(max, 1, KeptPerChat))] : [];
+    }
+
+    /// <summary>The chats with something said lately, newest first.</summary>
+    public IReadOnlyList<long> RecentChats()
+    {
+        lock (_recent) return [.. _recent.Where(c => c.Value.Count > 0).OrderByDescending(c => c.Value.Last!.Value.At).Select(c => c.Key)];
+    }
+
+    /// <summary>A group's name, or null when the bot does not know it.</summary>
+    public string? GroupName(long id)
+    {
+        lock (_gate) return Settings.Groups.FirstOrDefault(g => g.Id == id)?.Title;
+    }
+
     /// <summary>Puts a text (with buttons) for a chat in the queue, without waiting.</summary>
     public void Post(long chat, string text, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons = null) => Reply(chat, text, NameOf(chat), buttons);
 
@@ -338,6 +416,7 @@ public sealed class TelegramService : IDisposable
             path = Mail.MailService.FreeName(folder, name);
             await connection.DownloadAsync(file.Id, path, cancel).ConfigureAwait(false);
             WriteLog($"archivo guardado: {path}");
+            LastDownload = path;
             return path;
         }
         catch (Exception ex) when (ex is TelegramException or HttpRequestException or IOException or UnauthorizedAccessException or JsonException)
@@ -414,7 +493,13 @@ public sealed class TelegramService : IDisposable
                 if (item.File is { } file)
                 {
                     var caption = text.Length <= MaxCaption ? text : null;
-                    ok = await SendPartAsync(item, $"[{Path.GetFileName(file)}] {caption}", (c, t) => c.SendFileAsync(item.Chat, item.Kind, file, caption, t), stop).ConfigureAwait(false);
+                    ok = await SendPartAsync(item, $"[{Path.GetFileName(file)}] {caption}", async (c, t) =>
+                    {
+                        var id = await c.SendFileAsync(item.Chat, item.Kind, file, caption, t).ConfigureAwait(false);
+                        if (caption is not null) item.SentId?.TrySetResult(id);
+                        return id;
+                    }, stop).ConfigureAwait(false);
+                    if (ok) Keep(item.Chat, "K-Desktop", $"[{Path.GetFileName(file)}] {caption}", true);
                     text = caption is null ? text : string.Empty;
                 }
                 var parts = ok ? Split(text) : [];
@@ -433,6 +518,7 @@ public sealed class TelegramService : IDisposable
                         ok = false;
                         break;
                     }
+                    Keep(item.Chat, "K-Desktop", part, true);
                 }
                 item.SentId?.TrySetResult(0);
                 item.Done?.TrySetResult(ok);
@@ -609,6 +695,8 @@ public sealed class TelegramService : IDisposable
         var bot = Bot;
         TelegramVerdict verdict;
         lock (_gate) verdict = TelegramInbox.Classify(m, Settings, bot?.Id ?? 0, bot?.Username ?? string.Empty);
+        if (verdict.Why is not ("channel" or "blocked" or "groupIgnored" or "ignored"))
+            Keep(m.ChatId, m.From.Shown, m.Text.Length > 0 ? m.Text : $"[{m.Content}]", false);
         if (verdict.Route == TelegramRoute.Drop)
         {
             WriteLog($"  descartado ({verdict.Why})");

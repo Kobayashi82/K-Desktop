@@ -111,7 +111,8 @@ public sealed class TelegramBotConnection : ITelegramConnection
             text,
             content,
             file,
-            replyTo);
+            replyTo,
+            Forwarded: m.TryGetProperty("forward_origin", out _) || m.TryGetProperty("forward_date", out _));
     }
 
     private static TelegramIncoming? ParseButton(JsonElement update, JsonElement callback)

@@ -84,6 +84,13 @@ public sealed class ScheduleTool(ICommandBridge bridge, ToolRegistry registry) :
         // A name that is no tool may be one of the user's commands.
         commands = [.. commands.Concat(tools.Where(t => registry.FindAny(t) is null)).Distinct(StringComparer.OrdinalIgnoreCase)];
         if (commands.Count > 0 && !known.Contains("run_command")) known.Add("run_command");
+        // Text of third parties in the turn (a mail, a group, a forwarded message) or someone who is not the user (telegram,
+        // phase 4.3): nothing is approved from it; at its time, what would ask is not done.
+        if (!MayApprove(context))
+        {
+            known = [];
+            commands = [];
+        }
         var repeat = Repeat(arguments);
         var done = await bridge.ScheduleAsync(new ScheduleMessage(string.Empty, "add", context.Assistant, order,
             at.Time.ToString("HH:mm", CultureInfo.InvariantCulture), at.Date is { } date ? date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : null,
@@ -111,6 +118,9 @@ public sealed class ScheduleTool(ICommandBridge bridge, ToolRegistry registry) :
             Undo = new ToolUndo(Name, entry.Id),
         };
     }
+
+    /// <summary>Whether what the order approves for later may come from this turn: not after text of third parties, nor for someone else.</summary>
+    public static bool MayApprove(ToolContext context) => !context.Trust.ReadOutside && TurnOrigin.Current is null or { Owner: true, Untrusted: false };
 
     /// <summary>Removes it again (if it has not run yet).</summary>
     public async Task<bool> UndoAsync(ToolUndo undo, CancellationToken cancellationToken) =>

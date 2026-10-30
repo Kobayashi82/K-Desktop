@@ -128,12 +128,16 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         }
         // The order's meaning once, for the tools and for what comes to mind.
         var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
-        var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
+        // Someone who is not the user (by Telegram, phase 4): nothing of what is remembered about the user.
+        var origin = TurnOrigin.Current;
+        var known = memory is null || origin is { Owner: false } ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
         // About the memory: its tools, and not the notes (a small model took «añade a la memoria» for a note).
         var aboutMemory = memory is not null && TalkMemory.IsAbout(said);
         var hidden = new HashSet<string>(leaveOut ?? [], StringComparer.Ordinal);
         if (aboutMemory) hidden.UnionWith(NoteTools);
         var available = hidden.Count > 0 ? [.. tools.Registry.All.Where(t => !hidden.Contains(t.Name))] : tools.Registry.All;
+        // An order from another channel (telegram, phase 4.2): what that person may not use is not even offered.
+        if (origin is { Restricted: true }) available = [.. available.Where(t => origin.Allows(t.Name, t.ReadsOnly))];
         var always = new List<string>(WithTheirServer(recentTools).Where(t => !hidden.Contains(t)));
         if (commands is { Count: > 0 }) always.Add(RunCommandTool);
         if (capable) always.AddRange(CommandToolNames.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));
@@ -168,7 +172,8 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             + (writing ? "\n\n" + Loc.T("assistant.prompt.long") : "")
             + (thinking ? "\n\n" + Loc.T(doubted ? "assistant.prompt.checkAgain" : "assistant.prompt.thinkHard") : "")
             + (later ? "\n\n" + Loc.T("assistant.prompt.later") : "")
-            + (scheduled ? "\n\n" + Loc.T("assistant.prompt.scheduled") : "")));
+            + (scheduled ? "\n\n" + Loc.T("assistant.prompt.scheduled") : "")
+            + (origin is null ? "" : "\n\n" + Loc.T(origin.Owner ? "assistant.prompt.fromTelegramOwner" : "assistant.prompt.fromTelegram", origin.Who))));
         if (writing) Log.Info("Asistente: la orden pide una respuesta larga");
         if (thinking)
         {

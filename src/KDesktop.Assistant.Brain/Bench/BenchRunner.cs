@@ -184,6 +184,14 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
             return Task.FromResult<PhoneSentMessage?>(new PhoneSentMessage(request.Id, true, ["bench"]));
         }
 
+        /// <summary>Telegram: reading changes nothing (for real); sending only says it would.</summary>
+        public Task<TelegramDoneMessage?> TelegramAsync(TelegramMessage request, CancellationToken cancellationToken)
+        {
+            if (request.Request.Do is "read" or "contacts") return real.TelegramAsync(request, cancellationToken);
+            lock (ran) ran.Add("telegram " + (request.Request.File ?? request.Request.Text));
+            return Task.FromResult<TelegramDoneMessage?>(new TelegramDoneMessage(request.Id, new Core.Remote.Telegram.TelegramAnswer(true, To: request.Request.To is { Length: > 0 } to ? to : "bench")));
+        }
+
         public Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
             Pretend("arrange " + string.Join(", ", apps));
 
