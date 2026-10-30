@@ -5547,5 +5547,18 @@
 
   "settings.nav.group.voice": "Voz",
   "settings.nav.screen": "Gravação de tela",
-  "settings.nav.screen.hint": "Quadros, qualidade e pasta"
+  "settings.nav.screen.hint": "Quadros, qualidade e pasta",
+
+  "calendar.defaultName": "Pessoal",
+  "calendar.error.notFound": "Esse compromisso já não existe: pode ter sido apagado noutro sítio.",
+  "calendar.error.noCalendar": "Esse calendário já não existe.",
+  "calendar.error.readOnly": "«{0}» é só de leitura: os seus compromissos não podem ser alterados a partir do K-Desktop.",
+  "calendar.error.noRecurrence": "«{0}» não suporta compromissos que se repetem.",
+  "calendar.error.noOverrides": "«{0}» não deixa alterar uma só repetição: altera todas, ou esta e as seguintes.",
+  "calendar.problem.urlLost": "É preciso voltar a escrever o endereço (a cópia vem de outro PC ou utilizador).",
+  "calendar.problem.offline": "Sem ligação: mostra-se a última cópia.",
+  "calendar.problem.urlGone": "O endereço já não funciona (erro {0}): pode ter sido alterado ou apagado.",
+  "calendar.problem.http": "O servidor respondeu com um erro ({0}); volta-se a tentar depois.",
+  "calendar.problem.tooBig": "O ficheiro é demasiado grande para ser um calendário.",
+  "calendar.problem.notIcs": "Esse endereço não devolve um calendário (.ics)."
 }

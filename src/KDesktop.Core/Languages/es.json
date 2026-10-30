@@ -5547,5 +5547,18 @@
 
   "settings.nav.group.voice": "Voz",
   "settings.nav.screen": "Grabación de pantalla",
-  "settings.nav.screen.hint": "Fotogramas, calidad y carpeta"
+  "settings.nav.screen.hint": "Fotogramas, calidad y carpeta",
+
+  "calendar.defaultName": "Personal",
+  "calendar.error.notFound": "Esa cita ya no está: puede que se haya borrado en otro sitio.",
+  "calendar.error.noCalendar": "Ese calendario ya no está.",
+  "calendar.error.readOnly": "«{0}» es de solo lectura: sus citas no se pueden cambiar desde K-Desktop.",
+  "calendar.error.noRecurrence": "«{0}» no admite citas que se repiten.",
+  "calendar.error.noOverrides": "«{0}» no deja cambiar una sola repetición: cambia todas o esta y las siguientes.",
+  "calendar.problem.urlLost": "Hay que volver a escribir la dirección (la copia viene de otro PC o usuario).",
+  "calendar.problem.offline": "Sin conexión: se muestra la última copia.",
+  "calendar.problem.urlGone": "La dirección ya no vale (error {0}): puede que la hayan cambiado o borrado.",
+  "calendar.problem.http": "El servidor ha contestado con un error ({0}); se vuelve a probar luego.",
+  "calendar.problem.tooBig": "El archivo es demasiado grande para ser un calendario.",
+  "calendar.problem.notIcs": "Esa dirección no devuelve un calendario (.ics)."
 }

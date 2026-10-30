@@ -6,17 +6,18 @@ namespace KDesktop.Core.Storage;
 
 /// <summary>
 /// Full backup of the data folder as a .zip: configuration, achievements and statistics, own icons, sounds,
-/// languages, wake words, and the assistants' data and settings with the list of those installed (not their packages:
-/// those are downloaded again). Leaves out what is rebuilt or downloaded again (logs, automatic backups, favicons, voice models) and the
+/// languages, wake words, the own calendar and the calendar and mail options (the accounts' tokens and passwords go
+/// encrypted with DPAPI: only this user on this PC can read them back), and the assistants' data and settings with the
+/// list of those installed (not their packages: those are downloaded again). Leaves out what is rebuilt or downloaded again (logs, automatic backups, favicons, voice models) and the
 /// paired web devices (their keys are secrets and belong to this PC).
 /// </summary>
 public static class DataArchive
 {
     /// <summary>Folders of the data dir that go into the archive.</summary>
-    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice", "Assistants/Data", "Assistants/Settings", "Assistant"];
+    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice", "Assistants/Data", "Assistants/Settings", "Assistant", "Calendar", "Accounts", "Mail"];
 
     /// <summary>What is in those folders but not worth keeping: it is made again by itself (the assistants' browser, the index of the documents).</summary>
-    private static readonly string[] Remade = ["Assistant/Browser/", "Assistant/Knowledge/"];
+    private static readonly string[] Remade = ["Assistant/Browser/", "Assistant/Knowledge/", "Calendar/Cache/", "Mail/Cache/"];
 
     private static readonly string[] Files = ["config.json", "stats.json"];
 

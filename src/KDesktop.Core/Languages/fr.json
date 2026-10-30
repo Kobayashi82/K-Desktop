@@ -5547,5 +5547,18 @@
 
   "settings.nav.group.voice": "Voix",
   "settings.nav.screen": "Enregistrement de l'écran",
-  "settings.nav.screen.hint": "Images, qualité et dossier"
+  "settings.nav.screen.hint": "Images, qualité et dossier",
+
+  "calendar.defaultName": "Personnel",
+  "calendar.error.notFound": "Ce rendez-vous n’existe plus : il a peut-être été supprimé ailleurs.",
+  "calendar.error.noCalendar": "Ce calendrier n’existe plus.",
+  "calendar.error.readOnly": "« {0} » est en lecture seule : ses rendez-vous ne peuvent pas être modifiés depuis K-Desktop.",
+  "calendar.error.noRecurrence": "« {0} » n’accepte pas les rendez-vous récurrents.",
+  "calendar.error.noOverrides": "« {0} » ne permet pas de modifier une seule occurrence : modifiez-les toutes, ou celle-ci et les suivantes.",
+  "calendar.problem.urlLost": "Il faut ressaisir l’adresse (la sauvegarde vient d’un autre PC ou utilisateur).",
+  "calendar.problem.offline": "Hors ligne : la dernière copie est affichée.",
+  "calendar.problem.urlGone": "L’adresse ne fonctionne plus (erreur {0}) : elle a peut-être été modifiée ou supprimée.",
+  "calendar.problem.http": "Le serveur a répondu par une erreur ({0}) ; nouvel essai plus tard.",
+  "calendar.problem.tooBig": "Le fichier est trop volumineux pour être un calendrier.",
+  "calendar.problem.notIcs": "Cette adresse ne renvoie pas de calendrier (.ics)."
 }

@@ -5547,5 +5547,18 @@
 
   "settings.nav.group.voice": "Sprache",
   "settings.nav.screen": "Bildschirmaufnahme",
-  "settings.nav.screen.hint": "Bilder, Qualität und Ordner"
+  "settings.nav.screen.hint": "Bilder, Qualität und Ordner",
+
+  "calendar.defaultName": "Persönlich",
+  "calendar.error.notFound": "Dieser Termin ist nicht mehr da: Vielleicht wurde er anderswo gelöscht.",
+  "calendar.error.noCalendar": "Dieser Kalender ist nicht mehr da.",
+  "calendar.error.readOnly": "„{0}“ ist schreibgeschützt: Seine Termine können in K-Desktop nicht geändert werden.",
+  "calendar.error.noRecurrence": "„{0}“ unterstützt keine wiederkehrenden Termine.",
+  "calendar.error.noOverrides": "„{0}“ kann keinen einzelnen Termin der Serie ändern: Ändere alle oder diesen und die folgenden.",
+  "calendar.problem.urlLost": "Die Adresse muss erneut eingegeben werden (die Sicherung stammt von einem anderen PC oder Benutzer).",
+  "calendar.problem.offline": "Offline: Die letzte Kopie wird angezeigt.",
+  "calendar.problem.urlGone": "Die Adresse funktioniert nicht mehr (Fehler {0}): Vielleicht wurde sie geändert oder gelöscht.",
+  "calendar.problem.http": "Der Server hat mit einem Fehler geantwortet ({0}); später erneuter Versuch.",
+  "calendar.problem.tooBig": "Die Datei ist zu groß für einen Kalender.",
+  "calendar.problem.notIcs": "Diese Adresse liefert keinen Kalender (.ics)."
 }

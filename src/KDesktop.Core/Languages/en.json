@@ -5547,5 +5547,18 @@
 
   "settings.nav.group.voice": "Voice",
   "settings.nav.screen": "Screen recording",
-  "settings.nav.screen.hint": "Frames, quality and folder"
+  "settings.nav.screen.hint": "Frames, quality and folder",
+
+  "calendar.defaultName": "Personal",
+  "calendar.error.notFound": "That event is no longer there: it may have been deleted somewhere else.",
+  "calendar.error.noCalendar": "That calendar is no longer there.",
+  "calendar.error.readOnly": "“{0}” is read-only: its events can’t be changed from K-Desktop.",
+  "calendar.error.noRecurrence": "“{0}” doesn’t support repeating events.",
+  "calendar.error.noOverrides": "“{0}” can’t change a single occurrence: change all of them, or this one and the following.",
+  "calendar.problem.urlLost": "The address must be typed again (the backup comes from another PC or user).",
+  "calendar.problem.offline": "Offline: showing the last copy.",
+  "calendar.problem.urlGone": "The address no longer works (error {0}): it may have been changed or deleted.",
+  "calendar.problem.http": "The server answered with an error ({0}); it will try again later.",
+  "calendar.problem.tooBig": "The file is too big to be a calendar.",
+  "calendar.problem.notIcs": "That address doesn’t return a calendar (.ics)."
 }
