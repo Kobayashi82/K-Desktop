@@ -36,6 +36,9 @@ Algunos detalles:
   («avísame en el móvil…»), [también te llega al móvil](../k-desktop/remote.md#lo-que-manda-el-pc).
 - **Mandar al móvil** manda un texto, un enlace o un archivo pequeño a tus dispositivos emparejados (todos, o el que nombres).
   Pregunta la primera vez, según *Preguntar antes de hacer algo*.
+- **El calendario, el correo y Telegram** tienen sus propias herramientas (mirar y cambiar la agenda, leer y mandar correos,
+  escribir y leer Telegram): ver [Calendario](../k-desktop/calendar.md#los-asistentes),
+  [Correo](../k-desktop/mail.md#los-asistentes) y [Telegram](../k-desktop/telegram.md#acciones-eventos-y-herramientas).
 - **Crear un evento**: «cuando abra Steam pon el modo juego», «si dejo el PC 10 minutos sin tocar, bloquéalo», «cada vez
   que conecte los cascos dime su batería», «cuando llegue un pdf a Descargas, avísame». Hace un
   [evento](../k-desktop/events.md) de cualquier tipo (una hora, un programa que se abre o pasa delante, el PC sin tocar,

@@ -61,6 +61,10 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Web request** | Sends an HTTP request (GET, POST…) without opening the browser: Home Assistant, APIs, phone notifications… |
 | **Wake a computer** | Turns on another PC or a server over the network (Wake-on-LAN) and, if you want, waits until it answers. |
 | **Wi-Fi and Bluetooth** | Turns the Wi-Fi or the Bluetooth on, off, or toggles it. |
+| **Send mail** | Sends a mail from one of your accounts, with text with variables and attached files, or leaves it as a draft. See [Mail](mail.md). |
+| **Send via Telegram** | Sends you (or a contact), by the bot or the account, a text with variables, a file, a screenshot or what is on the clipboard. See [Telegram](telegram.md). |
+| **Create event** | Adds an event to a calendar, at a time or in a while. See [Calendar](calendar.md). |
+| **Join the meeting** | Opens the Teams, Meet or Zoom link of the current or the next event. |
 | **Send to phone** | A text, a link or a small file to your paired phones or browsers (all, or the one you choose), as a notification. With variables. See [What the PC sends](remote.md#what-the-pc-sends). |
 
 ## System

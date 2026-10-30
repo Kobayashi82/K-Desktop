@@ -62,6 +62,10 @@ orden.
 | **Petición web** | Envía una petición HTTP (GET, POST…) sin abrir el navegador: Home Assistant, APIs, avisos al móvil… |
 | **Despertar equipo** | Enciende otro PC o un servidor por la red (Wake-on-LAN) y, si quieres, espera a que responda. |
 | **Wi-Fi y Bluetooth** | Enciende, apaga o alterna el Wi-Fi o el Bluetooth. |
+| **Enviar correo** | Manda un correo desde una de tus cuentas, con texto con variables y archivos adjuntos, o lo deja como borrador. Ver [Correo](mail.md). |
+| **Enviar por Telegram** | Te manda (o a un contacto), por el bot o la cuenta, un texto con variables, un archivo, una captura o lo que hay en el portapapeles. Ver [Telegram](telegram.md). |
+| **Crear cita** | Apunta una cita en un calendario, a una hora o dentro de un rato. Ver [Calendario](calendar.md). |
+| **Abrir la reunión** | Abre el enlace de Teams, Meet o Zoom de la cita de ahora o de la siguiente. |
 | **Enviar al móvil** | Un texto, un enlace o un archivo pequeño a tus móviles o navegadores emparejados (todos, o el que elijas), como notificación. Admite variables. Ver [Lo que manda el PC](remote.md#lo-que-manda-el-pc). |
 
 ## Sistema

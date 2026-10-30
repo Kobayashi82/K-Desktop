@@ -24,6 +24,12 @@
     href: k-desktop/voice.md
   - name: Móvil y control remoto
     href: k-desktop/remote.md
+  - name: Calendario y agenda
+    href: k-desktop/calendar.md
+  - name: Correo
+    href: k-desktop/mail.md
+  - name: Telegram
+    href: k-desktop/telegram.md
   - name: Opciones, datos y privacidad
     href: k-desktop/settings.md
 - name: Módulo Asistente

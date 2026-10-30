@@ -28,6 +28,9 @@ se quita el dispositivo…) con sus propios comandos.
 | Dispositivo conectado | Cuando se conecta un mando, teclado, auriculares o un aparato USB (y cuando se desconecta) |
 | Uso del equipo | Cuando el procesador, la gráfica, la memoria o la memoria de la gráfica (VRAM) pasan (o bajan) de un % durante un rato |
 | Dispositivo de audio | Cuando se conectan unos auriculares, un altavoz o un micrófono, o uno pasa a ser la salida o la entrada predeterminada |
+| Cita del calendario | Unos minutos antes de una cita, al empezar o al acabar. Ver [Calendario](calendar.md) |
+| Llega un correo | Cuando llega un correo a una de tus cuentas, y puede guardar sus adjuntos. Ver [Correo](mail.md) |
+| Llega un mensaje de Telegram | Cuando llega uno tuyo o de un contacto al bot o a la cuenta. Ver [Telegram](telegram.md) |
 
 ## Opciones
 

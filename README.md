@@ -97,20 +97,27 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 - **Dictation**: hold a key and speak; the text is typed where the cursor is, with spoken line breaks and "delete
   that".
 
-### Calendar and mail
+### Calendar, mail and Telegram
 
 - **Agenda**: your appointments by days from your own calendar, `.ics` subscriptions (holidays, a shared calendar,
   Outlook read-only…) and Google Calendar, each in its colour. Create, edit and delete with repetition (every day, weekdays, the
   second Tuesday, the last Friday…), reminders and an online-meeting link; "Join" opens Teams, Meet or Zoom. Import and
   export `.ics`. Also on the phone, in its own tab.
 - **Mail**: IMAP/SMTP accounts (Gmail, iCloud, Yahoo or any other that takes an app password; not Outlook or Hotmail) watched with IDLE; a notice for every new
-  mail, only the important ones or none; an invitation in a mail goes to the calendar with one click.
-- **Events and actions**: "An appointment" (minutes before, when it starts or ends) and "A mail arrives" (by sender,
-  subject or importance) as triggers; "Create appointment", "Join the meeting" and "Send mail" as actions.
+  mail, only the important ones or none, as a notification, an on-screen message or said by an assistant; an invitation in
+  a mail goes to the calendar with one click.
+- **Telegram**: a bot of your own and/or an account with its own number, each with its owner and its contacts. Run your
+  commands from Telegram, talk to the assistant (also with voice notes, answered in its own voice), get the important
+  mails, and decide what each person may do: only chat, chosen commands, tools that only read, chosen tools or everything
+  like you. Whatever needs confirming is always asked to you; texts from others are never taken as orders.
+- **Events and actions**: "An appointment" (minutes before, when it starts or ends), "A mail arrives" (by sender,
+  subject or importance) and "A Telegram message arrives" as triggers; "Create appointment", "Join the meeting", "Send
+  mail" and "Send via Telegram" as actions.
 - **Assistants**: "what do I have tomorrow?", "move the dentist to Friday", "do I have any important mail?", "answer
   Ana that I'll be there". Sending always asks first, and after reading a mail no other tool runs without asking:
   what a mail says is never taken as an order.
-- **Accounts**: Google and Microsoft connect with OAuth in your browser; the tokens stay encrypted on your PC.
+- **Accounts**: Google connects with OAuth in your browser; the tokens, the bot's token and the Telegram session stay
+  encrypted on your PC.
 
 ### Remote control
 
@@ -152,11 +159,12 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 | Display (brightness, projection, off) | | | Open QuickMenu |
 | Windows theme | | | Show message |
 
-| Calendar and mail |
+| Calendar, mail and Telegram |
 |---|
 | Create appointment |
 | Join the meeting (Teams, Meet, Zoom) |
 | Send mail |
+| Send via Telegram |
 
 With the Assistant module on there are four more: **ask** an assistant, make it **say** something, **load or free its
 brain**, and run one of its own **extras** (such as the Lander's manual mode).
@@ -165,8 +173,8 @@ brain**, and run one of its own **extras** (such as the Lander's manual mode).
 
 Speech recognition, wake words, voices and the assistants' AI all run **on your PC**. Nothing you say or write is sent
 anywhere. K-Desktop only goes online for what you ask of it: web requests in your commands, the assistants' web,
-weather and currency tools, the tools and MCP servers you add yourself, the calendars, subscriptions and mail accounts
-you connect, updates, and downloading voices or models. The
+weather and currency tools, the tools and MCP servers you add yourself, the calendars, subscriptions, mail accounts
+and Telegram bot or account you connect, updates, and downloading voices or models. The
 phone remote talks to the PC over your local network and needs pairing, even from the same PC.
 
 ## Requirements

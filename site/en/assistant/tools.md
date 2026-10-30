@@ -35,6 +35,9 @@ Some details:
   happens, and, if you ask («tell me on my phone…»), [it reaches your phone too](../k-desktop/remote.md#what-the-pc-sends).
 - **Send to the phone** sends a text, a link or a small file to your paired devices (all, or the one you name). It asks the
   first time, as *Ask before doing something* says.
+- **The calendar, the mail and Telegram** have their own tools (checking and changing the agenda, reading and sending mail,
+  writing and reading Telegram): see [Calendar](../k-desktop/calendar.md#the-assistants),
+  [Mail](../k-desktop/mail.md#the-assistants) and [Telegram](../k-desktop/telegram.md#actions-events-and-tools).
 - **Create an event**: «when I open Steam turn on game mode», «if I leave the PC alone for 10 minutes, lock it», «every
   time I connect the headphones tell me their battery», «when a pdf arrives in Downloads, let me know». It makes an
   [event](../k-desktop/events.md) of any kind (a time, a program that opens or comes to the front, the PC left alone, locked

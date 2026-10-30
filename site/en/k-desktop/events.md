@@ -28,6 +28,9 @@ removed…) with its own commands.
 | Device connected | When a controller, keyboard, headset or USB gadget is connected (and disconnected) |
 | PC usage | When the CPU, the graphics card, the memory or the graphics memory (VRAM) goes above (or below) a % for a while |
 | Audio device | When headphones, a speaker or a microphone are connected, or one becomes the default output or input |
+| Calendar event | Some minutes before an event, when it starts or when it ends. See [Calendar](calendar.md) |
+| Mail arrives | When a mail arrives at one of your accounts, and it can save its attachments. See [Mail](mail.md) |
+| A Telegram message arrives | When yours or a contact's reaches the bot or the account. See [Telegram](telegram.md) |
 
 ## Options
 
