@@ -86,6 +86,22 @@ public sealed partial class TelegramTests
     }
 
     [Fact]
+    public async Task SendMeFromSomeoneElseGoesToThem()
+    {
+        var (service, connection) = await Linked();
+        using var _ = service;
+        service.Update(s => s.Contacts.Add(new TelegramContact { Id = 2, Name = "Jose", MayWrite = false }));
+        // «Mándame…» in an order of Jose's (2) is for Jose, even if K-Desktop may not write to him first.
+        var sent = await TelegramAssistant.HandleAsync(service, new TelegramRequest("send", "me", "aquí tienes"), onlyChat: 2);
+        Assert.True(sent.Ok);
+        Assert.Equal("Jose", sent.To);
+        Assert.Contains(connection.Sent, s => s.Chat == 2 && s.Text == "aquí tienes");
+        // The owner's own order: to the owner.
+        Assert.Null((await TelegramAssistant.HandleAsync(service, new TelegramRequest("send", string.Empty, "para ti"))).To);
+        Assert.Contains(connection.Sent, s => s.Chat == 42 && s.Text == "para ti");
+    }
+
+    [Fact]
     public async Task ItWritesWithTheAccountOrTheBot()
     {
         var (bot, _) = await Linked();

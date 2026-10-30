@@ -81,13 +81,16 @@ public static class TelegramAssistant
         if (!telegram.On || telegram.Owner is null) return new TelegramAnswer(false, "notReady");
         return request.Do switch
         {
-            "send" => await SendAsync(telegram, request).ConfigureAwait(false),
+            "send" => await SendAsync(telegram, request, onlyChat).ConfigureAwait(false),
             "read" => Read(telegram, request, onlyChat),
             "contacts" => new TelegramAnswer(true, Contacts: Reachable(telegram)),
             "undo" => await UndoAsync(telegram, request).ConfigureAwait(false),
             _ => new TelegramAnswer(false, "error", Message: "do"),
         };
     }
+
+    /// <summary>Whether <paramref name="to"/> means «me» (empty, «me», «yo»…).</summary>
+    private static bool IsOwnerWord(string? to) => OwnerWords.Contains((to ?? string.Empty).Trim().ToLowerInvariant()) || string.IsNullOrWhiteSpace(to);
 
     /// <summary>The chat <paramref name="to"/> means: the owner when empty («me», «yo»…), a contact, or a group by its name.</summary>
     public static long? ChatOf(TelegramService telegram, string? to, bool groups = false)
@@ -107,10 +110,15 @@ public static class TelegramAssistant
             .. s.Contacts.Where(c => c.MayWrite && c.Level != TelegramLevel.Ignore).Select(c => c.Shown),
         ]);
 
-    private static async Task<TelegramAnswer> SendAsync(TelegramService telegram, TelegramRequest request)
+    /// <param name="requester">An order from someone who is not the owner: «me» is them (their own chat, where they wrote).</param>
+    private static async Task<TelegramAnswer> SendAsync(TelegramService telegram, TelegramRequest request, long? requester = null)
     {
-        if (ChatOf(telegram, request.To) is not { } chat) return new TelegramAnswer(false, "noRecipient", Contacts: Reachable(telegram));
-        if (!telegram.CanWriteTo(chat)) return new TelegramAnswer(false, "cantWrite", telegram.NameOf(chat));
+        long chat;
+        if (requester is { } them && IsOwnerWord(request.To)) chat = them;
+        else if (ChatOf(telegram, request.To) is { } found) chat = found;
+        else return new TelegramAnswer(false, "noRecipient", Contacts: Reachable(telegram));
+        // Whoever asked is written back where they wrote; anybody else, as the contacts say.
+        if (chat != requester && !telegram.CanWriteTo(chat)) return new TelegramAnswer(false, "cantWrite", telegram.NameOf(chat));
         var text = request.Text?.Trim() ?? string.Empty;
         string? file = null;
         var kind = TelegramFileKind.Document;
