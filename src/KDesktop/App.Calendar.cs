@@ -29,7 +29,11 @@ public partial class App
 
     private void CreateAccounts()
     {
-        Accounts = new Core.Accounts.AccountService(Core.Accounts.AccountService.DefaultFolder, Secrets.Protect, Secrets.Unprotect);
+        Accounts = new Core.Accounts.AccountService(Core.Accounts.AccountService.DefaultFolder, Secrets.Protect, Secrets.Unprotect)
+        {
+            // Signing in in the user's own browser, not one elevated like K-Desktop.
+            OpenBrowser = url => ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false),
+        };
         var http = CalendarService.CreateHttp();
         Calendar.AccountSources = settings => Accounts.Get(settings.AccountId) is not { } account ? null
             : account.Provider == Core.Accounts.AccountProvider.Google
@@ -119,14 +123,7 @@ public partial class App
     public static void OpenMeeting(string url)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) return;
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })?.Dispose();
-        }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
-            Log.Warn($"Calendario: no se ha podido abrir {url}: {ex.Message}");
-        }
+        if (!ProcessLauncher.Launch(new LaunchSpec(uri.AbsoluteUri), asAdmin: false)) Log.Warn($"Calendario: no se ha podido abrir {url}");
     }
 }
 
