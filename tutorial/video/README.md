@@ -117,7 +117,7 @@ node tools/stills.mjs all --short 01-getting-started --every 75 --scale 0.25   #
 node render.mjs --short 01-getting-started    # → out/shorts/01-getting-started/K-Desktop-01-getting-started-en.mp4 (+ .srt)
 ```
 
-Los vídeos cortos salen ya comprimidos: el masterizado vuelve a codificar la imagen con x264 (`slow`, crf 22). Con
+Los vídeos cortos salen ya comprimidos: el masterizado vuelve a codificar la imagen con x264 (`slow`, crf 28: unos 0,6 Mbit/s, como el vídeo largo, sin diferencia visible con crf 22). Con
 `--compress <crf>` se cambia (también sirve para el vídeo largo, que por defecto no se recomprime). En Remotion Studio
 cada uno es la composición `short-<id>-<lang>`.
 

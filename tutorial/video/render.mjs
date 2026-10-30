@@ -3,7 +3,7 @@
 // --gl <angle|swiftshader|…>: how Chromium draws (angle uses the graphics card; see tools/common.mjs). --frames a-b: only
 // those frames (to measure or review a piece).
 // --compress <crf>: the mastering also re-encodes the picture (x264, slow preset) to take less space; the short videos
-// do it by default (crf 22), the long one only when asked.
+// do it by default (crf 28, about 0.6 Mbit/s like the long video), the long one only when asked.
 // The subtitles go beside it as a .srt with the same name (players pick it up), never burnt into the picture.
 // Needs the narration (python tools/tts.py --lang <lang>) and the assets (python tools/assets.py, node tools/webapp.mjs).
 import { bundle } from '@remotion/bundler';
@@ -23,7 +23,7 @@ const scale = Number(option('scale', '1'));
 const crf = Number(option('crf', '18'));
 const chapter = option('chapter', null);
 const short = option('short', null);
-const compress = option('compress', short ? '22' : null);
+const compress = option('compress', short ? '28' : null);
 const gl = option('gl', defaultGl);
 const frames = option('frames', null)?.split('-').map(Number);
 const outDir = short ? join(root, 'out', 'shorts', short) : join(root, 'out');
