@@ -23,7 +23,7 @@ public partial class App
         // Someone new wrote: told here too (the owner decides on the PC or with the buttons in Telegram).
         Telegram.StrangerArrived += person => Dispatcher.BeginInvoke(() =>
             _ = Ui.ShowNotificationAsync(new Notification(Loc.T("telegram.stranger.title"), Loc.T("telegram.stranger.text", person.Shown), "kd:Send24:blue", NotifyColor.Blue,
-                ShowNotificationAction.GlobalSound, TimeSpan.FromSeconds(15), null, () => ShowMainWindow(w => w.Navigate("settings/accounts/telegram")))));
+                ShowNotificationAction.GlobalSound, TimeSpan.FromSeconds(15), null, () => ShowMainWindow(w => w.Navigate("settings/accounts/telegrambot")))));
         // «Solo yo mientras juego»: something covers the monitor of the window in front.
         Telegram.Busy = () => Native.UiNative.FullscreenOn(Native.UiNative.MonitorFor(Core.Model.ScreenChoice.ActiveWindow).Monitor);
     }

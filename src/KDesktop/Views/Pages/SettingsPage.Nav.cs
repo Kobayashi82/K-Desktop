@@ -390,7 +390,7 @@ public partial class SettingsPage
         item.Header = SubHeader("Globe24", Loc.T("settings.nav.accountsGoogle"));
         AutomationProperties.SetName(item, Loc.T("settings.nav.accountsGoogle"));
         _accountsItem!.Items.Add(item);
-        var telegram = new NavItem(NavKind.Sub, "accounts/telegram")
+        var telegram = new NavItem(NavKind.Sub, "accounts/telegrambot")
         {
             Style = (Style)FindResource("NavItem"),
             SearchText = Fold(Loc.T("settings.nav.accountsTelegram") + " " + Loc.T("settings.nav.accountsTelegram.hint") + " Telegram BotFather bot token " + Loc.T("telegram.owner.title")),

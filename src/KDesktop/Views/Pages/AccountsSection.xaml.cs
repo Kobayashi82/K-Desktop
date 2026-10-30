@@ -12,7 +12,7 @@ namespace KDesktop.Views.Pages;
 /// Options › Cuentas (calendar, phase 6; in two pages since 5.0.430, «Part»): <c>accounts</c>, the connected accounts
 /// with what each one is used for, connecting one again when the server forgot it and disconnecting it (revoked in the
 /// server); and <c>accounts/google</c>, connecting one (the browser opens; cancellable) and the application it connects
-/// with (the user's own Google Client ID); and <c>accounts/telegram</c>, the Telegram bot and its owner
+/// with (the user's own Google Client ID); and <c>accounts/telegrambot</c>, the Telegram bot and its owner
 /// (AccountsSection.Telegram.cs).
 /// </summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "The token source lives only while a connection is under way, and is disposed then.")]
@@ -20,7 +20,7 @@ public partial class AccountsSection : UserControl
 {
     private static AccountService Accounts => App.Current.Accounts;
 
-    /// <summary>Which page it is: <c>accounts</c> (the connected ones), <c>accounts/google</c> or <c>accounts/telegram</c>.</summary>
+    /// <summary>Which page it is: <c>accounts</c> (the connected ones), <c>accounts/google</c> or <c>accounts/telegrambot</c>.</summary>
     public string Part { get; set; } = "accounts";
 
     private bool _subscribed;
@@ -69,7 +69,7 @@ public partial class AccountsSection : UserControl
             BuildConnect();
             BuildApps();
         }
-        else if (Part == "accounts/telegram") BuildTelegram();
+        else if (Part == "accounts/telegrambot") BuildTelegram();
         else BuildList();
     }
 
@@ -102,7 +102,7 @@ public partial class AccountsSection : UserControl
         }
         if (Telegram.Bot is not null) card.Children.Add(TelegramRow());
         card.Children.Add(CalendarUi.NavLink(this, "accounts.goGoogle", "settings/accounts/google", new Thickness(0, 8, 0, 0)));
-        if (Telegram.Bot is null) card.Children.Add(CalendarUi.NavLink(this, "accounts.goTelegram", "settings/accounts/telegram", new Thickness(0, 4, 0, 0)));
+        if (Telegram.Bot is null) card.Children.Add(CalendarUi.NavLink(this, "accounts.goTelegram", "settings/accounts/telegrambot", new Thickness(0, 4, 0, 0)));
     }
 
     private void BuildConnect()

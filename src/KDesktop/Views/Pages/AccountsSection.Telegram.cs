@@ -28,12 +28,12 @@ public partial class AccountsSection
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var texts = new StackPanel();
-        texts.Children.Add(new TextBlock { Text = "Telegram · @" + bot.Username, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+        texts.Children.Add(new TextBlock { Text = Loc.T("settings.nav.accountsTelegram") + " · @" + bot.Username, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
         texts.Children.Add(CalendarUi.Status(Telegram.Owner is { } owner ? Loc.T("telegram.list.owner", owner.Shown) : Loc.T("telegram.owner.none"), "TextFillColorSecondaryBrush"));
         if (StateText() is { } state && Telegram.State != TelegramState.Connected) texts.Children.Add(state);
         grid.Children.Add(texts);
         var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Settings24, Loc.T("telegram.list.open"), () => (Window.GetWindow(this) as MainWindow)?.Navigate("settings/accounts/telegram")));
+        actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Settings24, Loc.T("telegram.list.open"), () => (Window.GetWindow(this) as MainWindow)?.Navigate("settings/accounts/telegrambot")));
         actions.Children.Add(CalendarUi.IconButton(SymbolRegular.PlugDisconnected24, Loc.T("telegram.bot.remove"), () => _ = RemoveBotAsync(), danger: true));
         Grid.SetColumn(actions, 1);
         grid.Children.Add(actions);

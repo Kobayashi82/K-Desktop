@@ -2465,7 +2465,7 @@
             <!-- Calendar and accounts -->
             <local:AccountsSection Tag="accounts" Part="accounts" />
             <local:AccountsSection Tag="accounts/google" Part="accounts/google" />
-            <local:AccountsSection Tag="accounts/telegram" Part="accounts/telegram" />
+            <local:AccountsSection Tag="accounts/telegrambot" Part="accounts/telegrambot" />
             <local:MailSection Tag="mail" />
             <local:CalendarsSection Tag="calendars" />
 
