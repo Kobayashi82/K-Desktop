@@ -431,7 +431,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
 
         var index = CommandList.SelectedIndex;
         _app.Store.Batch(() =>

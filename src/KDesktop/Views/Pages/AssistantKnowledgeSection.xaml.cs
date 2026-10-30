@@ -315,7 +315,7 @@ public partial class AssistantKnowledgeSection : UserControl
             PrimaryButtonText = Loc.T("knowledgeOptions.forget"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         _app.ForgetAllKnowledge();
         CloseFiles();
         FoundRows.Children.Clear();

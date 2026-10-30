@@ -101,7 +101,7 @@ public partial class MailSection : UserControl
             PrimaryButtonText = Loc.T("common.remove"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) Mail.Remove(account.Id);
+        if (await box.ShowCenteredAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) Mail.Remove(account.Id);
     }
 
     // ── important and the assistant ──────────────────────────────────────

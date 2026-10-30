@@ -273,7 +273,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         var index = ProfileList.SelectedIndex;
         Config.KBoards.Remove(profile);
         if (!_view.IsEmpty) ProfileList.SelectedIndex = Math.Clamp(index, 0, _view.Count - 1);
@@ -587,7 +587,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         profile.Remaps.Clear();
         SelectSource(_source);
     }

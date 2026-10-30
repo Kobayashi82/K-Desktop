@@ -1345,6 +1345,6 @@ public partial class SettingsPage : UserControl
             PrimaryButtonText = Loc.T("common.continue"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        return await box.ShowDialogAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary;
+        return await box.ShowCenteredAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary;
     }
 }

@@ -256,7 +256,7 @@ public sealed partial class MacrosPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         var index = MacroList.SelectedIndex;
         Config.Macros.Remove(macro);
         _histories.Remove(macro);
@@ -298,7 +298,7 @@ public sealed partial class MacrosPage : UserControl, IDisposable
                 SecondaryButtonText = Loc.T("macro.append"),
                 CloseButtonText = Loc.T("common.cancel"),
             };
-            var result = await box.ShowDialogAsync();
+            var result = await box.ShowCenteredAsync();
             if (result == Wpf.Ui.Controls.MessageBoxResult.None) return;
             append = result == Wpf.Ui.Controls.MessageBoxResult.Secondary;
         }

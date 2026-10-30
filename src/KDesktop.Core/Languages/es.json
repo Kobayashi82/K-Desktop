@@ -5749,10 +5749,10 @@
   "assistant.rule.agendaTomorrow": "qué tengo mañana|qué tengo para mañana|qué hay mañana en mi agenda|qué hay en mi agenda mañana|qué tengo mañana en la agenda|qué citas tengo mañana|tengo algo mañana|mi agenda de mañana|la agenda de mañana",
   "assistant.rule.agendaWeek": "qué tengo esta semana|qué tengo para esta semana|qué hay esta semana en mi agenda|qué citas tengo esta semana|mi agenda de la semana|la agenda de esta semana",
 
-  "settings.nav.group.calendar": "Cuentas y calendario",
+  "settings.nav.group.calendar": "Cuentas",
   "settings.nav.calendars": "Calendario",
   "settings.nav.calendars.hint": "Los tuyos, suscripciones .ics y avisos",
-  "settings.nav.accounts": "Cuentas",
+  "settings.nav.accounts": "Tus cuentas",
   "settings.nav.accounts.hint": "Las cuentas conectadas",
   "settings.nav.accountsGoogle": "Google",
   "settings.nav.accountsGoogle.hint": "Conectar y tu Client ID",

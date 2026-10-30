@@ -396,7 +396,7 @@ public partial class AssistantBrainSection : UserControl
             CloseButtonText = Loc.T("common.cancel"),
             Width = 480,
             MaxWidth = 480,
-        }.ShowDialogAsync();
+        }.ShowCenteredAsync();
         if (result == Wpf.Ui.Controls.MessageBoxResult.Primary) await _app.DeleteDownloadedModelAsync(path);
     }
 

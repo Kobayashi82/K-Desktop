@@ -82,7 +82,7 @@ internal static class ItemTransferUi
                 SecondaryButtonText = Loc.T("transfer.keepMine"),
                 CloseButtonText = Loc.T("common.cancel"),
             };
-            var answer = await box.ShowDialogAsync();
+            var answer = await box.ShowCenteredAsync();
             if (answer == Wpf.Ui.Controls.MessageBoxResult.None) return;
             if (answer == Wpf.Ui.Controls.MessageBoxResult.Secondary) choice = ItemTransfer.ClashChoice.KeepMine;
         }

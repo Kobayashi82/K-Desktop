@@ -531,7 +531,7 @@ public partial class App
             CloseButtonText = Loc.T(downloadable.Count > 0 ? "common.cancel" : "common.close"),
         };
         if (downloadable.Count > 0) box.PrimaryButtonText = Loc.T("assistant.restoreDownload", downloadable.Count);
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
 
         foreach (var assistant in downloadable)
         {

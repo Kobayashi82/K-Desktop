@@ -313,7 +313,7 @@ public partial class AgendaPage : UserControl
                 PrimaryButtonText = Loc.T("common.delete"),
                 CloseButtonText = Loc.T("common.cancel"),
             };
-            if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+            if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
             scope = EditScope.All;
         }
         var change = await RunAsync(() => Calendar.DeleteAsync(o, scope));
@@ -331,7 +331,7 @@ public partial class AgendaPage : UserControl
         {
             Log.Warn($"Agenda: {ex.Message}");
             var box = new Wpf.Ui.Controls.MessageBox { Title = Loc.T("agenda.errorTitle"), Content = ex is CalendarConflictException ? Loc.T("agenda.conflict") : ex.Message, CloseButtonText = Loc.T("common.close") };
-            await box.ShowDialogAsync();
+            await box.ShowCenteredAsync();
             return null;
         }
     }

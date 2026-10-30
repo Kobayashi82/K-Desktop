@@ -651,7 +651,7 @@ public partial class AssistantToolsSection : UserControl
             PrimaryButtonText = Loc.T("toolsOptions.remove"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         _app.RemoveMcpServer(id);
         if (Part == "tools/server") Go("tools/servers");
     }
@@ -702,7 +702,7 @@ public partial class AssistantToolsSection : UserControl
                     PrimaryButtonText = Loc.T("toolsOptions.secretChange"),
                     CloseButtonText = Loc.T("common.cancel"),
                 };
-                if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+                if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
                 text = kept.Name;
             }
             _savedSecret = text;
@@ -780,7 +780,7 @@ public partial class AssistantToolsSection : UserControl
         MaxWidth = 480,
         Content = text,
         CloseButtonText = Loc.T("common.close"),
-    }.ShowDialogAsync();
+    }.ShowCenteredAsync();
 
     private void OnGoGeneral(object sender, RoutedEventArgs e) => Go("assistant");
 }

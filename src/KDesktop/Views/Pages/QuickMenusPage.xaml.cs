@@ -293,7 +293,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         var index = MenuList.SelectedIndex;
         Config.QuickMenus.Remove(menu);
         _app.Achievements.Increment(Stat.MenusDeleted);

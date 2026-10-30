@@ -156,7 +156,7 @@ public partial class CalendarsSection : UserControl
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(42) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         grid.Children.Add(CalendarUi.ColorDot(c.Color, color => Calendar.SetLook(c with { Color = color })));
 
@@ -188,13 +188,13 @@ public partial class CalendarsSection : UserControl
             if (used is not null) used(shown.IsChecked == true);
             else Calendar.SetLook(c with { Visible = shown.IsChecked == true });
         };
-        Grid.SetColumn(shown, 3);
+        Grid.SetColumn(shown, 4);
         grid.Children.Add(shown);
 
         if (source.Kind == CalendarSourceKind.Local && Calendar.Local.Calendars.Count > 1)
         {
             var delete = CalendarUi.IconButton(SymbolRegular.Delete24, Loc.T("calendars.delete"), () => _ = DeleteOwnAsync(c), danger: true);
-            Grid.SetColumn(delete, 4);
+            Grid.SetColumn(delete, 3);
             grid.Children.Add(delete);
         }
         return grid;
@@ -207,7 +207,6 @@ public partial class CalendarsSection : UserControl
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(42) });
         var dot = new System.Windows.Shapes.Ellipse { Width = 16, Height = 16, Fill = AgendaPage.Brush(c.Color), Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
         grid.Children.Add(dot);
         var name = new TextBlock { Text = c.Name + (c.ReadOnly ? " " + Loc.T("calendars.readOnlyMark") : string.Empty), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(2, 0, 0, 0) };
@@ -248,14 +247,14 @@ public partial class CalendarsSection : UserControl
         {
             var shown = new ToggleSwitch { IsChecked = look.Visible, Margin = new Thickness(12, 0, 0, 0), ToolTip = Loc.T("calendars.visible"), VerticalAlignment = VerticalAlignment.Center };
             shown.Click += (_, _) => Calendar.SetLook(look with { Visible = shown.IsChecked == true });
-            Grid.SetColumn(shown, 2);
+            Grid.SetColumn(shown, 3);
             grid.Children.Add(shown);
         }
         var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         actions.Children.Add(CalendarUi.IconButton(SymbolRegular.ArrowSync24, Loc.T("agenda.sync"), () => _ = source.SyncAsync()));
         actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Edit24, Loc.T("calendars.editSubscription"), () => Dialogs.SubscriptionDialog.Show(Window.GetWindow(this), settings)));
         actions.Children.Add(CalendarUi.IconButton(SymbolRegular.Delete24, Loc.T("calendars.unsubscribe"), () => Calendar.RemoveSubscription(settings.Id), danger: true));
-        Grid.SetColumn(actions, 3);
+        Grid.SetColumn(actions, 2);
         grid.Children.Add(actions);
         return grid;
     }
@@ -271,7 +270,7 @@ public partial class CalendarsSection : UserControl
             PrimaryButtonText = Loc.T("calendars.add"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        _ = dialog.ShowDialogAsync().ContinueWith(t =>
+        _ = dialog.ShowCenteredAsync().ContinueWith(t =>
         {
             if (t.Result == Wpf.Ui.Controls.MessageBoxResult.Primary && box.Text.Trim().Length > 0) Calendar.Local.AddCalendar(box.Text.Trim());
         }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -287,7 +286,7 @@ public partial class CalendarsSection : UserControl
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         Calendar.Local.RemoveCalendar(c.Id);
     }
 

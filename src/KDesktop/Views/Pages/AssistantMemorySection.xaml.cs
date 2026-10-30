@@ -181,7 +181,7 @@ public partial class AssistantMemorySection : UserControl
             PrimaryButtonText = Loc.T("memoryOptions.clear"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) _app.ClearAssistantMemory();
+        if (await box.ShowCenteredAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) _app.ClearAssistantMemory();
     }
 
     private void OnGoGeneral(object sender, RoutedEventArgs e) =>

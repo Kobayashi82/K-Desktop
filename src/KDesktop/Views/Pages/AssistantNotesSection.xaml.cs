@@ -171,7 +171,7 @@ public partial class AssistantNotesSection : UserControl
             PrimaryButtonText = Loc.T("memoryOptions.clear"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) _app.ClearAssistantNotes();
+        if (await box.ShowCenteredAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary) _app.ClearAssistantNotes();
     }
 
     private void OnGoGeneral(object sender, RoutedEventArgs e) =>

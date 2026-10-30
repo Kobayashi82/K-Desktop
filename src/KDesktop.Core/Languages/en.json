@@ -5749,10 +5749,10 @@
   "assistant.rule.agendaTomorrow": "what do I have tomorrow|what's on tomorrow|what's on my calendar tomorrow|what's on my agenda tomorrow|what appointments do I have tomorrow|do I have anything tomorrow|my agenda for tomorrow|tomorrow's agenda",
   "assistant.rule.agendaWeek": "what do I have this week|what's on this week|what's on my calendar this week|what appointments do I have this week|my agenda for this week|this week's agenda",
 
-  "settings.nav.group.calendar": "Accounts and calendar",
+  "settings.nav.group.calendar": "Accounts",
   "settings.nav.calendars": "Calendar",
   "settings.nav.calendars.hint": "Your own, .ics subscriptions and reminders",
-  "settings.nav.accounts": "Accounts",
+  "settings.nav.accounts": "Your accounts",
   "settings.nav.accounts.hint": "The connected accounts",
   "settings.nav.accountsGoogle": "Google",
   "settings.nav.accountsGoogle.hint": "Connect and your Client ID",

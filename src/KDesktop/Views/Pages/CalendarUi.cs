@@ -112,22 +112,38 @@ internal static class CalendarUi
         return element;
     }
 
-    /// <summary>A coloured dot that, clicked, offers the palette.</summary>
+    /// <summary>
+    /// A coloured dot that, clicked, offers the palette in a small panel of round swatches (as the colour of an
+    /// assistant's setting: the menu's surface, just as wide as the colours).
+    /// </summary>
     public static FrameworkElement ColorDot(string color, Action<string> chosen)
     {
         var dot = new System.Windows.Shapes.Ellipse { Width = 16, Height = 16, Fill = AgendaPage.Brush(color), Cursor = System.Windows.Input.Cursors.Hand, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center, ToolTip = Loc.T("calendars.color") };
         dot.MouseLeftButtonUp += (_, _) =>
         {
-            var menu = new ContextMenu();
+            var swatches = new WrapPanel { Width = 5 * 28 };
+            var popup = new System.Windows.Controls.Primitives.Popup
+            {
+                PlacementTarget = dot, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom, VerticalOffset = 6,
+                StaysOpen = false, AllowsTransparency = true, PopupAnimation = System.Windows.Controls.Primitives.PopupAnimation.Fade,
+            };
             foreach (var c in Core.Calendar.CalendarColors.Palette)
             {
-                var item = new MenuItem { Header = new System.Windows.Shapes.Ellipse { Width = 14, Height = 14, Fill = AgendaPage.Brush(c) } };
+                var swatch = new Border { Width = 24, Height = 24, Margin = new Thickness(2), CornerRadius = new CornerRadius(12), Background = AgendaPage.Brush(c), BorderThickness = new Thickness(c == color ? 2 : 1), Cursor = System.Windows.Input.Cursors.Hand };
+                swatch.SetResourceReference(Border.BorderBrushProperty, c == color ? "TextFillColorPrimaryBrush" : "ControlStrokeColorDefaultBrush");
                 var value = c;
-                item.Click += (_, _) => chosen(value);
-                menu.Items.Add(item);
+                swatch.MouseLeftButtonUp += (_, _) =>
+                {
+                    popup.IsOpen = false;
+                    chosen(value);
+                };
+                swatches.Children.Add(swatch);
             }
-            menu.PlacementTarget = dot;
-            menu.IsOpen = true;
+            var panel = new Border { Padding = new Thickness(10), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), Child = swatches };
+            panel.SetResourceReference(Border.BackgroundProperty, "Kd.MenuTintOpaque");
+            panel.SetResourceReference(Border.BorderBrushProperty, "Kd.MenuBorder");
+            popup.Child = panel;
+            popup.IsOpen = true;
         };
         return dot;
     }

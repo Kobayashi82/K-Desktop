@@ -305,7 +305,7 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         var index = SnippetList.SelectedIndex;
         Config.Snippets.Remove(snippet);
         if (!_view.IsEmpty) SnippetList.SelectedIndex = Math.Clamp(index, 0, _view.Count - 1);

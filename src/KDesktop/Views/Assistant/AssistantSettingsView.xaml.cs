@@ -207,7 +207,7 @@ public partial class AssistantSettingsView : UserControl
             PrimaryButtonText = Loc.T("assistantSettings.reset"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         model.Reset();
         _app.Ui.ShowNotice(Loc.T("assistantSettings.resetDone", model.Name), OsdKind.Success);
     }
@@ -233,7 +233,7 @@ public partial class AssistantSettingsView : UserControl
             PrimaryButtonText = Loc.T("assistantSettings.resetDataYes"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         element.IsEnabled = false;
         try
         {

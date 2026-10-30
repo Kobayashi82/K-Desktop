@@ -279,7 +279,7 @@ public partial class VoiceProfilesSection : UserControl
             PrimaryButtonText = Loc.T("voiceProfiles.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         _save.Stop();
         VoiceProfiles.Delete(profile.Id);
         // Whoever spoke with it speaks as before it was chosen.
@@ -871,5 +871,5 @@ public partial class VoiceProfilesSection : UserControl
         MaxWidth = 480,
         Content = text,
         CloseButtonText = Loc.T("common.close"),
-    }.ShowDialogAsync();
+    }.ShowCenteredAsync();
 }

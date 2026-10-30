@@ -140,7 +140,7 @@ public partial class AssistantToolsSection
             PrimaryButtonText = Loc.T("toolsOptions.shareNewKey"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         _app.NewAssistantShareKey();
         CopyShareConfig();
         _shown = null;

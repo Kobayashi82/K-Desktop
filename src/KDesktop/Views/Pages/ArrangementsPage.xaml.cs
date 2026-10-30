@@ -463,7 +463,7 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
                 PrimaryButtonText = Loc.T("arrangement.captureYes"),
                 CloseButtonText = Loc.T("common.cancel"),
             };
-            if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+            if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         }
         Capture(arrangement);
     }
@@ -526,7 +526,7 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
             PrimaryButtonText = Loc.T("common.delete"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         var index = ArrangementList.SelectedIndex;
         Config.Arrangements.Remove(arrangement);
         foreach (var active in Settings.ActiveArrangements.Where(a => a.ArrangementId == arrangement.Id).ToList()) Settings.ActiveArrangements.Remove(active);

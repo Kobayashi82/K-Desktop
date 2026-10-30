@@ -190,7 +190,7 @@ public partial class AccountsSection : UserControl
             PrimaryButtonText = Loc.T("accounts.disconnect"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        if (await box.ShowCenteredAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         App.Current.Calendar.ForgetAccount(account.Id);
         App.Current.Mail.ForgetAccount(account.Id);
         await Accounts.DisconnectAsync(account.Id);

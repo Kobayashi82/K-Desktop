@@ -136,7 +136,7 @@ public partial class AssistantListSection : UserControl
             SecondaryButtonText = Loc.T("assistantOptions.removeAll"),
             CloseButtonText = Loc.T("common.cancel"),
         };
-        var answer = await box.ShowDialogAsync();
+        var answer = await box.ShowCenteredAsync();
         if (answer is not (Wpf.Ui.Controls.MessageBoxResult.Primary or Wpf.Ui.Controls.MessageBoxResult.Secondary)) return;
 
         // Leaving the desktop takes a moment (its exit): the row waits meanwhile.
