@@ -113,6 +113,17 @@ asistentes en el escritorio.
   ExpandCollapsePattern en el elemento que contiene el punto).
 - El portapapeles se llena con `Set-Clipboard` (también entra en el historial del K-Desktop real).
 
+## Capturas de los vídeos cortos (30/10/2026)
+
+- **welcome-start, -features, -basics, -voice, -assistants, -done** (la bienvenida, 680 × 509) y **settings-updates**: no
+  con la demo, sino con una carpeta de datos **vacía** (solo un `config.json` con `language`, `theme: dark`,
+  `windowBounds` en el monitor secundario y la voz sin bajar el volumen) y `--no-elevate --no-hooks --no-udp --no-web`;
+  la bienvenida se abre con `KDesktop.exe --data <carpeta> --welcome`, se avanza con `ui.ps1 -Name 'Get started'` /
+  `Next` y cada paso se captura con PrintWindow del manejador de su ventana (`wins.ps1` la lista; `wshot.ps1` coge la
+  del OSD, que es más pequeña). Con `--data`, K-Desktop no se apunta al inicio de Windows aunque la opción salga
+  encendida; no tocar los interruptores. El aviso rojo de `--no-hooks` de `settings-updates` se tapó copiando la franja
+  de fondo de debajo.
+
 ## Trampas vistas
 
 - PowerShell no distingue mayúsculas: `$c` pisa a `$C`, `$s` a `$S`.

@@ -55,7 +55,9 @@ python tools/tts.py --lang en     # voz, línea de tiempo y out/subtitles.en.srt
 node render.mjs                   # → out/K-Desktop-en.mp4 y out/K-Desktop-en.srt
 ```
 
-Opciones de `render.mjs`: `--crf 20` (calidad; más bajo, más calidad y más peso), `--scale 0.5` (versión ligera para revisar), `--chapter voice` (un capítulo solo).
+Opciones de `render.mjs`: `--crf 20` (calidad; más bajo, más calidad y más peso), `--scale 0.5` (versión ligera para revisar), `--chapter voice` (un capítulo solo), `--frames 2600-2899` (solo esos fotogramas).
+En Windows, Chromium dibuja con la tarjeta gráfica (`--gl angle`, por defecto; `REMOTION_GL` lo cambia): con una RTX
+4070 SUPER va unas 2,5 veces más rápido que por CPU (`--gl swiftshader`), unos 25 fotogramas por segundo.
 Usa todos los núcleos (`--concurrency n` para menos). El vídeo entero tarda unas 2 horas en un ordenador de 4 núcleos.
 Los subtítulos nunca van grabados en la imagen: el `.srt` va al lado del `.mp4`, con el mismo nombre, y los
 reproductores lo cargan solos.
@@ -89,6 +91,35 @@ capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kd
   `achievement-toast`, `settings-appearance`, `settings-launcher`, `settings-voice`, `assistant-settings`,
   `assistant-install`, `desktop-assistants`, `brain`, `assistant-voice`, `tools-builtin`, `tools-mcp-server`,
   `memory`, `knowledge` y el clip `clips/lander-says-hello.mp4`). Tras cambiarlas: `python tools/assets.py`.
+
+## Vídeos cortos
+
+Vídeos de 2 a 3 minutos, uno por función (el plan de los 17 está en `ARREGLAR.md`, local). Usan este mismo proyecto:
+la voz, la música, los efectos, las capturas, los componentes y muchas escenas del vídeo largo.
+
+```
+shorts/<nn-nombre>/en.json        su guion (mismo formato que script/en.json, más number, title, next y nextNumber)
+shorts/<nn-nombre>/scenes/        sus escenas (index.ts las asocia a los capítulos y pone los colores de fondo)
+src/shorts.ts                     la lista de vídeos cortos (añadir ahí cada uno nuevo)
+src/components/Short.tsx          lo común: la cartela del título, «qué vas a ver» y el cierre («Next up»)
+```
+
+- Cada vídeo tiene capítulos con la misma estructura: `hook` (título y qué resuelve), los del ejemplo, `tip` (el truco)
+  y `end` (el siguiente vídeo y gracias, con `ShortEnd`).
+- Para reutilizar una escena del vídeo largo, el guion lleva los mismos ids de beats y las mismas marcas `{cue}` que
+  ella espera (por ejemplo `BuildPart` necesita `page`, `hotkey`, `hotkey2` y `actions` en el mismo capítulo).
+- Lo generado va aparte del vídeo largo: `public/audio/shorts/<id>/`, `public/generated/shorts/<id>/` y
+  `out/shorts/<id>/`.
+
+```
+python tools/tts.py --lang en --short 01-getting-started
+node tools/stills.mjs all --short 01-getting-started --every 75 --scale 0.25   # fotogramas para revisar
+node render.mjs --short 01-getting-started    # → out/shorts/01-getting-started/K-Desktop-01-getting-started-en.mp4 (+ .srt)
+```
+
+Los vídeos cortos salen ya comprimidos: el masterizado vuelve a codificar la imagen con x264 (`slow`, crf 22). Con
+`--compress <crf>` se cambia (también sirve para el vídeo largo, que por defecto no se recomprime). En Remotion Studio
+cada uno es la composición `short-<id>-<lang>`.
 
 ## Versión en español
 

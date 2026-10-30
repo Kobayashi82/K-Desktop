@@ -19,7 +19,7 @@ const Bubble: React.FC<{ text: string; show: number; x: number; y: number; small
 );
 
 /** One sentence, two orders. */
-const Chain: React.FC<{ b: BeatTimes }> = ({ b }) => {
+export const Chain: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const split = ease(f, b.cue('and'), b.cue('and') + 20, SMOOTH);
   const done = [b.cue('and') + 26, b.cue('and') + 40];
@@ -50,7 +50,7 @@ const Chain: React.FC<{ b: BeatTimes }> = ({ b }) => {
 };
 
 /** Music and volume orders, no commands needed. */
-const Media: React.FC<{ b: BeatTimes }> = ({ b }) => {
+export const Media: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const orders = [
     { cue: 'pause', text: t('Pause') }, { cue: 'next', text: t('Next song') }, { cue: 'quieter', text: t('A little quieter') }, { cue: 'forty', text: t('Volume to 40 percent') }, { cue: 'play', text: t('Play music') },
@@ -93,7 +93,7 @@ const Media: React.FC<{ b: BeatTimes }> = ({ b }) => {
 };
 
 /** Dictation into any window. */
-const Dictate: React.FC<{ b: BeatTimes }> = ({ b }) => {
+export const Dictate: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const first = 'Hi Ana, the report is ready.';
   const second = 'I will send it tomorrow morning.';
@@ -127,7 +127,7 @@ const Dictate: React.FC<{ b: BeatTimes }> = ({ b }) => {
 };
 
 /** Downloaded once, memory, ducking, privacy. */
-const Privacy: React.FC<{ b: BeatTimes }> = ({ b }) => {
+export const Privacy: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const models = [
     { name: t('Parakeet'), what: t('speech to text'), icon: 'text_t_24_filled', color: 'indigo' },

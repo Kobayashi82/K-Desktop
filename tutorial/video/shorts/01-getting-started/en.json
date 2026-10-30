@@ -1,0 +1,175 @@
+{
+  "lang": "en",
+  "number": 1,
+  "title": "Getting started",
+  "next": "Commands, actions and hotkeys",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1.0
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Run anyway",
+      "More info",
+      "New command",
+      "Run application",
+      "Start with Windows",
+      "Control F"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Getting started",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "repeat",
+          "text": "Opening the same programs. Moving the same windows. Typing the same text, again. {kd}K-Desktop does it for you, with a {key}key, a {menu}menu, or your {voice}voice."
+        },
+        {
+          "id": "plan",
+          "text": "In the next few minutes: {get}get it running, take a {tour}quick tour, and make your {first}first command.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "download",
+      "title": "Download it",
+      "label": "Download",
+      "beats": [
+        {
+          "id": "get",
+          "text": "K-Desktop is a {single}single portable program for {windows}Windows 10 and 11. On its {github}GitHub page, open {releases}Releases, and download {exe}KDesktop.exe."
+        },
+        {
+          "id": "run",
+          "text": "There's {noinstall}no installer, and nothing else to install. Put it in a {folder}folder of your own, and {open}open it."
+        },
+        {
+          "id": "smart",
+          "text": "If Windows {smart}SmartScreen steps in, choose {more}More info, then {anyway}Run anyway."
+        },
+        {
+          "id": "updates",
+          "text": "From then on, it {keeps}keeps itself up to date. When there's a {new}new version, it downloads it and {restarts}restarts while you're not using it, in a couple of seconds. In {settings}Settings, Updates, you can have it {tell}just tell you instead."
+        }
+      ]
+    },
+    {
+      "id": "welcome",
+      "title": "The welcome",
+      "label": "Welcome",
+      "beats": [
+        {
+          "id": "first",
+          "text": "The first time, a short {welcome}welcome sets up the basics."
+        },
+        {
+          "id": "look",
+          "text": "Pick a {theme}theme: light, dark, or the same as Windows. And a {language}language: English, Spanish, French, German or Italian."
+        },
+        {
+          "id": "what",
+          "text": "Next, {what}what it can do, at a glance."
+        },
+        {
+          "id": "startup",
+          "text": "{startup}Start with Windows comes on, so your hotkeys always work. It starts with {admin}administrator rights, without asking every time."
+        },
+        {
+          "id": "keys",
+          "text": "Choose a key for the {launcher}launcher, and one to {show}bring up K-Desktop from anywhere."
+        },
+        {
+          "id": "tray",
+          "text": "Closing the window doesn't close K-Desktop. It keeps working from its {tray}icon next to the clock."
+        },
+        {
+          "id": "optional",
+          "text": "{voice}Voice and {assistants}assistants are optional, so you can leave them for later. And you're {done}all set."
+        }
+      ]
+    },
+    {
+      "id": "tour",
+      "title": "A quick tour",
+      "label": "Tour",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Now, a quick look around the panel."
+        },
+        {
+          "id": "core",
+          "text": "{commands}Commands are the heart of it: actions you start with a hotkey. {events}Events run them for you, when something happens on your PC. And the {quickmenu}QuickMenu puts them in a menu, right under your mouse."
+        },
+        {
+          "id": "tools",
+          "text": "{kboard}K-Board changes what your keys do. {macros}Macros record what you do, and play it back. {texts}Texts swaps a short abbreviation for a long text. And {layouts}Layouts remembers where your windows go."
+        },
+        {
+          "id": "rest",
+          "text": "{assistant}Assistant is home to optional characters you can talk to. The {agenda}Agenda keeps your appointments. {history}History lists everything that ran. {settings}Settings are grouped by topic, and {search}searchable with Control F. And along the way, you'll unlock {achievements}achievements."
+        },
+        {
+          "id": "more",
+          "text": "Each of these has its own short video."
+        }
+      ]
+    },
+    {
+      "id": "first",
+      "title": "Your first command",
+      "label": "First command",
+      "beats": [
+        {
+          "id": "new",
+          "text": "Time for your first command. In {commands}Commands, click {new}New command, and call it {name}Notepad."
+        },
+        {
+          "id": "hotkey",
+          "text": "Add a hotkey. Press {ctrl}Control, {alt}Alt, {n}N."
+        },
+        {
+          "id": "action",
+          "text": "Then an {add}action: {run}Run application, {notepad}Notepad. It even picks up the program's {icon}icon by itself."
+        },
+        {
+          "id": "try",
+          "text": "Click {run}Run to try it. Now, from {anywhere}anywhere, press {ctrl}Control, {alt}Alt, {n}N... and {there}there it is.",
+          "pause": 0.6
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip. A hotkey doesn't have to be a key. It can be a {mouse}mouse button, a {corner}corner of the screen, or a {gesture}mouse gesture."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}commands, actions and hotkeys, in depth."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

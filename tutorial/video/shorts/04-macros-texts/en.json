@@ -1,0 +1,109 @@
+{
+  "lang": "en",
+  "number": 4,
+  "title": "Macros and Texts",
+  "next": "K-Board",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Shift plus Escape",
+      "Try it",
+      "Write as you type"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Macros and Texts",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Some things aren't a list of actions. They're {hands}what your hands do, or the {words}same words you type, again and again."
+        },
+        {
+          "id": "plan",
+          "text": "For the first, {macros}macros. For the second, {texts}Texts.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "macros",
+      "title": "Macros",
+      "label": "Macros",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Some tasks can't be described as actions. You just have to do them. {again}Again, and again. That's what {macros}macros are for."
+        },
+        {
+          "id": "record",
+          "text": "Press {record}Record, and do the task. K-Desktop captures every {key}key, {click}click, {scroll}scroll and {move}movement, with its exact {timing}timing. {stop}Shift plus Escape finishes."
+        },
+        {
+          "id": "edit",
+          "text": "Every step can be {edited}edited, {dragged}dragged, {inserted}inserted or {deleted}deleted. And {simplify}Simplify cleans it up in one click: {merge}merge presses, {drop}drop mouse movements, {halve}halve the pauses, or {cap}cap them at one second."
+        },
+        {
+          "id": "play",
+          "text": "Play it from any command: {once}once, {several}several times, in a {loop}loop, or at a different {speed}speed."
+        },
+        {
+          "id": "game",
+          "text": "And for games, there's {game}game mode. The mouse is recorded as {raw}raw, relative movement: the kind games read, even when they {lock}lock the pointer."
+        }
+      ]
+    },
+    {
+      "id": "texts",
+      "title": "Texts",
+      "label": "Texts",
+      "beats": [
+        {
+          "id": "what",
+          "text": "{texts}Texts are the phrases you keep typing: your {address}address, your {signature}signature, an answer you repeat. Each one gets a short {abbr}abbreviation."
+        },
+        {
+          "id": "type",
+          "text": "Now, in any program, type {type}semicolon addr, and K-Desktop {swaps}swaps it for the whole text."
+        },
+        {
+          "id": "fields",
+          "text": "Inside a text, an opening {brace}brace adds the date, the time, or what you copied, and a {cursor}cursor mark leaves the cursor right there. A {try}Try it box tests it on the spot, and in {options}Options, you can limit it to a few programs."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: type the abbreviation in {caps}capitals, semicolon SIG, and the text comes out in {out}capitals too."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}K-Board."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

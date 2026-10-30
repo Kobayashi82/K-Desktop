@@ -4,10 +4,12 @@ import { Background, Grain } from './components/Background';
 import { CaptureInfo, MediaProvider } from './components/Capture';
 import { ChapterStage, ChapterTitle, LightSweep, ProgressBar } from './components/Chapter';
 import { setLang } from './lib/i18n';
-import { ChapterProvider, Timeline } from './lib/timeline';
+import { ChapterProvider, Timeline, TimelineProvider } from './lib/timeline';
 import { SCENES } from './scenes';
+import { SHORTS } from './shorts';
 
-export type VideoProps = { lang: string; timeline?: Timeline; captures?: Record<string, CaptureInfo>; music?: boolean };
+/** `short`: the id of a short video (shorts/<id>), drawn with its own scenes; without it, the long video. */
+export type VideoProps = { lang: string; timeline?: Timeline; captures?: Record<string, CaptureInfo>; music?: boolean; short?: string };
 
 // Frames in public/sfx/music.wav (exactly 4 minutes). It loops seamlessly, so the copies go back to back, with no
 // cross-fade: a fade there dipped the music and the beat restarted out of step.
@@ -48,16 +50,18 @@ const Music: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
   );
 };
 
-export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, music = true }) => {
+export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, music = true, short }) => {
   const frame = useCurrentFrame();
   setLang(lang);
   if (!timeline) return null;
+  const scenes = short ? SHORTS[short]?.scenes ?? {} : SCENES;
   return (
     <MediaProvider lang={lang} captures={captures}>
+    <TimelineProvider timeline={timeline}>
     <AbsoluteFill style={{ background: '#0b0b0e' }}>
-      <Background timeline={timeline} />
+      <Background timeline={timeline} moods={short ? SHORTS[short]?.moods : undefined} />
       {timeline.chapters.map((chapter, index) => {
-        const Scene = SCENES[chapter.id];
+        const Scene = scenes[chapter.id];
         const titled = index > 0 && index < timeline.chapters.length - 1;
         return (
           <Sequence key={chapter.id} from={chapter.from} durationInFrames={chapter.durationInFrames} name={chapter.id}>
@@ -78,6 +82,7 @@ export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, mus
       {music && <Music timeline={timeline} />}
       <Grain />
     </AbsoluteFill>
+    </TimelineProvider>
     </MediaProvider>
   );
 };

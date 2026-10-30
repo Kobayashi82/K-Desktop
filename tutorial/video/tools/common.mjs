@@ -22,3 +22,6 @@ const playwrightShell = () => {
 export const browserExecutable = process.env.REMOTION_BROWSER ?? playwrightShell();
 
 export const webpackOverride = config => config;
+
+/** How Chromium draws the frames: on Windows, with the graphics card (ANGLE over Direct3D); elsewhere, Remotion's default. */
+export const defaultGl = process.env.REMOTION_GL ?? (process.platform === 'win32' ? 'angle' : null);

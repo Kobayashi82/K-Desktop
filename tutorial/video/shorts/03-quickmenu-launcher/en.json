@@ -1,0 +1,129 @@
+{
+  "lang": "en",
+  "number": 3,
+  "title": "QuickMenu and the launcher",
+  "next": "Macros and Texts",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Mouse 5",
+      "Control Enter",
+      "Living room lights off",
+      "Switch to headphones"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "QuickMenu and the launcher",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Some commands you use every day. Others, only {now}now and then. For those, you don't need to {remember}remember a single hotkey."
+        },
+        {
+          "id": "plan",
+          "text": "Let's {qm}open a QuickMenu, {build}build your own, and {search}find anything with the launcher.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "quickmenu",
+      "title": "The QuickMenu",
+      "label": "QuickMenu",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Sometimes, one key per command isn't enough. That's what {qm}QuickMenus are for."
+        },
+        {
+          "id": "open",
+          "text": "Press a hotkey, say {mouse5}Mouse 5, and a menu {blooms}blooms right where your pointer is. Translucent, with {icons}icons, {titles}titles, {separators}separators and {submenus}submenus."
+        },
+        {
+          "id": "clicks",
+          "text": "{left}Left click runs a command and closes the menu. {right}Right click runs it and keeps the menu open, perfect for {nudging}nudging the volume. {middle}Middle click jumps straight to editing that item. And the whole menu works from the {keyboard}keyboard, too."
+        },
+        {
+          "id": "editor",
+          "text": "Menus are built in the {editor}editor. {drag}Drag commands from the palette onto the menu: {above}above, {below}below, or {inside}inside an item. {rename}Rename, change icons, {nest}nest submenus, {undo}undo and redo, and choose a {size}size, from compact to huge."
+        },
+        {
+          "id": "quick",
+          "text": "Need something new? A {quick}quick command turns a {program}program, a {folder}folder or a {web}web address into a menu item, in one step."
+        }
+      ]
+    },
+    {
+      "id": "launcher",
+      "title": "The launcher",
+      "label": "Launcher",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "For everything else, there's the {launcher}launcher: a search box with its own {hotkey}hotkey."
+        },
+        {
+          "id": "fuzzy",
+          "text": "Type a few letters, even loose ones. {c}C, M, F, Y finds {comfy}ComfyUI. It searches your {commands}commands and every program in the {start}Start menu, {store}Store apps included."
+        },
+        {
+          "id": "calc",
+          "text": "Type a {sum}sum, and it's a calculator: {enter}Enter copies the result. And when {nothing}nothing matches, it offers to {web}search the web."
+        },
+        {
+          "id": "rank",
+          "text": "It learns what you use {most}most, and puts it first, before you even {type}type."
+        }
+      ]
+    },
+    {
+      "id": "more",
+      "title": "More than programs",
+      "label": "Files",
+      "beats": [
+        {
+          "id": "files",
+          "text": "It finds {files}files and folders too, from the Windows index. Type a {question}question mark first to search only files, and {ctrl}Control Enter opens the folder they're in."
+        },
+        {
+          "id": "clip",
+          "text": "It even searches your {clipboard}clipboard history: pick something you copied, and Enter {pastes}pastes it. Each of these can be {switch}switched on or off, in Settings, Launcher."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: a command {nokey}doesn't need a hotkey at all. Give it a clear name, and {launcher}run it from the launcher with a few letters. Like {steam}Steam, {headphones}Switch to headphones, or {lights}Living room lights off. Even {hidden}hidden commands can show up there, if you turn that on."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}macros and Texts."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

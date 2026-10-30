@@ -8,7 +8,7 @@ import { Cursor } from '../../components/Cursor';
 import { AppWindow, Taskbar, Wallpaper } from '../../components/Desktop';
 import { Fluent, KdIcon } from '../../components/Icon';
 import { Keycap } from '../../components/Keys';
-import { KdWindow } from '../../components/KdWindow';
+import { KdWindow, NAV } from '../../components/KdWindow';
 import { Osd } from '../../components/Osd';
 import { MouseShape } from '../../components/Props';
 import { Sfx } from '../../components/Sfx';
@@ -24,7 +24,7 @@ const ADD_HOTKEY = { x: 880, y: 326 };
 const ADD_ACTION = { x: 1620, y: 508 };
 
 /** Big keys pressed one after another (Ctrl, Alt, W), held until `release`. */
-const ComboKeys: React.FC<{ keys: string[]; at: number[]; release: number; show: number }> = ({ keys, at, release, show }) => {
+export const ComboKeys: React.FC<{ keys: string[]; at: number[]; release: number; show: number }> = ({ keys, at, release, show }) => {
   const f = useCurrentFrame();
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 230, display: 'flex', justifyContent: 'center', gap: 26, opacity: show, transform: `translateY(${(1 - show) * 80}px)` }}>
@@ -41,7 +41,7 @@ const ComboKeys: React.FC<{ keys: string[]; at: number[]; release: number; show:
   );
 };
 
-export const BuildPart: React.FC<{ page: BeatTimes; hotkey: BeatTimes; hotkey2: BeatTimes; actions: BeatTimes; to: number }> = ({ page, hotkey, hotkey2, actions, to }) => {
+export const BuildPart: React.FC<{ page: BeatTimes; hotkey: BeatTimes; hotkey2: BeatTimes; actions: BeatTimes; to: number; nav?: typeof NAV; assistant?: boolean }> = ({ page, hotkey, hotkey2, actions, to, nav, assistant }) => {
   const f = useCurrentFrame();
   const newAt = page.cue('new');
   const nameAt = page.cue('name');
@@ -91,7 +91,7 @@ export const BuildPart: React.FC<{ page: BeatTimes; hotkey: BeatTimes; hotkey2: 
     <AbsoluteFill>
       <Camera shots={shots}>
         <div style={{ position: 'absolute', left: WIN.x, top: WIN.y, transform: `translateY(${(1 - glide(f, 0, 30)) * 80}px)` }}>
-          <KdWindow page="commands">
+          <KdWindow page="commands" nav={nav} assistant={assistant}>
             <CommandsPage list={COMMAND_LIST.slice(0, 9)} newPress={pressNew}
               fresh={{ name: f > nameAt ? name || t('New command') : t('New command'), sub: f > rowCues[0] ? 'notepad.exe' : '', hotkey: chip1 > 0 ? t('CTRL + ALT + W') : undefined, icon: 'flash_24_filled', color: 'gold', show: glide(f, newAt, 14) }}
               editor={f > newAt ? {

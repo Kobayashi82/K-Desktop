@@ -2,6 +2,10 @@
   "_comment": "What the voice says instead of what the subtitles show. Regular expressions, applied in order, case sensitive.",
   "rules": [
     [
+      "KDesktop\\.exe",
+      "Kay Desktop dot exe"
+    ],
+    [
       "K-Desktop",
       "Kay Desktop"
     ],

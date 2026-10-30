@@ -16,6 +16,7 @@ const walk = dir => {
   }
 };
 walk(join(root, 'src'));
+walk(join(root, 'shorts'));
 
 const names = new Set();
 for (const file of files)

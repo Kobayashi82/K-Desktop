@@ -1,0 +1,148 @@
+{
+  "lang": "en",
+  "number": 2,
+  "title": "Commands, actions and hotkeys",
+  "next": "QuickMenu and the launcher",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1.0
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "New command",
+      "Run application",
+      "Work mode",
+      "Wake on LAN",
+      "Control Alt W",
+      "Mouse 4 plus left click",
+      "Control plus Wheel Up"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Commands, actions and hotkeys",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Everything in K-Desktop starts with a {command}command: a list of actions, in order, that runs when you press its hotkey."
+        },
+        {
+          "id": "plan",
+          "text": "Let's {build}build one from start to finish, look at {actions}every kind of action, and see all the ways to {launch}launch it.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "Build a command",
+      "label": "Build",
+      "beats": [
+        {
+          "id": "page",
+          "text": "On the Commands page, click {new}New command, and give it a name: {name}Work mode."
+        },
+        {
+          "id": "hotkey",
+          "text": "Next, a hotkey. Press any combination: {ctrl}Control, {alt}Alt, {w}W."
+        },
+        {
+          "id": "hotkey2",
+          "text": "A hotkey can also be a {mouse}mouse button, like Mouse 5. A {chord}chord of two buttons, like Mouse 4 plus left click. Or the {wheel}wheel with a modifier, like Control plus Wheel Up."
+        },
+        {
+          "id": "actions",
+          "text": "Now, the actions, in order. {run}Run application: Notepad. {wait}Wait one second. {window}Window: left half. {volume}Volume: twenty percent. {folder}Open folder: Documents."
+        },
+        {
+          "id": "run",
+          "text": "Press {ctrl}Control, {alt}Alt, {w}W... and it {all}all happens, in order, in a fraction of a second."
+        },
+        {
+          "id": "rows",
+          "text": "Each action can be {test}tried on its own, {copy}copied, {move}moved up or down, or {off}switched off for a while, without deleting it."
+        },
+        {
+          "id": "icons",
+          "text": "And every command gets an icon {auto}automatically. Or you pick one: {symbols}any Windows symbol in {colors}fifteen colors, {winicons}Windows icons, your own {images}images, or a {favicon}website's own logo."
+        }
+      ]
+    },
+    {
+      "id": "catalog",
+      "title": "Every kind of action",
+      "label": "Actions",
+      "beats": [
+        {
+          "id": "count",
+          "text": "Add action opens the catalog: {count}more than fifty actions, in {ten}ten families, with a {search}search box on top."
+        },
+        {
+          "id": "fam1",
+          "text": "{apps}Open and run: programs, folders, web pages and scripts. {windows}Windows: place them, keep them on top, or restore a whole layout. {input}Keyboard and mouse: keys, text, the clipboard and macros."
+        },
+        {
+          "id": "fam2",
+          "text": "{sound}Sound: volume, devices, music and recording. {screen}Screen: screenshots, video, copying text, a magnifier, a ruler and a colour picker. {network}Network: web requests, Wake on LAN, mail and Telegram."
+        },
+        {
+          "id": "fam3",
+          "text": "Then {calendar}calendar events, the {system}system's power and files, the {flow}flow, like messages, waits and other commands, and finally, the {assistants}assistants' own."
+        }
+      ]
+    },
+    {
+      "id": "launch",
+      "title": "Hotkeys and the mouse",
+      "label": "Hotkeys",
+      "beats": [
+        {
+          "id": "corner",
+          "text": "Besides keys and buttons, a hotkey can be a {corner}corner of the screen: just rest the mouse there."
+        },
+        {
+          "id": "gesture",
+          "text": "Or a {gesture}mouse gesture. Hold the right button, draw a {letter}letter or a line, and let go. You can even {own}draw your own."
+        },
+        {
+          "id": "options",
+          "text": "Each command has its own options, too. Limit it to {apps}certain applications: if the same hotkey exists for {every}every app and for {one}one in particular, inside that app, the {wins}specific one wins. {block}Block the key so the app never sees it. Add a {sound}sound, {notes}notes, and extra {phrases}phrases to call it by voice."
+        },
+        {
+          "id": "admin",
+          "text": "K-Desktop runs as {admin}administrator, so its hotkeys work even over {elevated}elevated windows. But {each}each action decides whether its program starts as {asadmin}administrator, or as your {user}normal user."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "if",
+          "text": "One last tip: the {if}If action. It checks something first. Is a {program}program open? What {time}time is it? Is a {device}device connected? How busy is the {cpu}CPU? When the answer is {no}no, it {stop}stops the command, or {skip}skips the next actions. So one command can take {paths}different paths."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}the QuickMenu and the launcher."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

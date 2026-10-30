@@ -12,8 +12,11 @@ import { BeatTimes, useBeats, useChapter } from '../lib/timeline';
 import { C, SANS } from '../theme';
 import { t } from '../lib/i18n';
 
-/** The 16 kinds (EventCatalog.cs), in its order, with the cue that names each. */
-const KINDS: Array<{ name: string; icon: string; color: string; beat: 'kinds' | 'kinds2'; cue: string }> = [
+/**
+ * The kinds (EventCatalog.cs), in its order, with the cue that names each. The long video tells the first 16; a script
+ * with a «kinds3» beat (the short video) also gets the six added later.
+ */
+const KINDS: Array<{ name: string; icon: string; color: string; beat: 'kinds' | 'kinds2' | 'kinds3'; cue: string }> = [
   { name: t('When K-Desktop starts'), icon: 'play_24_filled', color: 'green', beat: 'kinds', cue: 'start' },
   { name: t('When K-Desktop exits'), icon: 'power_24_filled', color: 'red', beat: 'kinds', cue: 'start' },
   { name: t('At a time'), icon: 'clock_24_filled', color: 'blue', beat: 'kinds', cue: 'time' },
@@ -30,12 +33,19 @@ const KINDS: Array<{ name: string; icon: string; color: string; beat: 'kinds' | 
   { name: t('New file in a folder'), icon: 'document_add_24_filled', color: 'yellow', beat: 'kinds2', cue: 'file' },
   { name: t('PC usage'), icon: 'data_usage_24_filled', color: 'orange', beat: 'kinds2', cue: 'cpu' },
   { name: t('Call from outside'), icon: 'plug_connected_24_filled', color: 'pink', beat: 'kinds2', cue: 'remote' },
+  { name: t('Battery level'), icon: 'battery_warning_24_filled', color: 'lime', beat: 'kinds3', cue: 'level' },
+  { name: t('Sunrise or sunset'), icon: 'weather_sunny_24_filled', color: 'orange', beat: 'kinds3', cue: 'sun' },
+  { name: t('Screen plugged in or out'), icon: 'desktop_24_filled', color: 'blue', beat: 'kinds3', cue: 'screen' },
+  { name: t('Calendar event'), icon: 'calendar_ltr_24_filled', color: 'orange', beat: 'kinds3', cue: 'calendar' },
+  { name: t('Mail arrives'), icon: 'mail_24_filled', color: 'blue', beat: 'kinds3', cue: 'mail' },
+  { name: t('A Telegram message arrives'), icon: 'send_24_filled', color: 'sky', beat: 'kinds3', cue: 'telegram' },
 ];
+const FIRST16 = KINDS.filter(k => k.beat !== 'kinds3');
 
 const Rule: React.FC<{ intro: BeatTimes }> = ({ intro }) => {
   const f = useCurrentFrame();
   const at = intro.cue('when');
-  const slot = Math.floor(Math.max(0, f - at) / 12) % KINDS.length;
+  const slot = Math.floor(Math.max(0, f - at) / 12) % FIRST16.length;
   const k = pop(f, at - 4, { damping: 13 });
   return (
     <AbsoluteFill>
@@ -43,8 +53,8 @@ const Rule: React.FC<{ intro: BeatTimes }> = ({ intro }) => {
       <div style={{ position: 'absolute', left: 960, top: 600, transform: `translate(-50%, -50%) scale(${0.8 + 0.2 * k})`, opacity: k, display: 'flex', alignItems: 'center', gap: 28 }}>
         <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 800, color: C.accentText }}>{t('WHEN')}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 28px', borderRadius: 24, background: 'rgba(34,34,40,0.96)', border: `1.5px solid ${C.line2}`, minWidth: 520 }}>
-          <KdIcon icon={KINDS[slot].icon} color={KINDS[slot].color} size={66} />
-          <span style={{ fontFamily: SANS, fontSize: 34, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{KINDS[slot].name}</span>
+          <KdIcon icon={FIRST16[slot].icon} color={FIRST16[slot].color} size={66} />
+          <span style={{ fontFamily: SANS, fontSize: 34, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{FIRST16[slot].name}</span>
         </div>
         <Fluent name="arrow_right_24_filled" size={60} color={C.accentText} />
         <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 800, color: C.accentText }}>{t('RUN')}</span>
@@ -55,22 +65,23 @@ const Rule: React.FC<{ intro: BeatTimes }> = ({ intro }) => {
   );
 };
 
-const Ring: React.FC<{ kinds: BeatTimes; kinds2: BeatTimes }> = ({ kinds, kinds2 }) => {
+const Ring: React.FC<{ kinds: BeatTimes; kinds2: BeatTimes; kinds3?: BeatTimes }> = ({ kinds, kinds2, kinds3 }) => {
   const f = useCurrentFrame();
-  const beats = { kinds, kinds2 };
-  const times = KINDS.map((k, i) => beats[k.beat].cue(k.cue) + (i === 1 ? 6 : 0));
+  const list = kinds3 ? KINDS : FIRST16;
+  const beats = { kinds, kinds2, kinds3: kinds3 ?? kinds2 };
+  const times = list.map((k, i) => beats[k.beat].cue(k.cue) + (i === 1 ? 6 : 0));
   const current = times.reduce((c, t, i) => (f >= t - 4 ? i : c), -1);
   const spin = (f - kinds.from) * 0.05;
-  const counter = Math.round(16 * ease(f, kinds.from, kinds.cue('sixteen') + 16, OUT));
+  const counter = Math.round(list.length * ease(f, kinds.from, kinds.cue('sixteen') + 16, OUT));
   return (
     <AbsoluteFill>
       <div style={{ position: 'absolute', left: 960, top: 480, transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
         <div style={{ fontFamily: SANS, fontSize: 140, fontWeight: 800, color: C.accentText, lineHeight: 1 }}>{counter}</div>
         <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 700, color: C.dim, letterSpacing: 4 }}>{t('TRIGGERS')}</div>
-        <div style={{ marginTop: 26, height: 44, fontFamily: SANS, fontSize: 32, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{current >= 0 ? KINDS[current].name : ''}</div>
+        <div style={{ marginTop: 26, height: 44, fontFamily: SANS, fontSize: 32, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{current >= 0 ? list[current].name : ''}</div>
       </div>
-      {KINDS.map((k, i) => {
-        const angle = (i / KINDS.length) * Math.PI * 2 - Math.PI / 2 + spin * 0.02;
+      {list.map((k, i) => {
+        const angle = (i / list.length) * Math.PI * 2 - Math.PI / 2 + spin * 0.02;
         const x = 960 + Math.cos(angle) * 640;
         const y = 480 + Math.sin(angle) * 340;
         const s = pop(f, times[i] - 6, { damping: 12, stiffness: 160 });
@@ -81,7 +92,7 @@ const Ring: React.FC<{ kinds: BeatTimes; kinds2: BeatTimes }> = ({ kinds, kinds2
           </div>
         );
       })}
-      {KINDS.map((k, i) => <Sfx key={i} at={times[i] - 6} name="pop-high" volume={0.14} />)}
+      {list.map((k, i) => <Sfx key={i} at={times[i] - 6} name="pop-high" volume={0.14} />)}
     </AbsoluteFill>
   );
 };
@@ -177,7 +188,8 @@ const Example: React.FC<{ example: BeatTimes; ends: BeatTimes; safety: BeatTimes
 
 export const Events: React.FC = () => {
   const B = useBeats();
-  const { durationInFrames } = useChapter();
+  const { durationInFrames, beats } = useChapter();
+  const hasKinds3 = beats.some(b => b.id === 'kinds3');
   const intro = B('intro');
   const kinds = B('kinds');
   const kinds2 = B('kinds2');
@@ -185,7 +197,7 @@ export const Events: React.FC = () => {
   return (
     <AbsoluteFill>
       <Part from={0} to={kinds.from - 4} first><Rule intro={intro} /></Part>
-      <Part from={kinds.from - 4} to={example.from - 6}><Ring kinds={kinds} kinds2={kinds2} /></Part>
+      <Part from={kinds.from - 4} to={example.from - 6}><Ring kinds={kinds} kinds2={kinds2} kinds3={hasKinds3 ? B('kinds3') : undefined} /></Part>
       <Part from={example.from - 6} to={durationInFrames} last><Example example={example} ends={B('ends')} safety={B('safety')} /></Part>
     </AbsoluteFill>
   );

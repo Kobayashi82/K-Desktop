@@ -1,0 +1,110 @@
+{
+  "lang": "en",
+  "number": 5,
+  "title": "K-Board",
+  "next": "Events",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Caps Lock",
+      "Press key",
+      "Control plus J",
+      "gg wp"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "K-Board",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "A key you never use. A {caps}Caps Lock that gets in the way. Mouse buttons that {side}do nothing in your game. Let's put them to work."
+        },
+        {
+          "id": "plan",
+          "text": "We'll {how}see how K-Board works, {real}look at a real profile, and {tip}switch it on with a single key.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "kboard",
+      "title": "How it works",
+      "label": "K-Board",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "{kboard}K-Board changes what your keys and mouse buttons actually do."
+        },
+        {
+          "id": "surface",
+          "text": "You edit a profile on a {drawn}drawn keyboard and mouse. {click}Click a key, {choose}choose what it becomes, and it {lights}lights up with its new job."
+        },
+        {
+          "id": "targets",
+          "text": "A key can become {key}another key, a {combo}combination, a piece of {text}text, one of your {command}commands, or {nothing}nothing at all."
+        },
+        {
+          "id": "examples",
+          "text": "{caps}Caps Lock as Control. The {win}Windows key disabled while you play. The {side}side buttons as copy and paste."
+        },
+        {
+          "id": "layers",
+          "text": "With {modifiers}modifiers, you get layers: {ctrlj}Control plus J can do something completely different from {j}J."
+        },
+        {
+          "id": "scope",
+          "text": "A profile can work {everywhere}everywhere, or only in {apps}certain apps. And you switch it on and off from a {command}command, or from the {tray}tray icon."
+        }
+      ]
+    },
+    {
+      "id": "real",
+      "title": "A real profile",
+      "label": "Profile",
+      "beats": [
+        {
+          "id": "profile",
+          "text": "Here's a real one: {gaming}Gaming, only for {elden}Elden Ring. {caps}Caps Lock becomes Shift. The {win}Windows key does nothing. {f1}F1 runs a command that mutes the microphone. The {side}side buttons become R and F. And {f12}F12 types gg wp."
+        },
+        {
+          "id": "press",
+          "text": "To add one, click {press}Press key, and press the key, button or combination you want to change."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: a {command}command can switch a profile {toggle}on and off. Give it a {hotkey}hotkey, and your whole gaming setup is {one}one key away."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}events."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

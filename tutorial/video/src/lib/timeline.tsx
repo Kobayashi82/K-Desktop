@@ -4,9 +4,23 @@ import React, { createContext, useContext } from 'react';
 export type Segment = { text: string; from: number; to: number };
 export type Beat = { id: string; text: string; audio: string; from: number; durationInFrames: number; segments: Segment[]; cues?: Record<string, number> };
 export type Chapter = { id: string; title: string; label: string; from: number; durationInFrames: number; beats: Beat[] };
-export type Timeline = { lang: string; fps: number; durationInFrames: number; chapters: Chapter[] };
+/** A short video's own data (tools/tts.py --short): its number, title and the next video's title. */
+export type ShortInfo = { id: string; number: number; title: string; next?: string; nextNumber?: number };
+export type Timeline = { lang: string; fps: number; durationInFrames: number; chapters: Chapter[]; short?: ShortInfo };
 
 const ChapterContext = createContext<Chapter | null>(null);
+const TimelineContext = createContext<Timeline | null>(null);
+
+/** The whole video's timeline, for the pieces that need more than their chapter (the short videos' cards). */
+export const TimelineProvider: React.FC<{ timeline: Timeline; children: React.ReactNode }> = ({ timeline, children }) => (
+  <TimelineContext.Provider value={timeline}>{children}</TimelineContext.Provider>
+);
+
+export const useTimeline = (): Timeline => {
+  const timeline = useContext(TimelineContext);
+  if (!timeline) throw new Error('useTimeline outside the video');
+  return timeline;
+};
 
 export const ChapterProvider: React.FC<{ chapter: Chapter; children: React.ReactNode }> = ({ chapter, children }) => (
   <ChapterContext.Provider value={chapter}>{children}</ChapterContext.Provider>

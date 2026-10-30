@@ -42,6 +42,9 @@ export const ChapterTitle: React.FC<{ index: number }> = ({ index }) => {
       <div style={{
         position: 'absolute', left: x, top: y, transform: `translate(${-50 * (1 - shrink)}%, -50%) scale(${scale})`, transformOrigin: 'left center',
         display: 'flex', alignItems: 'center', gap: 34, opacity: appear * (1 - leave),
+        // Small, it sits on a dark pill, so it reads cleanly over a full-screen screenshot.
+        padding: '14px 56px 14px 40px', margin: '0 0 0 -40px', borderRadius: 90,
+        background: `rgba(14,14,18,${0.86 * shrink})`, boxShadow: shrink > 0.5 ? `0 0 0 3px rgba(255,255,255,${0.08 * shrink})` : undefined,
       }}>
         <div style={{
           fontFamily: SANS, fontWeight: 800, fontSize: 150, lineHeight: 1, letterSpacing: -4,

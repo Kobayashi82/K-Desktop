@@ -22,6 +22,9 @@ export const COMMAND_LIST: ListItem[] = [
 
 export type EditorState = {
   name: string;
+  /** The command's icon (the gold flash of a new one by default). */
+  icon?: string;
+  color?: string;
   caret?: boolean;
   hotkeys: { keys: string[]; fresh?: number }[];
   capturing?: boolean;
@@ -80,7 +83,7 @@ export const CommandsPage: React.FC<{ list: ListItem[]; fresh?: ListItem & { sho
       ) : (
         <div style={{ transform: `translateY(${-scrollY}px)`, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Card style={{ display: 'flex', alignItems: 'center', gap: 16 }} pad={18}>
-            <KdIcon icon="flash_24_filled" color="gold" size={64} />
+            <KdIcon icon={editor.icon ?? 'flash_24_filled'} color={editor.color ?? 'gold'} size={64} />
             <div style={{ width: 260, height: 46, borderRadius: 8, background: C.card2, border: `1px solid ${editor.caret ? C.accentText : C.line}`, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 20, fontWeight: 600 }}>
               {editor.name}{editor.caret && <span style={{ width: 2, height: 24, background: C.accentText, marginLeft: 2 }} />}
             </div>

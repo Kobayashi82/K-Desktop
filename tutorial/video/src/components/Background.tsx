@@ -7,12 +7,12 @@ import { C, MOODS } from '../theme';
  * The stage behind everything: slow coloured light drifting over a dark floor, a faint dot grid, a vignette and film
  * grain. The light takes each chapter's colours, blending across the chapter changes.
  */
-export const Background: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
+export const Background: React.FC<{ timeline: Timeline; moods?: Record<string, readonly string[]> }> = ({ timeline, moods = {} }) => {
   const frame = useCurrentFrame();
   const stops: number[] = [];
   const colours: string[][] = [[], [], []];
   for (const chapter of timeline.chapters) {
-    const mood = MOODS[chapter.id] ?? MOODS.intro;
+    const mood = moods[chapter.id] ?? MOODS[chapter.id] ?? MOODS.intro;
     for (const at of [chapter.from + 10, chapter.from + chapter.durationInFrames - 10]) {
       stops.push(at);
       mood.forEach((c, i) => colours[i].push(c));

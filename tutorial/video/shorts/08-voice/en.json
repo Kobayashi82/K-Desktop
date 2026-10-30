@@ -1,0 +1,154 @@
+{
+  "lang": "en",
+  "number": 8,
+  "title": "Voice control",
+  "next": "Calendar and mail",
+  "nextNumber": 10,
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1.0
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "new line",
+      "scratch that",
+      "stop dictating",
+      "start dictating",
+      "Turn off the TV",
+      "Shut down the computer",
+      "Empty Recycle Bin",
+      "speech recognition"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Voice control",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Some things are quicker to {say}say than to click. K-Desktop understands spoken orders, {local}entirely on your PC."
+        },
+        {
+          "id": "plan",
+          "text": "Let's {setup}set it up, {commands}say a few commands, {dictate}dictate some text, and finally, {hands}talk without touching anything.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Set it up",
+      "label": "Setup",
+      "beats": [
+        {
+          "id": "models",
+          "text": "Open {settings}Settings, Voice, and turn it {on}on. The voice models are {download}downloaded once, just under a gigabyte, and they {free}free their memory when you're not using them."
+        },
+        {
+          "id": "mic",
+          "text": "Pick your {mic}microphone, and give it a {hotkey}hotkey to talk. Keep {echo}Ignore what the PC is playing on, so music or a film won't drown you out."
+        },
+        {
+          "id": "private",
+          "text": "And {private}neither your audio nor your words ever leave the PC."
+        }
+      ]
+    },
+    {
+      "id": "commands",
+      "title": "Say a command",
+      "label": "Commands",
+      "beats": [
+        {
+          "id": "match",
+          "text": "Hold the hotkey and say what you want. Now, {finding}finding the command you meant."
+        },
+        {
+          "id": "words",
+          "text": "First, it reads the {words}words. It looks for a command's {name}name in what you said. It ignores {filler}filler words like please, different word {endings}endings, small {slips}slips, and words that just {sound}sound alike. {youtube}You tube becomes YouTube."
+        },
+        {
+          "id": "meaning",
+          "text": "When the words aren't enough, it looks at the {meaning}meaning. {gemma}EmbeddingGemma, a small model from Google, turns sentences into {vectors}vectors: points in a {space}space where similar meanings sit close together."
+        },
+        {
+          "id": "meaning2",
+          "text": "So, {clean}clean out the trash lands right next to your command, {empty}Empty Recycle Bin. Without a single list of synonyms."
+        },
+        {
+          "id": "notmine",
+          "text": "It also knows what isn't yours. {tv}Turn off the TV is close to {shutdown}Shut down the computer, but it's even closer to a list of {everyday}everyday requests that K-Desktop doesn't handle. So {nothing}nothing happens. Anything that {powers}powers off the PC has to be said especially clearly."
+        },
+        {
+          "id": "unsure",
+          "text": "And when it isn't sure, it doesn't guess. It {shows}shows what it heard, and the command it {thinks}thinks you meant, and {nothing}does nothing."
+        },
+        {
+          "id": "chain",
+          "text": "You can {chain}chain orders, too. {open}Open YouTube {and}and empty the recycle bin, runs both."
+        },
+        {
+          "id": "media",
+          "text": "Music and volume work without any command at all. {pause}Pause. {next}Next song. {quieter}A little quieter. {forty}Volume to forty percent. {play}Play music."
+        }
+      ]
+    },
+    {
+      "id": "dictation",
+      "title": "Dictation",
+      "label": "Dictation",
+      "beats": [
+        {
+          "id": "dictate",
+          "text": "{dictation}Dictation types what you say wherever the cursor is. While you talk, say {newline}new line, {scratch}scratch that, or {stopd}stop dictating."
+        },
+        {
+          "id": "start",
+          "text": "Start it with its {hotkey}own hotkey, or simply say {say}start dictating."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "Hands free",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "One last tip: there's more than one way to {voice}talk to it, all {local}on your PC, with {internet}no internet."
+        },
+        {
+          "id": "two",
+          "text": "Push to talk: {hold}hold the voice hotkey while you speak. Or {tap}tap it once, and just talk: it {stops}stops when you go quiet."
+        },
+        {
+          "id": "wake",
+          "text": "Or use a {wake}wake word. {kd}K-Desktop, open the browser. {nokey}No key at all."
+        },
+        {
+          "id": "own",
+          "text": "The wake word is yours, and you record it in {wakewords}Settings, Wake words, in under a minute. {silence}Three seconds of silence, to measure the background noise. {word}The word itself, several times. And {speech}ten seconds of normal speech, so everyday conversation never sets it off. It can even be a {madeup}made-up word."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}calendar and mail."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

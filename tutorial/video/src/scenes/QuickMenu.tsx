@@ -48,7 +48,7 @@ const Intro: React.FC<{ b: BeatTimes }> = ({ b }) => {
         return <div key={i} style={{ position: 'absolute', left: x, top: y, transform: `scale(${k * (1 - 0.5 * gather)})`, opacity: 1 - gather * (i >= 8 ? 1 : 0.2) }}><KdIcon icon={it.icon} color={it.color} size={84} /></div>;
       })}
       <div style={{ position: 'absolute', left: 960, top: 560, transform: `translate(-50%, -50%) scale(${1.6 * pop(f, b.cue('qm') + 6, { damping: 13 })})` }}>
-        <Img src={staticFile(real.file)} style={{ width: real.width, height: real.height, borderRadius: 14, boxShadow: '0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.12)' }} />
+        <Img src={staticFile(real.file)} style={{ width: real.width, height: real.height, filter: 'drop-shadow(0 30px 45px rgba(0,0,0,0.6))' }} />
       </div>
       <Sfx at={b.cue('qm') - 6} name="whoosh" volume={0.3} />
       <Sfx at={b.cue('qm') + 8} name="pop" volume={0.3} />

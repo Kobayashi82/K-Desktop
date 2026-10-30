@@ -10,6 +10,8 @@ public/generated/timeline.<lang>.json (what the video follows, in frames) and ou
 Sentences already said are kept in .cache/tts, so changing one sentence only says that one again.
 
     python tools/tts.py --lang en
+    python tools/tts.py --lang en --short 01-getting-started   a short video: shorts/<id>/<lang>.json, its own
+                                                                 audio, timeline and subtitles (public/…/shorts/<id>/)
 """
 
 import argparse
@@ -244,9 +246,13 @@ def subtitle_lines(text: str, width: int = 42, keep: list[str] = ()) -> list[str
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--lang", default="en")
+    parser.add_argument("--short", help="id of a short video (folder in shorts/)")
     args = parser.parse_args()
 
-    script = json.loads((ROOT / "script" / f"{args.lang}.json").read_text(encoding="utf-8"))
+    # The long video, or a short one: each with its own script and its own generated files, side by side.
+    sub = f"shorts/{args.short}/" if args.short else ""
+    script_file = ROOT / "shorts" / args.short / f"{args.lang}.json" if args.short else ROOT / "script" / f"{args.lang}.json"
+    script = json.loads(script_file.read_text(encoding="utf-8"))
     rules_file = ROOT / "script" / f"pronunciation.{args.lang}.json"
     rules = json.loads(rules_file.read_text(encoding="utf-8"))["rules"] if rules_file.exists() else []
     voices: dict[str, Voice] = {}
@@ -263,12 +269,15 @@ def main() -> None:
         return voices[key]
     subtitle_options = script.get("subtitles", {})  # width (characters per line) and keep (phrases never cut)
 
-    audio_dir = ROOT / "public" / "audio" / args.lang
+    audio_dir = ROOT / "public" / "audio" / sub / args.lang
     audio_dir.mkdir(parents=True, exist_ok=True)
     for old in audio_dir.glob("*.wav"):
         old.unlink()
 
     timeline = {"lang": args.lang, "fps": FPS, "chapters": []}
+    if args.short:  # what the title card and the end card of a short video show
+        timeline["short"] = {"id": args.short, "number": script["number"], "title": script["title"], "next": script.get("next"),
+                             "nextNumber": script.get("nextNumber", script["number"] + 1)}
     subtitles = []
     t = 0.0
     for index, chapter in enumerate(script["chapters"]):
@@ -324,7 +333,7 @@ def main() -> None:
             beats.append({
                 "id": beat["id"],
                 "text": VOICE_TAG.sub("", CUE.sub("", beat["text"])),
-                "audio": f"audio/{args.lang}/{name}",
+                "audio": f"audio/{sub}{args.lang}/{name}",
                 "from": frames(cursor - start),
                 "durationInFrames": frames(offset),
                 "segments": segments,
@@ -345,12 +354,12 @@ def main() -> None:
     last = timeline["chapters"][-1]
     timeline["durationInFrames"] = last["from"] + last["durationInFrames"]
 
-    out = ROOT / "public" / "generated"
+    out = ROOT / "public" / "generated" / sub
     out.mkdir(parents=True, exist_ok=True)
     (out / f"timeline.{args.lang}.json").write_text(json.dumps(timeline, ensure_ascii=False, indent=1), encoding="utf-8")
 
-    subs = ROOT / "out"
-    subs.mkdir(exist_ok=True)
+    subs = ROOT / "out" / sub
+    subs.mkdir(parents=True, exist_ok=True)
     srt = "\n".join(f"{i}\n{srt_time(a)} --> {srt_time(b)}\n{text}\n" for i, (a, b, text) in enumerate(subtitles, 1))
     (subs / f"subtitles.{args.lang}.srt").write_text(srt, encoding="utf-8")
     print(f"Total: {timeline['durationInFrames'] / FPS / 60:.2f} min", file=sys.stderr)
