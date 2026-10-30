@@ -77,6 +77,9 @@ public sealed class CalendarService : IDisposable
     /// <summary>A reminder is due (a timer thread).</summary>
     public event Action<CalendarReminder>? ReminderDue;
 
+    /// <summary>A cita was added (from an action, the Agenda or an assistant; any thread).</summary>
+    public event Action<CalendarEvent>? Added;
+
     /// <summary>Makes the source of an account (Google) from its settings; set by K-Desktop when the accounts are ready.</summary>
     public Func<CalendarAccountSettings, ICalendarSource?>? AccountSources { get; set; }
 
@@ -306,6 +309,7 @@ public sealed class CalendarService : IDisposable
         if (e.Reminders.Count == 0 && Calendar(e.SourceId, e.CalendarId)?.DefaultReminder is { } reminder) e = e with { Reminders = [reminder] };
         var added = await source.AddAsync(e, cancel).ConfigureAwait(false);
         Log.Info($"Calendario: cita nueva «{added.Title}» el {added.Start:yyyy-MM-dd HH:mm} en {source.Name}");
+        Added?.Invoke(added);
         return new CalendarChange { Added = [added], Result = added };
     }
 

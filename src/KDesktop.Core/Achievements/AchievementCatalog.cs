@@ -37,7 +37,7 @@ public static class AchievementCatalog
     public const string First = "first";
 
     public static IReadOnlyList<string> Categories { get; } =
-        ["commands", "actions", "menus", "events", "macros", "kboard", "apps", "system", "remote", "voice", "time", "kinds", "misc"];
+        ["commands", "actions", "menus", "events", "macros", "kboard", "apps", "system", "remote", "calendar", "mail", "telegram", "voice", "time", "kinds", "misc"];
 
     public static string CategorySymbol(string category) => category switch
     {
@@ -50,6 +50,9 @@ public static class AchievementCatalog
         "apps" => "WindowApps24",
         "system" => "Wrench24",
         "remote" => "PlugConnected24",
+        "calendar" => "CalendarLtr24",
+        "mail" => "Mail24",
+        "telegram" => "Send24",
         "voice" => "Mic24",
         "time" => "CalendarStar24",
         "kinds" => "Sparkle24",
@@ -131,6 +134,22 @@ public static class AchievementCatalog
         Tier("remote", "remote", Stat.RemoteRun, 1, 10, 100);
         list.Add(new("pair", "remote"));
         list.Add(new("touchpad", "remote", Secret: true));
+
+        // Calendar, mail and Telegram
+        Tier("calendar", "cal-add", Stat.CalendarAdded, 1, 10, 100);
+        Tier("calendar", "cal-remind", Stat.RemindersShown, 1, 100);
+        Tier("calendar", "cal-join", Stat.MeetingsJoined, 1, 10);
+        list.Add(new("cal-connect", "calendar"));
+        Tier("mail", "mail-send", Stat.MailSent, 1, 10, 100);
+        Tier("mail", "mail-important", Stat.MailImportant, 1, 100);
+        Tier("mail", "mail-invite", Stat.InvitationsAdded, 1);
+        list.Add(new("mail-connect", "mail"));
+        Tier("telegram", "tg-received", Stat.TelegramServed, 1, 100, 1000);
+        Tier("telegram", "tg-sent", Stat.TelegramSent, 1, 100, 1000);
+        Tier("telegram", "tg-command", Stat.TelegramCommands, 1, 50);
+        Tier("telegram", "tg-voice", Stat.TelegramVoice, 1, 50);
+        list.Add(new("tg-bot", "telegram"));
+        list.Add(new("tg-account", "telegram"));
 
         // Voice
         Tier("voice", "voice", Stat.VoiceOrders, 1, 10, 100, 1000);

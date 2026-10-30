@@ -59,9 +59,13 @@ public partial class App
             AskOnPc = question => Dispatcher.InvokeAsync(() => AskOnPcAsync(question)).Task.Unwrap(),
             Policy = () => Config.Settings.AssistantAskBefore,
             // A voice note (phase 5.1): Parakeet, as «Grabar audio» › «Al terminar, transcribir».
-            Transcribe = async (path, token) => Core.Voice.VoiceModels.Ready
-                ? await Core.Voice.AudioTranscriber.TranscribeAsync(Voice.SpeechToText, path, token).ConfigureAwait(false)
-                : null,
+            Transcribe = async (path, token) =>
+            {
+                if (!Core.Voice.VoiceModels.Ready) return null;
+                var heard = await Core.Voice.AudioTranscriber.TranscribeAsync(Voice.SpeechToText, path, token).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(heard)) Achievements.Increment(Core.Achievements.Stat.TelegramVoice);
+                return heard;
+            },
         };
     }
 

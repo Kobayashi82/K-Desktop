@@ -65,6 +65,9 @@ public sealed class MailService : IDisposable
     /// <summary>The list, the accounts or their state changed (any thread).</summary>
     public event Action? Changed;
 
+    /// <summary>A mail was sent (any thread).</summary>
+    public event Action? Sent;
+
     public IReadOnlyList<MailAccountSettings> Accounts
     {
         get { lock (_gate) return [.. Settings.Accounts]; }
@@ -625,6 +628,7 @@ public sealed class MailService : IDisposable
         await using var connection = new MailConnection(account, _unprotect, _accounts);
         await connection.SendAsync(message, cancel).ConfigureAwait(false);
         Log.Info($"Correo: enviado desde {account.Address} a {string.Join(", ", draft.To)}");
+        Sent?.Invoke();
         var keepsCopy = account.SmtpHost.Contains("gmail", StringComparison.OrdinalIgnoreCase) || account.SmtpHost.Contains("office365", StringComparison.OrdinalIgnoreCase)
                         || account.SmtpHost.Contains("outlook", StringComparison.OrdinalIgnoreCase);
         if (keepsCopy || account.Use == MailUse.SendOnly) return;

@@ -135,6 +135,9 @@ public sealed class TelegramService : IDisposable
     /// </summary>
     public event Action<TelegramIncoming, TelegramVerdict>? Received;
 
+    /// <summary>A message (or a file) went out (the queue's task).</summary>
+    public event Action? Sent;
+
     /// <summary>Someone new wrote for the first time and waits for the owner's decision (the connection's task).</summary>
     public event Action<TelegramPerson>? StrangerArrived;
 
@@ -741,6 +744,7 @@ public sealed class TelegramService : IDisposable
                 }
                 item.SentId?.TrySetResult(0);
                 item.Done?.TrySetResult(ok);
+                if (ok) Sent?.Invoke();
             }
         }
         catch (OperationCanceledException) { }

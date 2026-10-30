@@ -180,8 +180,11 @@ public sealed class AchievementService : IDisposable
             _data.RunsBySource[src] = _data.RunsBySource.GetValueOrDefault(src) + 1;
             if (source is TriggerSource.Remote or TriggerSource.Web or TriggerSource.Telegram) _data.Counters[Stat.RemoteRun] = _data.Get(Stat.RemoteRun) + 1;
 
+            if (source == TriggerSource.Telegram) _data.Counters[Stat.TelegramCommands] = _data.Get(Stat.TelegramCommands) + 1;
+
             unlocked = Evaluate(Stat.CommandsRun);
             unlocked.AddRange(Evaluate(Stat.RemoteRun));
+            if (source == TriggerSource.Telegram) unlocked.AddRange(Evaluate(Stat.TelegramCommands));
             if (command.Actions.Count(a => a.Enabled) >= 5) UnlockLocked(AchievementCatalog.Get("multi")!, unlocked);
             if (source is not (TriggerSource.Startup or TriggerSource.Exit or TriggerSource.Event or TriggerSource.Command))
             {
@@ -236,6 +239,7 @@ public sealed class AchievementService : IDisposable
                 break;
             case AudioOutputAction { IsInput: false }: stats.Add(Stat.AudioSwitched); break;
             case KBoardAction: stats.Add(Stat.KBoardToggled); break;
+            case CalendarJoinAction: stats.Add(Stat.MeetingsJoined); break;
         }
 
         List<AchievementDef> unlocked = [];

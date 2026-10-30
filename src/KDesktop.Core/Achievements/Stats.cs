@@ -75,6 +75,28 @@ public static class Stat
     public const string KBoardRemapped = "kboard.remapped";
     public const string KBoardToggled = "kboard.toggled";
 
+    /// <summary>Citas added (from an action, the Agenda or an assistant).</summary>
+    public const string CalendarAdded = "calendar.added";
+    public const string RemindersShown = "calendar.reminders";
+    public const string MeetingsJoined = "calendar.joined";
+
+    public const string MailSent = "mail.sent";
+
+    /// <summary>Important mails told.</summary>
+    public const string MailImportant = "mail.important";
+    public const string InvitationsAdded = "mail.invitations";
+
+    public const string TelegramSent = "telegram.sent";
+
+    /// <summary>Messages served (by the bot or the account), not counting the buttons.</summary>
+    public const string TelegramServed = "telegram.received";
+
+    /// <summary>Voice notes understood.</summary>
+    public const string TelegramVoice = "telegram.voice";
+
+    /// <summary>Commands run from Telegram.</summary>
+    public const string TelegramCommands = "telegram.commands";
+
     // Not real counters: computed by the service.
     public const string Days = "@days";
     public const string Kinds = "@kinds";
@@ -88,6 +110,9 @@ public static class Stat
         ("events", [EventsFired, EventsEnded, EventsCreated]),
         ("kboard", [KBoardRemapped, KBoardToggled, KBoardsCreated]),
         ("voice", [VoiceOrders, VoiceMeaning, WakeWords]),
+        ("calendar", [CalendarAdded, RemindersShown, MeetingsJoined]),
+        ("mail", [MailSent, MailImportant, InvitationsAdded]),
+        ("telegram", [TelegramServed, TelegramSent, TelegramCommands, TelegramVoice]),
         ("system", [VolumeChanged, AudioSwitched, SoundsPlayed, TopMostToggled, HiddenFilesToggled, DisabledInToggled, RecycleEmptied, PowerUsed, IconsChanged, TipsSeen, AppStarted]),
     ];
 }

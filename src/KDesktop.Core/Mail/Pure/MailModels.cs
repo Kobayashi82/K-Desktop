@@ -86,6 +86,12 @@ public sealed class MailSettings
 
     /// <summary>The assistants may send directly (always asking first); off: only drafts.</summary>
     public bool AssistantMaySend { get; set; } = true;
+
+    /// <summary>How a new mail is told (which ones, each account says): a notification, an OSD or said by an assistant.</summary>
+    public Calendar.ReminderStyle NoticeStyle { get; set; } = Calendar.ReminderStyle.Notification;
+
+    /// <summary>The assistant that says them (with <see cref="Calendar.ReminderStyle.Assistant"/>); null: K-Desktop's.</summary>
+    public string? NoticeAssistant { get; set; }
 }
 
 /// <summary>A mail's address with its name.</summary>

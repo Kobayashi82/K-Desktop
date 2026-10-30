@@ -200,6 +200,7 @@ public partial class App : Application
         Ui.Notifier = Notifier.ShowCustom;
         Achievements.Unlocked += def => Dispatcher.BeginInvoke(() => Notifier.Show(def));
         Achievements.Load();
+        WireAccountAchievements();
 
         // Launcher (search box): its window is created now so the first opening is instant.
         Launcher = new LauncherController(() => Config, Engine, Achievements, Ui);

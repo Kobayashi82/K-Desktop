@@ -48,6 +48,7 @@ public partial class MailSection : UserControl
         Root.Children.Clear();
         BuildAccounts();
         BuildImportant();
+        BuildNotices();
         BuildAssistant();
     }
 
@@ -124,6 +125,24 @@ public partial class MailSection : UserControl
         }
         senders.LostFocus += (_, _) => Save();
         keywords.LostFocus += (_, _) => Save();
+    }
+
+    /// <summary>How a new mail is told, as the reminders of the calendar (Opciones › Calendario › Avisos); which ones, each account says.</summary>
+    private void BuildNotices()
+    {
+        var card = CalendarUi.Card(Root, Loc.T("mailOptions.notices"), Loc.T("mailOptions.noticesIntro"));
+        var styles = Enum.GetValues<Core.Calendar.ReminderStyle>().Select(s => new NamedChoice<Core.Calendar.ReminderStyle>(s, Loc.T("enum.mailNoticeStyle." + s))).ToList();
+        var style = new ComboBox { ItemsSource = styles, DisplayMemberPath = "Name", SelectedValuePath = "Value", SelectedValue = Mail.Settings.NoticeStyle };
+        style.SelectionChanged += (_, _) =>
+        {
+            if (style.SelectedValue is not Core.Calendar.ReminderStyle value) return;
+            Mail.Settings.NoticeStyle = value;
+            Mail.SaveSettings();
+        };
+        card.Children.Add(CalendarUi.Row(Loc.T("calendars.reminderStyle"), Loc.T("mailOptions.noticeStyleHint"), style));
+        var test = CalendarUi.Button(Loc.T("calendars.testReminder"), SymbolRegular.Alert24, () => App.Current.ShowMailNoticePreview());
+        test.Margin = new Thickness(0, 6, 0, 0);
+        card.Children.Add(test);
     }
 
     private void BuildAssistant()

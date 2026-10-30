@@ -67,10 +67,11 @@ public partial class App
     }
 
     /// <summary>«Probar»: a reminder shown as the options say.</summary>
-    public void ShowCalendarReminderPreview(CalendarReminder r) => ShowCalendarReminder(r);
+    public void ShowCalendarReminderPreview(CalendarReminder r) => ShowCalendarReminder(r, preview: true);
 
-    private void ShowCalendarReminder(CalendarReminder r)
+    private void ShowCalendarReminder(CalendarReminder r, bool preview = false)
     {
+        if (!preview) Achievements.Increment(Core.Achievements.Stat.RemindersShown);
         var style = Calendar.Settings.ReminderStyle;
         var text = ReminderText(r);
         if (style == ReminderStyle.Assistant)
@@ -122,6 +123,7 @@ public partial class App
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) return;
         if (!ProcessLauncher.Launch(new LaunchSpec(uri.AbsoluteUri), asAdmin: false)) Log.Warn($"Calendario: no se ha podido abrir {url}");
+        else Current.Achievements.Increment(Core.Achievements.Stat.MeetingsJoined);
     }
 }
 
