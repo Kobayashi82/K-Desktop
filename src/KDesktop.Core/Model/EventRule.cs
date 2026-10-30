@@ -314,7 +314,7 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
-    RemoteCall, Gadget, Load, Battery, Sun, Display, Calendar, Mail,
+    RemoteCall, Gadget, Load, Battery, Sun, Display, Calendar, Mail, Telegram,
 }
 
 /// <summary>«Archivo» (5.0.341): what happens to the file.</summary>
@@ -366,6 +366,7 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(DisplayTrigger), "display")]
 [JsonDerivedType(typeof(CalendarTrigger), "calendar")]
 [JsonDerivedType(typeof(MailTrigger), "mail")]
+[JsonDerivedType(typeof(TelegramTrigger), "telegram")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }

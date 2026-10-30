@@ -84,7 +84,7 @@ public partial class ActionPicker : FluentWindow
     /// <summary>The kinds of event by what they watch (every kind in one of them).</summary>
     private static readonly (string Key, SymbolRegular Symbol, EventKind[] Kinds)[] EventGroups =
     [
-        ("kdesktop", SymbolRegular.Flash24, [EventKind.AppStart, EventKind.AppExit, EventKind.RemoteCall]),
+        ("kdesktop", SymbolRegular.Flash24, [EventKind.AppStart, EventKind.AppExit, EventKind.RemoteCall, EventKind.Telegram]),
         ("time", SymbolRegular.Clock24, [EventKind.Time, EventKind.Interval, EventKind.Calendar, EventKind.Sun, EventKind.Idle]),
         ("programs", SymbolRegular.WindowApps24, [EventKind.ProcessStart, EventKind.Foreground]),
         ("system", SymbolRegular.Settings24, [EventKind.Session, EventKind.PowerSource, EventKind.Battery, EventKind.Load, EventKind.Network]),

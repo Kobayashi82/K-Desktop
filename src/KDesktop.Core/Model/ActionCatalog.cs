@@ -58,6 +58,7 @@ public static class ActionCatalog
         new(ActionKind.CalendarAdd, "calendar", "CalendarAdd24", () => new CalendarAddAction()),
         new(ActionKind.CalendarJoin, "calendar", "Video24", () => new CalendarJoinAction()),
         new(ActionKind.MailSend, "network", "Mail24", () => new MailSendAction()),
+        new(ActionKind.TelegramSend, "network", "Send24", () => new TelegramSendAction()),
 
         new(ActionKind.Files, "system", "DocumentCopy24", () => new FilesAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),

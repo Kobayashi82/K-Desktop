@@ -6,7 +6,7 @@ using KDesktop.Core.Storage;
 
 namespace KDesktop.Core.Engine;
 
-public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web, Voice, Event, Assistant, Mcp, CommandLine }
+public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web, Voice, Event, Assistant, Mcp, CommandLine, Telegram }
 
 /// <summary>Information about one execution of a command.</summary>
 public sealed record ExecutionContext(

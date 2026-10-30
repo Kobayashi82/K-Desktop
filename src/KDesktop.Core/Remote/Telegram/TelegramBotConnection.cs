@@ -157,6 +157,10 @@ public sealed class TelegramBotConnection : ITelegramConnection
         inline_keyboard = rows.Select(row => row.Select(b => new { text = b.Text, callback_data = b.Data })),
     });
 
+    /// <summary>The bot's menu of commands in Telegram (the «/» button): name (a-z, 0-9, _) and what it does.</summary>
+    public Task SetMenuAsync(IReadOnlyList<(string Command, string Description)> commands, CancellationToken cancel) =>
+        CallAsync("setMyCommands", [new("commands", JsonSerializer.Serialize(commands.Select(c => new { command = c.Command, description = c.Description })))], cancel);
+
     public Task AnswerButtonAsync(string callbackId, string? text, CancellationToken cancel) =>
         CallAsync("answerCallbackQuery", text is { Length: > 0 } ? [new("callback_query_id", callbackId), new("text", text)] : [new("callback_query_id", callbackId)], cancel);
 

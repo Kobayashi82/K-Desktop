@@ -19,7 +19,7 @@ public partial class App
         TriggerSource.QuickMenu => "menu",
         TriggerSource.Launcher => "launcher",
         TriggerSource.Voice => "voice",
-        TriggerSource.Web => "web",
+        TriggerSource.Web or TriggerSource.Telegram => "web",
         TriggerSource.Remote => "udp",
         TriggerSource.Event => "event",
         TriggerSource.Manual or TriggerSource.CommandLine => "manual",

@@ -41,6 +41,7 @@ public static class EventCatalog
         new(EventKind.Display, "DesktopArrowRight24", "sky", () => new DisplayTrigger()),
         new(EventKind.Calendar, "CalendarClock24", "blue", () => new CalendarTrigger()),
         new(EventKind.Mail, "MailInbox24", "sky", () => new MailTrigger()),
+        new(EventKind.Telegram, "Send24", "sky", () => new TelegramTrigger()),
         new(EventKind.RemoteCall, "PlugConnected24", "pink", () => new RemoteCallTrigger()),
     ];
 

@@ -109,6 +109,7 @@ public static partial class IconProvider
         PowerPlanAction => Kd("Battery1024", "lime"),
         KeepAwakeAction => Kd("DrinkCoffee24", "orange"),
         SendToPhoneAction => Kd("Phone24", "blue"),
+        TelegramSendAction => Kd("Send24", "sky"),
         WindowsThemeAction => Kd("DarkTheme24", "purple"),
         RadioAction { Radio: RadioDevice.Bluetooth } => Kd("Bluetooth24", "blue"),
         RadioAction => Kd("Wifi124", "teal"),

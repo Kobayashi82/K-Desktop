@@ -178,7 +178,7 @@ public sealed class AchievementService : IDisposable
             _data.CommandRuns[command.Id] = _data.CommandRuns.GetValueOrDefault(command.Id) + 1;
             var src = TriggerSourceNames.Key(source);
             _data.RunsBySource[src] = _data.RunsBySource.GetValueOrDefault(src) + 1;
-            if (source is TriggerSource.Remote or TriggerSource.Web) _data.Counters[Stat.RemoteRun] = _data.Get(Stat.RemoteRun) + 1;
+            if (source is TriggerSource.Remote or TriggerSource.Web or TriggerSource.Telegram) _data.Counters[Stat.RemoteRun] = _data.Get(Stat.RemoteRun) + 1;
 
             unlocked = Evaluate(Stat.CommandsRun);
             unlocked.AddRange(Evaluate(Stat.RemoteRun));

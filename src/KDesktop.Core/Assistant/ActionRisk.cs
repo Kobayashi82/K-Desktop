@@ -86,7 +86,7 @@ public static class ActionRisk
         ActionKind.CalendarAdd or ActionKind.CalendarJoin => ToolRisk.Safe,
 
         // A mail goes out and cannot come back.
-        ActionKind.MailSend => ToolRisk.AskAlways,
+        ActionKind.MailSend or ActionKind.TelegramSend => ToolRisk.AskAlways,
 
         // A tool does whatever it does (send a message, pause downloads…): the command is confirmed the first time.
         ActionKind.AssistantTool => ToolRisk.AskOnce,

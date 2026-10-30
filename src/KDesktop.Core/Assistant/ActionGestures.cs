@@ -97,7 +97,7 @@ public static class ActionGestures
         ActionKind.Media => Say("sound"),
         ActionKind.AudioRecord => Say("microphone"),
         ActionKind.Dictate => Say("microphone"),
-        ActionKind.ShowMessage or ActionKind.ShowNotification or ActionKind.SendToPhone or ActionKind.MailSend => Say("message"),
+        ActionKind.ShowMessage or ActionKind.ShowNotification or ActionKind.SendToPhone or ActionKind.MailSend or ActionKind.TelegramSend => Say("message"),
         ActionKind.HiddenFiles or ActionKind.Files => Say("folder"),
         ActionKind.ToggleDisabledIn => Say("pause"),
         ActionKind.KBoard => Say("keyboard"),

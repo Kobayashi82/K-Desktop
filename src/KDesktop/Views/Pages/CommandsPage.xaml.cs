@@ -839,6 +839,12 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             if (pick.ShowDialog(Window.GetWindow(this)) == true) phone.File = pick.FileName;
             return;
         }
+        if (e.Parameter is TelegramSendAction telegram)
+        {
+            var pick = new OpenFileDialog { Title = Loc.T("editor.chooseFile"), Filter = Loc.T("editor.filterAll") + "|*.*" };
+            if (pick.ShowDialog(Window.GetWindow(this)) == true) telegram.File = pick.FileName;
+            return;
+        }
         if (e.Parameter is ShowNotificationAction notification)
         {
             var open = new OpenFileDialog { Title = Loc.T("editor.chooseFile"), Filter = Loc.T("editor.filterAll") + "|*.*", DereferenceLinks = false };

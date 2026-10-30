@@ -138,6 +138,7 @@ public static class TriggerSourceNames
         TriggerSource.Assistant => "assistant",
         TriggerSource.Mcp => "mcp",
         TriggerSource.CommandLine => "commandLine",
+        TriggerSource.Telegram => "telegram",
         _ => "manual",
     };
 

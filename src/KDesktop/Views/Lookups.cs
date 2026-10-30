@@ -190,6 +190,16 @@ public static class Lookups
     public static IReadOnlyList<Option<FileExists>> FileExistsChoices { get; } = Enum<FileExists>("enum.fileExists");
     public static IReadOnlyList<Option<BackupMode>> BackupModes { get; } = Enum<BackupMode>("enum.backupMode");
     public static IReadOnlyList<Option<MacroStepKind>> MacroStepKinds { get; } = Enum<MacroStepKind>("enum.stepKind");
+    public static IReadOnlyList<Option<TelegramSendWhat>> TelegramSendWhats { get; } = Enum<TelegramSendWhat>("enum.telegramSend");
+    public static IReadOnlyList<Option<TelegramMessageKind>> TelegramMessageKinds { get; } = Enum<TelegramMessageKind>("event.telegramKind");
+
+    /// <summary>Who «Enviar por Telegram» can write to: you, and the contacts K-Desktop may write to (read when the editor opens).</summary>
+    public static IReadOnlyList<CalendarChoice> TelegramRecipients =>
+    [
+        new(string.Empty, Loc.T("editor.telegramOwner")),
+        .. App.Current.Telegram.Read(s => s.Contacts.Where(c => c.MayWrite && c.Level != Core.Remote.Telegram.TelegramLevel.Ignore)
+            .Select(c => new CalendarChoice(c.Id.ToString(System.Globalization.CultureInfo.InvariantCulture), c.Shown)).ToList()),
+    ];
     public static IReadOnlyList<Option<KDesktop.Core.Input.MouseButton>> MouseButtons { get; } =
         [.. Enum<KDesktop.Core.Input.MouseButton>("macro.button").Where(o => o.Value != KDesktop.Core.Input.MouseButton.None)];
 

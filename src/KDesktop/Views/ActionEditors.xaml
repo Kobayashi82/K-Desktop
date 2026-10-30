@@ -1313,6 +1313,53 @@
         </StackPanel>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type m:TelegramSendAction}">
+        <StackPanel>
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="260">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.telegramTo}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.TelegramRecipients}}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding To}"
+                              AutomationProperties.Name="{l:Tr editor.telegramTo}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,12" MinWidth="220">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.telegramWhat}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.TelegramSendWhats}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding What}"
+                              AutomationProperties.Name="{l:Tr editor.telegramWhat}" />
+                </StackPanel>
+            </WrapPanel>
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding What}" Value="File">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.telegramFile}" />
+                <Grid Style="{StaticResource EdRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBox Text="{Binding File, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.mailAttachmentsHint}"
+                                AutomationProperties.Name="{l:Tr editor.telegramFile}" />
+                    <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
+                               Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
+                </Grid>
+            </StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.telegramText}" />
+            <ui:TextBox Margin="0,0,0,12" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True"
+                        AutomationProperties.Name="{l:Tr editor.telegramText}" />
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.telegramHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type m:CalendarJoinAction}">
         <StackPanel>
             <WrapPanel>

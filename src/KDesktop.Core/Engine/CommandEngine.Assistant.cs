@@ -97,7 +97,7 @@ public sealed partial class CommandEngine
         if (a.Tool.Length == 0) return;
         var arguments = ExpandArguments(a.Arguments);
         var unattended = ctx.Source is TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit or TriggerSource.Remote
-            or TriggerSource.Web or TriggerSource.Mcp or TriggerSource.CommandLine;
+            or TriggerSource.Web or TriggerSource.Mcp or TriggerSource.CommandLine or TriggerSource.Telegram;
 
         Assistant.Pipe.ToolTestMessage? done;
         var cts = BeginCancellable(ctx.Token);

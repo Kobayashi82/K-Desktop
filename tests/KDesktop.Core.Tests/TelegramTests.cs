@@ -6,7 +6,7 @@ using KDesktop.Core.Remote.Telegram;
 
 namespace KDesktop.Core.Tests;
 
-public sealed class TelegramTests : IDisposable
+public sealed partial class TelegramTests : IDisposable
 {
     private const string Token = "123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw";
 
@@ -65,7 +65,7 @@ public sealed class TelegramTests : IDisposable
 
         public Task AnswerButtonAsync(string callbackId, string? text, CancellationToken cancel) => Task.CompletedTask;
         public Task DeleteAsync(long chat, int message, CancellationToken cancel) => Task.CompletedTask;
-        public Task DownloadAsync(string fileId, string destination, CancellationToken cancel) => Task.CompletedTask;
+        public Task DownloadAsync(string fileId, string destination, CancellationToken cancel) => File.WriteAllTextAsync(destination, fileId, cancel);
         public void Dispose() { }
     }
 

@@ -29,7 +29,14 @@ public sealed class TelegramService : IDisposable
 
     private const long LogLimit = 512 * 1024;
 
-    private sealed record Outgoing(long Chat, string Text, string To, TaskCompletionSource<bool>? Done, IReadOnlyList<IReadOnlyList<TelegramButton>>? Buttons = null);
+    /// <summary>Something to send: a text (with buttons), or a file with the text as its caption.</summary>
+    private sealed record Outgoing(long Chat, string Text, string To, TaskCompletionSource<bool>? Done, IReadOnlyList<IReadOnlyList<TelegramButton>>? Buttons = null,
+        string? File = null, TelegramFileKind Kind = TelegramFileKind.Document, TaskCompletionSource<int>? SentId = null);
+
+    /// <summary>Telegram's limit for a file's caption; a longer text goes after it, as a message.</summary>
+    private const int MaxCaption = 1024;
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (TaskCompletionSource<bool> Answer, string Question)> _asks = new();
 
     private readonly string _folder;
     private readonly Func<string, string> _protect;
@@ -40,6 +47,7 @@ public sealed class TelegramService : IDisposable
     private readonly Channel<Outgoing> _queue = Channel.CreateUnbounded<Outgoing>(new UnboundedChannelOptions { SingleReader = true });
     private readonly CancellationTokenSource _life = new();
     private readonly TelegramLimiter _limiter = new();
+    private readonly SemaphoreSlim _downloading = new(1, 1);
     private readonly Task _sender;
     private (CancellationTokenSource Stop, Task Loop)? _run;
     private volatile ITelegramConnection? _connection;
@@ -216,6 +224,135 @@ public sealed class TelegramService : IDisposable
         return Enqueue(text, done) ? done.Task : Task.FromResult(false);
     }
 
+    /// <summary>
+    /// Sends a text, or a file with the text as its caption, to a chat (whoever asks has checked <see cref="CanWriteTo"/>);
+    /// true when Telegram took it.
+    /// </summary>
+    public Task<bool> SendAsync(long chat, string text, string? file = null, TelegramFileKind kind = TelegramFileKind.Document)
+    {
+        if (Bot is not { Enabled: true } || (string.IsNullOrWhiteSpace(text) && file is null)) return Task.FromResult(false);
+        var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        return _queue.Writer.TryWrite(new Outgoing(chat, text, NameOf(chat), done, null, file, kind)) ? done.Task : Task.FromResult(false);
+    }
+
+    /// <summary>Puts a text (with buttons) for a chat in the queue, without waiting.</summary>
+    public void Post(long chat, string text, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons = null) => Reply(chat, text, NameOf(chat), buttons);
+
+    /// <summary>Who a chat is, for the log: «dueño», a contact's name or its id.</summary>
+    public string NameOf(long id)
+    {
+        lock (_gate)
+        {
+            if (Settings.Owner?.Id == id) return "dueño";
+            return Settings.Contacts.FirstOrDefault(c => c.Id == id)?.Shown ?? id.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    /// <summary>
+    /// The chat a recipient means: empty, the owner; a contact's id, or its name or @user when only one has it. Null:
+    /// nobody (or several).
+    /// </summary>
+    public long? Recipient(string to)
+    {
+        to = to.Trim().TrimStart('@');
+        lock (_gate)
+        {
+            if (to.Length == 0) return Settings.Owner?.Id;
+            if (long.TryParse(to, CultureInfo.InvariantCulture, out var id))
+                return Settings.Owner?.Id == id || Settings.Contacts.Any(c => c.Id == id) ? id : null;
+            var found = Settings.Contacts.Where(c => string.Equals(c.Username, to, StringComparison.OrdinalIgnoreCase)
+                                                     || string.Equals(c.Name, to, StringComparison.OrdinalIgnoreCase)).ToList();
+            return found.Count == 1 ? found[0].Id : null;
+        }
+    }
+
+    /// <summary>Tells Telegram a button was handled, with a short text over the chat.</summary>
+    public void Answer(TelegramIncoming button, string? text)
+    {
+        if (_connection is { } connection && button.CallbackId is { } id) _ = Quiet(() => connection.AnswerButtonAsync(id, text, _life.Token));
+    }
+
+    /// <summary>Changes a message the bot sent (its buttons go).</summary>
+    public void Edit(long chat, int message, string text)
+    {
+        if (_connection is { } connection && message > 0) _ = Quiet(() => connection.EditTextAsync(chat, message, text, _life.Token));
+    }
+
+    /// <summary>
+    /// Asks the owner by Telegram, with «Sí» and «No» (phase 3.4): true or false, or null when nobody answered in
+    /// <paramref name="expire"/> (it is not done) or it could not be asked. The message then says what happened.
+    /// </summary>
+    public async Task<bool?> AskOwnerAsync(string question, TimeSpan expire, CancellationToken cancel = default)
+    {
+        if (Bot is not { Enabled: true } || Owner is not { } owner) return null;
+        var key = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
+        var answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var sent = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _asks[key] = (answer, question);
+        IReadOnlyList<IReadOnlyList<TelegramButton>> buttons = [[new("✓ " + Loc.T("telegram.ask.yes"), "y:" + key), new("✗ " + Loc.T("telegram.ask.no"), "n:" + key)]];
+        if (!_queue.Writer.TryWrite(new Outgoing(owner.Id, "❓ " + question, "dueño", null, buttons, SentId: sent)))
+        {
+            _asks.TryRemove(key, out _);
+            return null;
+        }
+        try
+        {
+            using var expired = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+            expired.CancelAfter(expire);
+            return await answer.Task.WaitAsync(expired.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            if (!_asks.TryRemove(key, out _)) return answer.Task.IsCompletedSuccessfully ? answer.Task.Result : null;
+            WriteLog($"sin respuesta: {Short(question)}");
+            if (sent.Task.IsCompletedSuccessfully) Edit(owner.Id, sent.Task.Result, "⌛ " + Loc.T("telegram.ask.expired", question));
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Downloads the file of a message into <paramref name="folder"/> without overwriting another («foto (2).jpg»); its
+    /// path, or null when it has none or it could not be downloaded.
+    /// </summary>
+    public async Task<string?> DownloadAsync(TelegramIncoming m, string folder, CancellationToken cancel = default)
+    {
+        if (m.File is not { } file || _connection is not { } connection) return null;
+        if (file.Size > connection.Capabilities.MaxDownload)
+        {
+            WriteLog($"archivo demasiado grande: {file.Name} ({file.Size} bytes)");
+            return null;
+        }
+        var stamp = m.Date.ToLocalTime().ToString("yyyy-MM-dd HH.mm.ss", CultureInfo.InvariantCulture);
+        var name = m.Content switch
+        {
+            TelegramContent.Photo => $"{Loc.T("telegram.file.photo")} {stamp}.jpg",
+            TelegramContent.Voice => $"{Loc.T("telegram.file.voice")} {stamp}.ogg",
+            _ => Web.WebServer.SafeName(file.Name) ?? $"{Loc.T("telegram.file.file")} {stamp}",
+        };
+        // One at a time: two «factura.pdf» at once must not choose the same free name.
+        await _downloading.WaitAsync(cancel).ConfigureAwait(false);
+        var path = string.Empty;
+        try
+        {
+            Directory.CreateDirectory(folder);
+            path = Mail.MailService.FreeName(folder, name);
+            await connection.DownloadAsync(file.Id, path, cancel).ConfigureAwait(false);
+            WriteLog($"archivo guardado: {path}");
+            return path;
+        }
+        catch (Exception ex) when (ex is TelegramException or HttpRequestException or IOException or UnauthorizedAccessException or JsonException)
+        {
+            WriteLog($"archivo no guardado ({name}): {ex.Message}");
+            try { if (path.Length > 0) File.Delete(path); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+            return null;
+        }
+        finally
+        {
+            _downloading.Release();
+        }
+    }
+
     private bool Enqueue(string text, TaskCompletionSource<bool>? done)
     {
         if (Bot is not { Enabled: true } || Owner is not { } owner || string.IsNullOrWhiteSpace(text)) return false;
@@ -273,15 +410,31 @@ public sealed class TelegramService : IDisposable
             await foreach (var item in _queue.Reader.ReadAllAsync(stop).ConfigureAwait(false))
             {
                 var ok = true;
-                var parts = Split(item.Text);
+                var text = item.Text;
+                if (item.File is { } file)
+                {
+                    var caption = text.Length <= MaxCaption ? text : null;
+                    ok = await SendPartAsync(item, $"[{Path.GetFileName(file)}] {caption}", (c, t) => c.SendFileAsync(item.Chat, item.Kind, file, caption, t), stop).ConfigureAwait(false);
+                    text = caption is null ? text : string.Empty;
+                }
+                var parts = ok ? Split(text) : [];
                 for (var i = 0; i < parts.Count; i++)
                 {
-                    if (!await SendPartAsync(item, parts[i], i == parts.Count - 1 ? item.Buttons : null, stop).ConfigureAwait(false))
+                    var part = parts[i];
+                    var buttons = i == parts.Count - 1 ? item.Buttons : null;
+                    var last = i == parts.Count - 1;
+                    if (!await SendPartAsync(item, part, async (c, t) =>
+                        {
+                            var id = await c.SendTextAsync(item.Chat, part, buttons, t).ConfigureAwait(false);
+                            if (last) item.SentId?.TrySetResult(id);
+                            return id;
+                        }, stop).ConfigureAwait(false))
                     {
                         ok = false;
                         break;
                     }
                 }
+                item.SentId?.TrySetResult(0);
                 item.Done?.TrySetResult(ok);
             }
         }
@@ -289,7 +442,7 @@ public sealed class TelegramService : IDisposable
         while (_queue.Reader.TryRead(out var left)) left.Done?.TrySetResult(false);
     }
 
-    private async Task<bool> SendPartAsync(Outgoing item, string text, IReadOnlyList<IReadOnlyList<TelegramButton>>? buttons, CancellationToken stop)
+    private async Task<bool> SendPartAsync(Outgoing item, string text, Func<ITelegramConnection, CancellationToken, Task<int>> send, CancellationToken stop)
     {
         var waited = TimeSpan.Zero;
         var wait = RetryBase;
@@ -306,7 +459,7 @@ public sealed class TelegramService : IDisposable
             }
             try
             {
-                await connection.SendTextAsync(item.Chat, text, buttons, stop).ConfigureAwait(false);
+                await send(connection, stop).ConfigureAwait(false);
                 WriteLog($"→ {item.To}: {Short(text)}");
                 return true;
             }
@@ -377,6 +530,9 @@ public sealed class TelegramService : IDisposable
                 _connection = connection;
                 SetState(TelegramState.Connected, null);
                 WriteLog($"conectado como @{me.Username}");
+                // «/comandos» in the bot's menu, in the language of K-Desktop.
+                if (connection is TelegramBotConnection botApi)
+                    _ = Quiet(() => botApi.SetMenuAsync([(Loc.T("telegram.cmd.word"), Loc.T("telegram.cmd.menu"))], stop));
                 wait = RetryBase;
                 while (!stop.IsCancellationRequested)
                 {
@@ -594,9 +750,32 @@ public sealed class TelegramService : IDisposable
         ]);
     }
 
-    /// <summary>A button pressed: only the owner's count («Permitir», «Ignorar», «Bloquear» of someone new).</summary>
+    /// <summary>
+    /// A button pressed: the owner's decisions about someone new and answers to a question (only the owner's count); any
+    /// other (a command…) goes on as a message, with the level of whoever pressed it.
+    /// </summary>
     private void HandleButton(TelegramIncoming m)
     {
+        var data = m.CallbackData ?? string.Empty;
+        if (data.StartsWith("y:", StringComparison.Ordinal) || data.StartsWith("n:", StringComparison.Ordinal))
+        {
+            AnswerQuestion(m, data);
+            return;
+        }
+        if (!data.StartsWith("p:", StringComparison.Ordinal))
+        {
+            var bot = Bot;
+            TelegramVerdict verdict;
+            lock (_gate) verdict = TelegramInbox.Classify(m, Settings, bot?.Id ?? 0, bot?.Username ?? string.Empty);
+            WriteLog($"botón de {m.From.Shown} [{m.From.Id}]: {data} ({verdict.Why})");
+            if (!verdict.Served || (verdict.Route != TelegramRoute.Owner && Held(m)))
+            {
+                Answer(m, Loc.T("telegram.button.notYours"));
+                return;
+            }
+            Received?.Invoke(m, verdict);
+            return;
+        }
         var connection = _connection;
         string answer;
         if (Owner?.Id != m.From.Id) answer = Loc.T("telegram.button.notYours");
@@ -610,6 +789,27 @@ public sealed class TelegramService : IDisposable
             if (connection is not null) _ = Quiet(() => connection.EditTextAsync(m.ChatId, m.MessageId, answer, _life.Token));
         }
         if (connection is not null && m.CallbackId is { } callback) _ = Quiet(() => connection.AnswerButtonAsync(callback, answer, _life.Token));
+    }
+
+    /// <summary>«Sí» or «No» of a question to the owner: the one waiting gets it and the message says what was answered.</summary>
+    private void AnswerQuestion(TelegramIncoming m, string data)
+    {
+        if (Owner?.Id != m.From.Id)
+        {
+            Answer(m, Loc.T("telegram.button.notYours"));
+            return;
+        }
+        var yes = data[0] == 'y';
+        if (!_asks.TryRemove(data[2..], out var ask))
+        {
+            Answer(m, Loc.T("telegram.button.old"));
+            Edit(m.ChatId, m.MessageId, Loc.T("telegram.button.old"));
+            return;
+        }
+        WriteLog($"respuesta del dueño: {(yes ? "sí" : "no")} a «{Short(ask.Question)}»");
+        ask.Answer.TrySetResult(yes);
+        Answer(m, null);
+        Edit(m.ChatId, m.MessageId, (yes ? "✓ " : "✗ ") + ask.Question);
     }
 
     private string? Decide(long id, string what)

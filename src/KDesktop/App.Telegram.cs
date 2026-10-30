@@ -26,6 +26,38 @@ public partial class App
                 ShowNotificationAction.GlobalSound, TimeSpan.FromSeconds(15), null, () => ShowMainWindow(w => w.Navigate("settings/accounts/telegrambot")))));
         // «Solo yo mientras juego»: something covers the monitor of the window in front.
         Telegram.Busy = () => Native.UiNative.FullscreenOn(Native.UiNative.MonitorFor(Core.Model.ScreenChoice.ActiveWindow).Monitor);
+        Engine.Telegram = Telegram;
+        TelegramSendAction.NameOf = id => long.TryParse(id, System.Globalization.CultureInfo.InvariantCulture, out var chat) ? Telegram.NameOf(chat) : null;
+        TelegramCommands = new TelegramCommands(Telegram, () => Dispatcher.Invoke(() => Config.Commands.ToList()), cmd => Engine.RunAsync(cmd, TriggerSource.Telegram),
+            cmd => Core.Assistant.ActionRisk.OfCommand(cmd, id => Config.FindCommand(id)))
+        {
+            // At the PC: the mouse or the keyboard were used in the last minute and a half.
+            OwnerPresent = () => ProcessSnapshot.IdleTime() < TimeSpan.FromSeconds(90),
+            AskOnPc = question => Dispatcher.InvokeAsync(() => AskOnPcAsync(question)).Task.Unwrap(),
+            Policy = () => Config.Settings.AssistantAskBefore,
+        };
+        Events.Telegram = TelegramCommands;
+    }
+
+    /// <summary>What is asked by Telegram without the assistant: /comandos, running them, confirming, the files that arrive.</summary>
+    public TelegramCommands TelegramCommands { get; private set; } = null!;
+
+    /// <summary>
+    /// A confirmation of something asked by Telegram, on the PC (the window of the assistants' questions, as K-Desktop):
+    /// true, false, or null when nobody answered (then it is asked by Telegram).
+    /// </summary>
+    private static async Task<bool?> AskOnPcAsync(string question)
+    {
+        var window = new Views.Assistant.AskWindow("K-Desktop", Views.AssistantLook.IconOf(Core.Assistant.AssistantTargeting.KDesktop), question, false, TimeSpan.FromSeconds(30));
+        window.Show();
+        var choice = await window.Answer;
+        Log.Info($"Telegram: «{question}» en el PC → {choice}");
+        return choice switch
+        {
+            "yes" => true,
+            "no" => false,
+            _ => null,
+        };
     }
 
     private void StartTelegram()
