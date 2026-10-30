@@ -93,6 +93,8 @@ public class MainActivity extends Activity {
 
     /** The app's own page (the PCs) is the one on screen: only it may manage the list. */
     private volatile boolean onSetup;
+    /** The page asked for the whole screen (the touchpad in landscape): no status or navigation bar. */
+    private boolean fullscreen;
 
     /** A failure already made it try the other addresses (or none answered already: nothing left to try). */
     private boolean retried;
@@ -599,6 +601,8 @@ public class MainActivity extends Activity {
         int flags = 0;
         if (lightStatus) flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         if (lightNavigation) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        // A swipe from the edge shows the bars for a moment and they hide again.
+        if (fullscreen) flags |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         w.getDecorView().setSystemUiVisibility(flags);
     }
 
@@ -873,6 +877,10 @@ public class MainActivity extends Activity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             onSetup = url.startsWith(SETUP);
             if (onSetup) handler.removeCallbacks(loadTimeout);
+            if (fullscreen) {
+                fullscreen = false;
+                paintBars();
+            }
         }
 
         private void loaded() {
@@ -1033,6 +1041,16 @@ public class MainActivity extends Activity {
                     pcs.save(pc);
                 } catch (Exception ignored) {
                 }
+            });
+        }
+
+        /** The whole screen for the page (true) or the bars back (false). */
+        @JavascriptInterface
+        public void setFullscreen(boolean on) {
+            runOnUiThread(() -> {
+                if (fullscreen == on || (on && onSetup)) return;
+                fullscreen = on;
+                paintBars();
             });
         }
 

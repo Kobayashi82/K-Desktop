@@ -108,6 +108,7 @@
           </span>
           <p class="pad-hint" id="padHint" data-i18n="pwa.pad.hint"></p>
           <span class="pad-drag" id="padDrag" data-i18n="pwa.pad.dragging"></span>
+          <span class="pad-gesture" id="padGesture" aria-live="polite"></span>
         </div>
         <div class="pad-buttons">
           <button data-button="l" data-i18n-title="pwa.pad.left"></button>
@@ -221,6 +222,11 @@
               <input type="range" id="padSpeed" min="0.5" max="4" step="0.1">
             </label>
             <label class="row slider-row">
+              <span class="row-icon" data-icon="speed"></span>
+              <span class="row-label" data-i18n="pwa.pad.accel"></span>
+              <input type="range" id="padAccel" min="0" max="2" step="0.1">
+            </label>
+            <label class="row slider-row">
               <span class="row-icon" data-icon="scroll"></span>
               <span class="row-label" data-i18n="pwa.pad.scrollSpeed"></span>
               <input type="range" id="padScroll" min="0.5" max="4" step="0.1">
@@ -235,6 +241,21 @@
               <span class="row-label" data-i18n="pwa.pad.tapClick"></span>
               <input type="checkbox" class="switch" id="padTap">
             </label>
+            <label class="row">
+              <span class="row-icon" data-icon="fingers"></span>
+              <span class="row-label"><span data-i18n="pwa.pad.gestures"></span><small class="row-sub" data-i18n="pwa.pad.gesturesHint"></small></span>
+              <input type="checkbox" class="switch" id="padGestures">
+            </label>
+            <label class="row">
+              <span class="row-icon" data-icon="zoom"></span>
+              <span class="row-label"><span data-i18n="pwa.pad.pinch"></span><small class="row-sub" data-i18n="pwa.pad.pinchHint"></small></span>
+              <input type="checkbox" class="switch" id="padPinch">
+            </label>
+            <button class="row row-button" id="padKeysEdit">
+              <span class="row-icon" data-icon="keys"></span>
+              <span class="row-label"><span data-i18n="pwa.pad.keys"></span><small class="row-sub" id="padKeysText"></small></span>
+              <span class="row-chevron" data-icon="chevron"></span>
+            </button>
           </div>
         </div>
 

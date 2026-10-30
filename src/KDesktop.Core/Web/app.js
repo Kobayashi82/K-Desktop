@@ -1,7 +1,7 @@
 // K-Desktop web app: pairing, QuickMenus, all commands with search, touchpad, audio, settings.
 // Every URL is relative, so the app works at the root of a domain or under a path behind the proxy.
 import { searchKey, tokens, score } from './fuzzy.js';
-import { setupPad, padActive, padTexts } from './pad.js';
+import { setupPad, padActive, padTexts, padSettings } from './pad.js';
 import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
 import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, chatAsked, chatTexts } from './chat.js';
 import { setupInbox, fetchInbox } from './inbox.js';
@@ -85,6 +85,8 @@ const ICONS = {
   scroll: '<rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v3"/>',
   natural: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>',
   tap: '<circle cx="12" cy="9" r="3"/><path d="M12 15v6M6.5 5.5a8 8 0 0 1 11 0"/>',
+  speed: '<path d="M4.5 17a8 8 0 1 1 15 0"/><path d="M12 13l4-4.5"/><circle cx="12" cy="13" r="1.3"/>',
+  fingers: '<path d="M8 11V5.5a1.5 1.5 0 0 1 3 0V11M11 10V4a1.5 1.5 0 0 1 3 0v6M14 10.5V6a1.5 1.5 0 0 1 3 0v7.5a6.5 6.5 0 0 1-6.5 6.5h-.6a5 5 0 0 1-4-2l-2.6-3.5a1.5 1.5 0 0 1 2.4-1.8L8 14"/>',
   install: '<path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
   server: '<rect x="3.5" y="4" width="17" height="7" rx="2"/><rect x="3.5" y="13" width="17" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
@@ -1256,6 +1258,7 @@ function fillSession(s = state.session) {
   if (!s) return;
   state.favorites = new Set(pcStore.get('favorites', []));
   state.confirm = new Set(pcStore.get('confirm', []));
+  padSettings();
   $('deviceName').textContent = s.device?.name ?? '';
   $('connectedTo').textContent = t('pwa.settings.connected', s.machine);
   $('version').textContent = s.version ? 'K-Desktop ' + s.version : s.app;
@@ -1787,7 +1790,7 @@ function wireDial() {
 
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
-  setupPad({ t, store, svg, toast, online: setOnline, onUnpaired: () => showPair() });
+  setupPad({ t, store, pcStore, svg, toast, openSheet, online: setOnline, onUnpaired: () => showPair() });
   setupVoice({ t, toast, post: postBinary, updateApp });
   setupInbox({ $, el, svg, t, api, store, toast, lang: () => state.texts?.lang ?? navigator.language });
   setupChat({

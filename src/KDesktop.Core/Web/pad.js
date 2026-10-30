@@ -18,7 +18,9 @@ let pingTimer = 0;
 let status = 'off';
 
 const out = { x: 0, y: 0, wx: 0, wy: 0, frame: 0 };
-const settings = { speed: 2, scroll: 1.6, natural: true, tap: true };
+// Kept per PC (each screen and mouse is different). keys: the special keys of the row, in order (null: all).
+const DEFAULTS = { speed: 2, accel: 1, scroll: 1.6, natural: true, tap: true, gestures: true, pinch: true, keys: null };
+const settings = { ...DEFAULTS };
 
 // ── connection ─────────────────────────────────────────────────────
 
@@ -127,10 +129,10 @@ function flush() {
   }
 }
 
-/** Pointer gain: slow movements stay precise, fast ones cross the screen. */
+/** Pointer gain: slow movements stay precise, fast ones cross the screen (how much: the acceleration, 0 = none). */
 function gain(dx, dy, dt) {
   const v = Math.hypot(dx, dy) / Math.max(dt, 1);   // CSS px per ms
-  return settings.speed * (0.55 + Math.min(v, 2.6) * 0.85);
+  return settings.speed * (1 + (0.55 + Math.min(v, 2.6) * 0.85 - 1) * settings.accel);
 }
 
 // ── gestures ───────────────────────────────────────────────────────
@@ -150,7 +152,16 @@ const g = {
   vx: 0, vy: 0,              // scroll velocity (CSS px / ms) for the inertia
   sample: { x: 0, y: 0, t: 0 },
   inertia: 0,
+  // Two fingers: scroll or pinch, decided by what moves first. Three or four: a swipe (see swipeBy).
+  pinch: { from: 0, ref: 0, cx: 0, cy: 0, decided: false, ctrl: false },
+  swipe: { x: 0, y: 0, dir: '', steps: 0, alt: false },
 };
+
+/** Distance between the first two fingers and their middle point. */
+function twoFingers() {
+  const [a, b] = [...touches.values()];
+  return { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+}
 
 function padPoint(e) {
   return { x: e.clientX, y: e.clientY };
@@ -187,9 +198,18 @@ function onDown(e) {
   } else {
     g.maxCount = Math.max(g.maxCount, touches.size);
     clearTimeout(g.holdTimer);
-    if (!g.dragging) g.mode = 'scroll';
+    if (!g.dragging) g.mode = touches.size >= 3 && settings.gestures ? 'swipe' : 'scroll';
     g.vx = g.vy = 0;
     g.sample = { x: 0, y: 0, t: 0 };
+    if (touches.size === 2) {
+      const two = twoFingers();
+      endPinch();
+      g.pinch = { from: two.d, ref: two.d, cx: two.cx, cy: two.cy, decided: !settings.pinch, ctrl: false };
+    }
+    if (g.mode === 'swipe') {
+      endPinch();
+      g.swipe = { x: 0, y: 0, dir: '', steps: 0, alt: false };
+    }
   }
 }
 
@@ -217,7 +237,22 @@ function onMove(e) {
       continue;
     }
 
-    if (g.mode === 'scroll' && touches.size >= 2) {
+    if (g.mode === 'swipe') {
+      swipeBy(dx / touches.size, dy / touches.size);
+    } else if (g.mode === 'pinch') {
+      pinchTo(twoFingers().d);
+    } else if (g.mode === 'scroll' && touches.size === 2 && !g.pinch.decided) {
+      // Fingers apart or together: zoom. Both the same way: scroll.
+      const two = twoFingers();
+      const spread = Math.abs(two.d - g.pinch.from);
+      const travel = Math.hypot(two.cx - g.pinch.cx, two.cy - g.pinch.cy);
+      if (spread > 14 && spread > travel * 1.3) {
+        g.mode = 'pinch';
+        g.pinch.decided = true;
+        g.pinch.ref = two.d;
+        startPinch();
+      } else if (travel > 10) g.pinch.decided = true;
+    } else if (g.mode === 'scroll' && touches.size >= 2) {
       // Every finger reports: use the average.
       const n = touches.size;
       scrollBy(dx / n, dy / n, at);
@@ -237,9 +272,15 @@ function onUp(e) {
   touches.delete(e.pointerId);
   hideFinger(e.pointerId);
   const now = performance.now();
+  if (g.mode === 'pinch' && touches.size < 2) {
+    // One finger up ends the zoom; the other one left does nothing until it lifts too.
+    endPinch();
+    g.mode = 'scroll';
+  }
   if (touches.size > 0) return;
 
   clearTimeout(g.holdTimer);
+  if (g.mode === 'swipe') endSwipe();
   const short = now - g.start < TAP_MS * (g.maxCount > 1 ? 1.4 : 1);
   if (g.dragging) {
     endDrag();
@@ -337,6 +378,114 @@ function stopInertia() {
   g.inertia = 0;
 }
 
+// ── three and four fingers, pinch ──────────────────────────────────
+
+const SWIPE_START = 40;      // px the fingers travel before a swipe counts
+const SWIPE_STEP = 70;       // px per window while switching windows
+
+/**
+ * Like a Windows touchpad. Three fingers sideways: switch windows (Alt held while the fingers are down, a step every
+ * SWIPE_STEP, back the other way); up: task view; down: the desktop. Four fingers sideways: the next or previous
+ * virtual desktop (the content follows the fingers).
+ */
+function swipeBy(dx, dy) {
+  const s = g.swipe;
+  s.x += dx;
+  s.y += dy;
+  if (!s.dir) {
+    if (Math.hypot(s.x, s.y) < SWIPE_START) return;
+    s.dir = Math.abs(s.x) > Math.abs(s.y) ? (s.x > 0 ? 'right' : 'left') : (s.y > 0 ? 'down' : 'up');
+    const four = g.maxCount >= 4;
+    if (s.dir === 'up') gesture('taskView', () => send({ t: 'k', k: 'Tab', m: ['WIN'] }));
+    else if (s.dir === 'down') gesture('desktop', () => send({ t: 'k', k: 'D', m: ['WIN'] }));
+    else if (four) gesture('vdesk', () => send({ t: 'k', k: s.dir === 'left' ? 'Right' : 'Left', m: ['CTRL', 'WIN'] }));
+    else {
+      gesture('windows', () => {
+        if (mods.ALT !== 2) {
+          send({ t: 'kd', k: 'ALT' });
+          s.alt = true;
+        }
+        send({ t: 'k', k: 'Tab', m: s.dir === 'right' ? [] : ['SHIFT'] });
+      });
+      s.ref = s.x;
+    }
+    return;
+  }
+  if (!s.alt) return;
+  while (s.x - s.ref >= SWIPE_STEP) {
+    send({ t: 'k', k: 'Tab', m: [] });
+    s.ref += SWIPE_STEP;
+    buzz(5);
+  }
+  while (s.ref - s.x >= SWIPE_STEP) {
+    send({ t: 'k', k: 'Tab', m: ['SHIFT'] });
+    s.ref -= SWIPE_STEP;
+    buzz(5);
+  }
+}
+
+/** Fingers up: letting go of Alt picks the window. */
+function endSwipe() {
+  if (g.swipe.alt) send({ t: 'ku', k: 'ALT' });
+  g.swipe.alt = false;
+  hideGesture();
+}
+
+const PINCH_STEP = 38;       // px of change between the fingers per zoom step
+
+/** Pinch: Ctrl held while the fingers are down and the wheel per step, the zoom of browsers and most programs. */
+function startPinch() {
+  if (mods.CTRL !== 2) {
+    send({ t: 'kd', k: 'CTRL' });
+    g.pinch.ctrl = true;
+  }
+  showGesture('zoom');
+  buzz(8);
+}
+
+function pinchTo(d) {
+  const p = g.pinch;
+  while (d - p.ref >= PINCH_STEP) {
+    send({ t: 'w', x: 0, y: 120 });
+    p.ref += PINCH_STEP;
+    buzz(4);
+  }
+  while (p.ref - d >= PINCH_STEP) {
+    send({ t: 'w', x: 0, y: -120 });
+    p.ref -= PINCH_STEP;
+    buzz(4);
+  }
+}
+
+function endPinch() {
+  if (g.pinch.ctrl) send({ t: 'ku', k: 'CTRL' });
+  g.pinch.ctrl = false;
+  hideGesture();
+}
+
+/** Does it and says which gesture it was, on the pad. */
+function gesture(name, act) {
+  act();
+  buzz(12);
+  showGesture(name);
+}
+
+let gestureTimer = 0;
+
+function showGesture(name) {
+  const label = document.getElementById('padGesture');
+  clearTimeout(gestureTimer);
+  label.textContent = ctx.t('pwa.pad.gesture.' + name);
+  label.classList.add('on');
+  // The ones that are done at once go away by themselves; the held ones when the fingers lift.
+  if (name !== 'windows' && name !== 'zoom') gestureTimer = setTimeout(hideGesture, 1100);
+}
+
+function hideGesture() {
+  clearTimeout(gestureTimer);
+  gestureTimer = setTimeout(() => document.getElementById('padGesture')?.classList.remove('on'), 250);
+}
+
 // ── feedback ───────────────────────────────────────────────────────
 
 const fingers = new Map();
@@ -394,6 +543,10 @@ function releaseLocal() {
   clearTimeout(g.clickTimer);
   g.clickTimer = 0;
   stopInertia();
+  // The server lets go of Alt and Ctrl itself when the connection drops.
+  g.swipe.alt = g.pinch.ctrl = false;
+  g.mode = 'none';
+  document.getElementById('padGesture')?.classList.remove('on');
   if (g.dragging) {
     g.dragging = false;
     document.getElementById('pad')?.classList.remove('dragging');
@@ -438,7 +591,7 @@ const NAV_KEYS = [
   ['Left', '←'], ['Up', '↑'], ['Down', '↓'], ['Right', '→'],
   ['Home', 'pwa.key.home'], ['End', 'pwa.key.end'], ['PageUp', 'pwa.key.pageUp'], ['PageDown', 'pwa.key.pageDown'],
   ...Array.from({ length: 12 }, (_, i) => ['F' + (i + 1), 'F' + (i + 1)]),
-  ['PrintScreen', 'pwa.key.print'], ['AppsKey', '☰'],
+  ['Insert', 'pwa.key.insert'], ['PrintScreen', 'pwa.key.print'], ['AppsKey', '☰'],
 ];
 
 /** Browser key names (hardware keyboards, desktop browsers) → K-Desktop key names. */
@@ -594,8 +747,8 @@ function buildKeys() {
   }));
   // Keys that repeat while held, like on a real keyboard.
   const repeating = new Set(['Backspace', 'Delete', 'Left', 'Up', 'Down', 'Right']);
-  document.getElementById('keysNav').replaceChildren(...NAV_KEYS.map(([key, label]) => {
-    const b = keyButton(label.startsWith('pwa.') ? ctx.t(label) : label, '', () => {
+  document.getElementById('keysNav').replaceChildren(...keyList().map(key => {
+    const b = keyButton(keyLabel(key), '', () => {
       pressKey(key);
       if (!repeating.has(key)) return;
       let timer = setTimeout(function again() {
@@ -679,6 +832,20 @@ function updateKbState() {
   const up = focused && keyboardUp();
   document.body.classList.toggle('kb-open', up);
   document.getElementById('keyboardButton').classList.toggle('active', up);
+  updateFull();
+}
+
+// ── landscape: the whole screen ────────────────────────────────────
+
+/** A phone on its side: the pad takes the whole screen (no header or tabs; in the app, no system bars either). */
+const landscape = matchMedia('(orientation: landscape) and (max-height: 600px) and (any-pointer: coarse)');
+let padShown = false;
+
+function updateFull() {
+  const on = padShown && landscape.matches && !document.body.classList.contains('kb-open');
+  if (document.body.classList.contains('pad-full') === on) return;
+  document.body.classList.toggle('pad-full', on);
+  window.KDesktopApp?.setFullscreen?.(on);
 }
 
 function toggleKeyboard() {
@@ -707,28 +874,100 @@ function setKeysPanel(on) {
 
 // ── settings ───────────────────────────────────────────────────────
 
-function loadSettings() {
-  Object.assign(settings, ctx.store.get('pad', {}));
-  const speed = document.getElementById('padSpeed');
-  const scroll = document.getElementById('padScroll');
-  const fill = input => input.style.setProperty('--fill', ((input.value - input.min) / (input.max - input.min) * 100) + '%');
-  speed.value = settings.speed;
-  scroll.value = settings.scroll;
-  document.getElementById('padNatural').checked = settings.natural;
-  document.getElementById('padTap').checked = settings.tap;
-  fill(speed);
-  fill(scroll);
+const RANGES = { padSpeed: 'speed', padAccel: 'accel', padScroll: 'scroll' };
+const SWITCHES = { padNatural: 'natural', padTap: 'tap', padGestures: 'gestures', padPinch: 'pinch' };
+const fill = input => input.style.setProperty('--fill', ((input.value - input.min) / (input.max - input.min) * 100) + '%');
+
+/** The settings of the PC on screen (until 5.0.406 they were the same for every PC: those are where it starts). */
+export function padSettings() {
+  if (!ctx) return;
+  Object.assign(settings, DEFAULTS, ctx.store.get('pad', {}), ctx.pcStore.get('pad', {}));
+  for (const [id, key] of Object.entries(RANGES)) {
+    const input = document.getElementById(id);
+    input.value = settings[key];
+    fill(input);
+  }
+  for (const [id, key] of Object.entries(SWITCHES)) document.getElementById(id).checked = settings[key];
+  document.getElementById('padKeysText').textContent = keyList().map(keyLabel).join('  ');
+  buildKeys();
+}
+
+function savePad() {
+  ctx.pcStore.set('pad', settings);
+}
+
+function wireSettings() {
   const save = () => {
-    settings.speed = Number(speed.value);
-    settings.scroll = Number(scroll.value);
-    settings.natural = document.getElementById('padNatural').checked;
-    settings.tap = document.getElementById('padTap').checked;
-    ctx.store.set('pad', settings);
-    fill(speed);
-    fill(scroll);
+    for (const [id, key] of Object.entries(RANGES)) {
+      const input = document.getElementById(id);
+      settings[key] = Number(input.value);
+      fill(input);
+    }
+    for (const [id, key] of Object.entries(SWITCHES)) settings[key] = document.getElementById(id).checked;
+    savePad();
   };
-  for (const id of ['padSpeed', 'padScroll', 'padNatural', 'padTap'])
-    document.getElementById(id).addEventListener('input', save);
+  for (const id of [...Object.keys(RANGES), ...Object.keys(SWITCHES)]) document.getElementById(id).addEventListener('input', save);
+  document.getElementById('padKeysEdit').addEventListener('click', openKeysEditor);
+}
+
+/** The keys of the row, in order: the ones chosen, or all. */
+function keyList() {
+  const known = new Set(NAV_KEYS.map(([key]) => key));
+  const chosen = Array.isArray(settings.keys) ? settings.keys.filter(k => known.has(k)) : null;
+  return chosen ?? NAV_KEYS.map(([key]) => key);
+}
+
+function keyLabel(key) {
+  const label = NAV_KEYS.find(([k]) => k === key)?.[1] ?? key;
+  return label.startsWith('pwa.') ? ctx.t(label) : label;
+}
+
+/** Which special keys the row has and in which order: tap one in the row to take it out, another to add it at the end. */
+function openKeysEditor() {
+  buzz(5);
+  ctx.openSheet(box => {
+    box.append(Object.assign(document.createElement('h2'), { textContent: ctx.t('pwa.pad.keys') }));
+    const hint = Object.assign(document.createElement('p'), { className: 'sheet-hint', textContent: ctx.t('pwa.pad.keysHint') });
+    const inRow = document.createElement('div');
+    const others = document.createElement('div');
+    inRow.className = others.className = 'key-chips';
+    const othersTitle = Object.assign(document.createElement('h3'), { className: 'section-title', textContent: ctx.t('pwa.pad.keysMore') });
+    const reset = Object.assign(document.createElement('button'), { className: 'btn', textContent: ctx.t('pwa.pad.keysReset') });
+    const chip = (key, on) => {
+      const b = document.createElement('button');
+      b.className = 'key-chip' + (on ? ' on' : '');
+      b.textContent = keyLabel(key);
+      b.addEventListener('click', () => {
+        buzz(5);
+        const list = keyList();
+        settings.keys = on ? list.filter(k => k !== key) : [...list, key];
+        changed();
+      });
+      return b;
+    };
+    const draw = () => {
+      const list = keyList();
+      inRow.replaceChildren(...list.map(k => chip(k, true)));
+      const rest = NAV_KEYS.map(([k]) => k).filter(k => !list.includes(k));
+      others.replaceChildren(...rest.map(k => chip(k, false)));
+      othersTitle.hidden = rest.length === 0;
+      reset.disabled = settings.keys === null;
+    };
+    const changed = () => {
+      savePad();
+      draw();
+      padSettings();
+    };
+    reset.addEventListener('click', () => {
+      settings.keys = null;
+      changed();
+    });
+    const buttons = document.createElement('div');
+    buttons.className = 'sheet-buttons';
+    buttons.append(reset);
+    box.append(hint, inRow, othersTitle, others, buttons);
+    draw();
+  });
 }
 
 // ── public ─────────────────────────────────────────────────────────
@@ -747,7 +986,8 @@ export function setupPad(deps) {
   buildKeys();
   buildVk();
   wheelScrollsSideways(document.getElementById('keysNav'));
-  loadSettings();
+  wireSettings();
+  padSettings();
   setKeysPanel(!!ctx.store.get('padKeys', false));
 
   const input = document.getElementById('kbInput');
@@ -763,6 +1003,7 @@ export function setupPad(deps) {
   input.addEventListener('blur', updateKbState);
   window.addEventListener('resize', updateKbState);
   window.addEventListener('orientationchange', () => { fullHeight = 0; });
+  landscape.addEventListener('change', updateFull);
   const kbButton = document.getElementById('keyboardButton');
   // Cancelling pointerdown keeps the focus in the text box; the keyboard itself only opens from a click.
   kbButton.addEventListener('pointerdown', e => e.preventDefault());
@@ -802,6 +1043,8 @@ function showZoom(on, level) {
 
 /** Called when the tab opens or closes, and when the session says whether the PC allows it. */
 export function padActive(on, allowed = true) {
+  padShown = on && allowed;
+  updateFull();
   document.getElementById('padOff').hidden = allowed;
   document.getElementById('pad').hidden = !allowed;
   document.querySelector('.pad-buttons').hidden = !allowed;
@@ -826,6 +1069,6 @@ export function padActive(on, allowed = true) {
 /** Texts changed (language): rebuild the key labels. */
 export function padTexts() {
   if (!ctx) return;
-  buildKeys();
+  padSettings();
   setStatus(status);
 }
