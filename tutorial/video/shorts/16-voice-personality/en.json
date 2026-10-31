@@ -1,0 +1,114 @@
+{
+  "lang": "en",
+  "number": 16,
+  "title": "Voice and personality",
+  "next": "Create your assistant",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Who speaks",
+      "Voice profiles",
+      "New at random",
+      "Try it",
+      "Mission control"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Voice and personality",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Each assistant has {voice}its own voice, and {character}its own character. And you can {change}change both."
+        },
+        {
+          "id": "plan",
+          "text": "Let's see {voices}the voices, {profiles}voice profiles, and {personality}personality.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "voices",
+      "title": "The voices",
+      "label": "Voices",
+      "beats": [
+        {
+          "id": "who",
+          "text": "In {settings}Settings, Voice, choose {who}who speaks. {kokoro}Kokoro, a natural voice that runs on your PC, comes first. Then {piper}Piper, with voices in many languages, and the {windows}Windows voices. They download once, and {offline}work without internet."
+        },
+        {
+          "id": "pick",
+          "text": "In {page}Voices, pick the {kokoro}Kokoro voice, {mix}mix it with another to make a new one, or add {folders}folders with voices you already have."
+        },
+        {
+          "id": "when",
+          "text": "And choose {when}when they speak aloud: {quiet}quiet with something full screen, {night}quieter at night, and {side}sounding from the side of the screen where they are."
+        }
+      ]
+    },
+    {
+      "id": "profiles",
+      "title": "Voice profiles",
+      "label": "Profiles",
+      "beats": [
+        {
+          "id": "effects",
+          "text": "{profiles}Voice profiles change how they sound, with {effects}effects: {robot}classic robot, {martian}Martian, {radio}mission control, {bit}eight-bit, or just {beeps}beeps."
+        },
+        {
+          "id": "own",
+          "text": "The built-in ones stay as they are: {duplicate}duplicate one to make your own, or press {random}New at random, and see what comes out."
+        }
+      ]
+    },
+    {
+      "id": "personality",
+      "title": "Personality",
+      "label": "Personality",
+      "beats": [
+        {
+          "id": "text",
+          "text": "In each assistant's settings, {tab}Personality is {who}what tells the AI who it is and how it talks. It comes with its package, and you can {change}change it as you like, or {reset}reset it."
+        },
+        {
+          "id": "lang",
+          "text": "Pick its {language}language, the one it answers and speaks in. And in its {voice}Voice tab, its own profile, {speed}speed and volume."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: in Voice, {try}Try it lets you type any sentence and hear it, {who}said by any of your assistants, {how}in the way you choose."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}create your own assistant."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
