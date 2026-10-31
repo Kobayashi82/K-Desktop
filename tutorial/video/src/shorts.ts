@@ -10,10 +10,12 @@ import { WINDOWS_CLIPBOARD_SCREEN } from '../shorts/07-windows-clipboard-screen/
 import { VOICE } from '../shorts/08-voice/scenes';
 import { CALENDAR_MAIL } from '../shorts/10-calendar-mail/scenes';
 import { TELEGRAM } from '../shorts/11-telegram/scenes';
+import { MEET_THE_ASSISTANTS } from '../shorts/12-meet-the-assistants/scenes';
 import { BRAIN } from '../shorts/13-brain/scenes';
 import { TOOLS } from '../shorts/14-tools/scenes';
 import { MEMORY_KNOWLEDGE } from '../shorts/15-memory-knowledge/scenes';
 import { VOICE_PERSONALITY } from '../shorts/16-voice-personality/scenes';
+import { CREATE_YOUR_ASSISTANT } from '../shorts/17-create-your-assistant/scenes';
 
 /** A short video (shorts/<id>): the picture of each chapter of its script, and the background colours of its chapters. */
 export type Short = { scenes: Record<string, React.FC>; moods?: Record<string, readonly [string, string, string]> };
@@ -31,8 +33,10 @@ export const SHORTS: Record<string, Short> = {
   '08-voice': VOICE,
   '10-calendar-mail': CALENDAR_MAIL,
   '11-telegram': TELEGRAM,
+  '12-meet-the-assistants': MEET_THE_ASSISTANTS,
   '13-brain': BRAIN,
   '14-tools': TOOLS,
   '15-memory-knowledge': MEMORY_KNOWLEDGE,
   '16-voice-personality': VOICE_PERSONALITY,
+  '17-create-your-assistant': CREATE_YOUR_ASSISTANT,
 };

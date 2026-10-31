@@ -1,0 +1,134 @@
+{
+  "lang": "en",
+  "number": 17,
+  "title": "Create your assistant",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "dotnet new kdassistant",
+      "--assistant-dev",
+      "kaisign keygen"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Create your assistant",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Want an assistant of your own? It can be {pictures}just pictures and JSON, or {code}a .NET project with the SDK."
+        },
+        {
+          "id": "plan",
+          "text": "Let's see {nocode}one without code, {code}one with code, how to {try}try it, and how to {share}share it.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "nocode",
+      "title": "Without code",
+      "label": "No code",
+      "beats": [
+        {
+          "id": "files",
+          "text": "Without code, it's a folder: {manifest}assistant.json, {character}character.json, {icon}an icon, and {frames}its pictures, PNG with transparency."
+        },
+        {
+          "id": "anims",
+          "text": "Each {anims}animation has a name: {idle}idle, the only one you need, {walk}walk, {talk}talk, {listen}listen, {think}think. A missing one {fallback}uses another."
+        },
+        {
+          "id": "moves",
+          "text": "K-Desktop moves it: it {stands}stands on the taskbar or on your windows, {strolls}strolls, and {sleeps}sleeps when you're away. And it {talks}talks, thinks and uses tools like any other. {pip}Pip is a complete example."
+        },
+        {
+          "id": "pack",
+          "text": "{pack}pack.ps1 zips the folder into a .kai, and you {open}open it with K-Desktop to install it."
+        }
+      ]
+    },
+    {
+      "id": "code",
+      "title": "With code",
+      "label": "With code",
+      "beats": [
+        {
+          "id": "template",
+          "text": "With code, {install}install the template from NuGet, and {new}dotnet new kdassistant makes the project. {build}Every build leaves the .kai ready."
+        },
+        {
+          "id": "class",
+          "text": "Your class {iassistant}implements IAssistant: it {draws}draws itself, has {hit}a click area, and {tick}Tick says how long it can sleep."
+        },
+        {
+          "id": "gestures",
+          "text": "K-Desktop asks for {gestures}gestures: what it wants, never how. {press}Press a button, {move}move a window, {point}point at something. Knowing just {min}Communicate and React is enough: for the rest, the module does the action itself."
+        }
+      ]
+    },
+    {
+      "id": "try",
+      "title": "Try it",
+      "label": "Try it",
+      "beats": [
+        {
+          "id": "dev",
+          "text": "To try it without installing, run {dev}KDesktop.exe --assistant-dev with your project folder. It {reload}reloads it on every build."
+        },
+        {
+          "id": "settings",
+          "text": "{settings}settings.json gives it tabs in its settings, and {panel}panel.json its own panel. K-Desktop draws them, {nocode}without loading your code."
+        }
+      ]
+    },
+    {
+      "id": "share",
+      "title": "Share it",
+      "label": "Share it",
+      "beats": [
+        {
+          "id": "sign",
+          "text": "{keygen}kaisign keygen makes your key, once. From then on, {signed}every build signs the .kai, and K-Desktop {check}checks that nobody changed it."
+        },
+        {
+          "id": "catalog",
+          "text": "Then put it in {catalog}a catalog: a JSON at a fixed address that says where each package is. With {updates}updates in its manifest, K-Desktop offers its new versions."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: {docs}the documentation has it all: {host}what the host gives you, {gestures}the gestures, and {api}the API reference."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "The end",
+      "beats": [
+        {
+          "id": "next",
+          "text": "That's the whole series. {next}Now, make it yours."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}

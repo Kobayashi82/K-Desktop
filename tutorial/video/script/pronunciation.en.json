@@ -34,6 +34,46 @@
       "Comfy U I"
     ],
     [
+      "--assistant-dev",
+      "dash dash assistant dev"
+    ],
+    [
+      "dotnet new kdassistant",
+      "dot net new K D assistant"
+    ],
+    [
+      "\\.NET\\b",
+      "dot net"
+    ],
+    [
+      "pack\\.ps1",
+      "pack dot P S one"
+    ],
+    [
+      "\\.kai\\b",
+      "dot kai"
+    ],
+    [
+      "\\.json\\b",
+      " dot jay-son"
+    ],
+    [
+      "\\bIAssistant\\b",
+      "I Assistant"
+    ],
+    [
+      "\\bNuGet\\b",
+      "new get"
+    ],
+    [
+      "\\bkaisign\\b",
+      "kai sign"
+    ],
+    [
+      "\\bPNG\\b",
+      "P N G"
+    ],
+    [
       "\\bJSON\\b",
       "jay-son"
     ],

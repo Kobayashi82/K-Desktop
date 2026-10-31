@@ -108,6 +108,10 @@ src/components/Short.tsx          lo común: la cartela del título, «qué vas 
   y `end` (el siguiente vídeo y gracias, con `ShortEnd`).
 - Para reutilizar una escena del vídeo largo, el guion lleva los mismos ids de beats y las mismas marcas `{cue}` que
   ella espera (por ejemplo `BuildPart` necesita `page`, `hotkey`, `hotkey2` y `actions` en el mismo capítulo).
+- Los clips reales de los asistentes (los WebP del escaparate, los de «Probar») se usan con `<Showcase clip="Lander/window.minimize" />`
+  (`src/components/Showcase.tsx`); `python tools/showcase.py` busca los que nombran las escenas y los pasa a MP4 en
+  `public/generated/showcase/` (Lander, Kobii y Kumo salen de `assistants/<Nombre>/src/*/Package/showcase`, el repositorio de
+  asistentes clonado dentro; Pip, de `samples/CharacterAssistant/Package/showcase`). Hay que ejecutarlo tras añadir un clip a una escena.
 - Lo generado va aparte del vídeo largo: `public/audio/shorts/<id>/`, `public/generated/shorts/<id>/` y
   `out/shorts/<id>/`.
 

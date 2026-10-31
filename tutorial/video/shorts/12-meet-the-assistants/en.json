@@ -1,0 +1,151 @@
+{
+  "lang": "en",
+  "number": 12,
+  "title": "Meet the assistants",
+  "next": "The assistant's brain",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Put on the desktop",
+      "Try",
+      "Also show the commands you launch"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Meet the assistants",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Assistants are {chars}characters that live on top of your windows. You {talk}talk to them, and they {run}run your commands with gestures you can see."
+        },
+        {
+          "id": "plan",
+          "text": "Let's see how to {install}add one, how to {talk}talk to it, {work}how it works, and {own}what each one brings.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "install",
+      "title": "Add an assistant",
+      "label": "Add one",
+      "beats": [
+        {
+          "id": "module",
+          "text": "In {settings}Settings, Assistant, {on}turn on the Assistant module. It runs apart, without administrator rights, and when it's {off}off, nothing of it is loaded."
+        },
+        {
+          "id": "catalog",
+          "text": "The {catalog}Catalog has the assistants you can install: {lander}the Lander, {kobii}Kobii and {kumo}Kumo."
+        },
+        {
+          "id": "card",
+          "text": "Installing one shows {card}its card first: {what}what it can do, and {signed}who signed it. Its {keys}hotkeys become commands you can change."
+        },
+        {
+          "id": "desktop",
+          "text": "Then, in {list}Assistants, {put}Put on the desktop, and there it is. You can have {several}several at once."
+        },
+        {
+          "id": "try",
+          "text": "And in its settings, {try}Try shows it on a {test}test desktop, doing {what}whatever you pick, without touching anything of yours."
+        }
+      ]
+    },
+    {
+      "id": "talk",
+      "title": "Talk to it",
+      "label": "Talk",
+      "beats": [
+        {
+          "id": "word",
+          "text": "To talk to it, {word}say its word, like «Lander», and then the order. Or {key}hold its key and speak."
+        },
+        {
+          "id": "mouse",
+          "text": "With the mouse, {hold}press and hold on it while you speak. And {menu}right-click it to {write}write to it, open its {settings}settings, or {hide}hide it."
+        },
+        {
+          "id": "panel",
+          "text": "On the {panel}Assistant page, {chat}chat with each one, and see {activity}what it has been doing. And you can also talk to it from {phone}your phone, or {telegram}from Telegram."
+        }
+      ]
+    },
+    {
+      "id": "work",
+      "title": "How it works",
+      "label": "How it works",
+      "beats": [
+        {
+          "id": "gestures",
+          "text": "When you ask for one of your commands, the assistant {does}does it where you can see it, each one its own way: the Lander {minimize}shoots the minimize button, Kobii {move}points to where the window goes, and Kumo {wrap}wraps the window to carry it."
+        },
+        {
+          "id": "states",
+          "text": "And you always see {state}what it's doing: {listening}listening, {thinking}thinking, or {speaking}speaking."
+        },
+        {
+          "id": "actions",
+          "text": "Your commands have {actions}assistant actions too: {ask}ask it something, have it {say}say something, open its {chat}chat, {tool}use a tool, or run {extra}one of its own actions."
+        }
+      ]
+    },
+    {
+      "id": "own",
+      "title": "Each one, its own",
+      "label": "Each one",
+      "beats": [
+        {
+          "id": "lander",
+          "text": "The {lander}Lander is a little lunar module, with {game}its own game: {manual}fly it yourself, take on {missions}missions, or {races}race."
+        },
+        {
+          "id": "kobii",
+          "text": "{kobii}Kobii is a squishy little creature: {feed}give it something to eat, {ball}its ball, or just {play}watch it play."
+        },
+        {
+          "id": "kumo",
+          "text": "And {kumo}Kumo is a cloud that never stops changing shape: {rainbow}a rainbow, {drizzle}a drizzle, or {dance}a dance."
+        },
+        {
+          "id": "extras",
+          "text": "You'll find {menu}their extras in their right-click menu, and also as {action}an action for your commands."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: in Settings, Assistant, turn on {show}Also show the commands you launch. When you use {how}a hotkey, a QuickMenu or your phone, the assistant adds a gesture, {nodelay}without delaying anything."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}the assistant's brain."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
