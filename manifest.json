@@ -1,0 +1,2937 @@
+{
+  "docfx_version": "2.81.0+ba844df625370a6bd7c1ecab0d0ec4d1d9128ac4",
+  "sitemap": {
+    "baseUrl": "https://kobayashi82.github.io/K-Desktop/"
+  },
+  "source_base_path": "D:/Programas/Utilidades/Backup/Mis Programas/K-Desktop 5.0/site",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": ".nojekyll",
+      "output": {
+        "resource": {
+          "relative_path": ".nojekyll"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.AnnounceReason.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.AnnounceReason.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.AnnounceReason",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.AnnounceReason.yml\" sourcestartlinenumber=\"1\">Why an assistant is about to speak on its own (<xref href=\"KDesktop.Assistant.Sdk.Gesture.Announce\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.AssistantActivity.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.AssistantActivity.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.AssistantActivity",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.AssistantActivity.yml\" sourcestartlinenumber=\"1\">What the module is busy with, besides its state: what a character may show it doing.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.AssistantState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.AssistantState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.AssistantState",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.AssistantState.yml\" sourcestartlinenumber=\"1\">States the module tells the assistant about; each assistant shows them its own way.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.AssistantStates.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.AssistantStates.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.AssistantStates",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.CaptionButton.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.CaptionButton.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.CaptionButton",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.CaptionButtons.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.CaptionButtons.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.CaptionButtons",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.CaptionButtons.yml\" sourcestartlinenumber=\"1\">The minimize, maximize/restore and close buttons of a window, when they can be found.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.CommonSettings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.CommonSettings.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.CommonSettings",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.CommonSettings.yml\" sourcestartlinenumber=\"1\">The settings every assistant has the same way (<xref href=\"KDesktop.Assistant.Sdk.IAssistantHost.Common\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.EntranceKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.EntranceKind.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.EntranceKind",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.EntranceKind.yml\" sourcestartlinenumber=\"1\">Why an assistant comes onto the desktop (<xref href=\"KDesktop.Assistant.Sdk.IAssistant.Enter(KDesktop.Assistant.Sdk.EntranceKind)\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ExitKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ExitKind.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ExitKind",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ExitKind.yml\" sourcestartlinenumber=\"1\">Why an assistant leaves the desktop (<xref href=\"KDesktop.Assistant.Sdk.IAssistant.ExitAsync(KDesktop.Assistant.Sdk.ExitKind%2cSystem.Threading.CancellationToken)\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ExtraState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ExtraState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ExtraState",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ExtraState.yml\" sourcestartlinenumber=\"1\">How one of its extras shows in its menu and its panel (<xref href=\"KDesktop.Assistant.Sdk.IAssistantHost.SetExtraState(System.String%2cKDesktop.Assistant.Sdk.ExtraState)\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.ActivateWindow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.ActivateWindow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.ActivateWindow",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.ActivateWindow.yml\" sourcestartlinenumber=\"1\">Bring a window to the front (perch on it, knock on the door…). Commit when it should happen.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Announce.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Announce.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.Announce",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.Announce.yml\" sourcestartlinenumber=\"1\">it is about to say something on its own (a timer that rang, «avísame cuando» that happened, «Asistente:\ndecir»), so it catches the user's eye first: it comes closer to the cursor, waves, blinks… The host waits for it\n(at most <xref href=\"KDesktop.Assistant.Sdk.IGestureContext.TimeLeft\" data-throw-if-not-resolved=\"false\"></xref>, about 2 s; half a second in «Fast») and then speaks with\n<xref href=\"KDesktop.Assistant.Sdk.Gesture.Communicate\" data-throw-if-not-resolved=\"false\"></xref>: end as soon as it is done. Nothing to Commit.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Communicate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Communicate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.Communicate",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.Communicate.yml\" sourcestartlinenumber=\"1\">The generic one: stay visible while the host shows <code class=\"paramref\">Text</code> in the bubble.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.GoTo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.GoTo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.GoTo",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.GoTo.yml\" sourcestartlinenumber=\"1\">Go somewhere (fly, walk, teleport).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Mark.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Mark.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.Mark",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.Mark.yml\" sourcestartlinenumber=\"1\">Leave a mark somewhere for a while (beacon, flag, alarm clock), with an optional label.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.MoveWindow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.MoveWindow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.MoveWindow",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.MoveWindow.yml\" sourcestartlinenumber=\"1\">Move a window to <code class=\"paramref\">Destination</code>. Either move it frame by frame with\n<xref href=\"KDesktop.Assistant.Sdk.IWindowServices.TryMove(System.Int64%2cKDesktop.Assistant.Sdk.PixelRect)\" data-throw-if-not-resolved=\"false\"></xref> and return <xref href=\"KDesktop.Assistant.Sdk.GestureOutcome.PerformedSelf\" data-throw-if-not-resolved=\"false\"></xref> (K-Desktop then puts\nit exactly in place), or call Commit and let the module move it. If <code class=\"paramref\">Window</code> is maximized it\narrives already restored by a previous PressButton(Restore).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.PointAt.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.PointAt.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.PointAt",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.PointAt.yml\" sourcestartlinenumber=\"1\">Point at a window, a point or an area (a spotlight, an arm…).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.PressButton.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.PressButton.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.PressButton",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.PressButton.yml\" sourcestartlinenumber=\"1\">Press a caption button. Call <xref href=\"KDesktop.Assistant.Sdk.IGestureContext.Commit\" data-throw-if-not-resolved=\"false\"></xref> at the moment of the effect (when the shot\nhits): the window minimizes right then.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.React.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.React.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.React",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.React.yml\" sourcestartlinenumber=\"1\">A short reaction to how something went. <xref href=\"KDesktop.Assistant.Sdk.Gesture.React.Context\" data-throw-if-not-resolved=\"false\"></xref> says where it comes from, how many in a\nrow and whether it is the first of the day, so the same reaction need not look the same every time.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Scan.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Scan.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.Scan",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.Scan.yml\" sourcestartlinenumber=\"1\">Sweep an area (screenshot, reading the screen).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Typing.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.Typing.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.Typing",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.Typing.yml\" sourcestartlinenumber=\"1\">Pretend to type into a window (keys or text are being sent to it).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.WaitForWindow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.WaitForWindow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture.WaitForWindow",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.WaitForWindow.yml\" sourcestartlinenumber=\"1\">Something was just opened: wait for its window. <xref href=\"KDesktop.Assistant.Sdk.IGestureContext.Appeared\" data-throw-if-not-resolved=\"false\"></xref> completes with the new\nwindow (or null when it does not show up in time).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Gesture.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Gesture.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Gesture",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Gesture.yml\" sourcestartlinenumber=\"1\">What the module wants to achieve; the assistant decides how. An assistant that only knows\n<xref href=\"KDesktop.Assistant.Sdk.Gesture.Communicate\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"KDesktop.Assistant.Sdk.Gesture.React\" data-throw-if-not-resolved=\"false\"></xref> already works: for the rest the module falls back to\nCommunicate and performs the action itself.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.GestureKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.GestureKind.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.GestureKind",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.GestureKind.yml\" sourcestartlinenumber=\"1\">The gesture names, as listed in the «gestures» of the «traits» of assistant.json\n(camelCase there: &quot;pointAt&quot;, &quot;pressButton&quot;…).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.GestureOutcome.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.GestureOutcome.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.GestureOutcome",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.HitShape.Ellipse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.HitShape.Ellipse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.HitShape.Ellipse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.HitShape.Polygon.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.HitShape.Polygon.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.HitShape.Polygon",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.HitShape.Polygon.yml\" sourcestartlinenumber=\"1\">Any polygon (a rotated body, for example).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.HitShape.Rectangle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.HitShape.Rectangle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.HitShape.Rectangle",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.HitShape.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.HitShape.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.HitShape",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.HitShape.yml\" sourcestartlinenumber=\"1\">The shape of a hit area, in screen pixels.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IAssistant.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IAssistant.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IAssistant",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IAssistant.yml\" sourcestartlinenumber=\"1\">An assistant: a character that lives on the desktop. The host (K-Desktop's assistant process) loads it from its\npackage, gives it the world and its services, and asks it for gestures; the assistant never sees the AI, the\ntools, the pipe or K-Desktop.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IAssistantHost.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IAssistantHost.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IAssistantHost",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IAssistantHost.yml\" sourcestartlinenumber=\"1\">Everything the host offers an assistant. Use it from the engine thread unless a member says otherwise.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IAssistantLog.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IAssistantLog.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IAssistantLog",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IAssistantLog.yml\" sourcestartlinenumber=\"1\">Its lines go to K-Desktop's assistant log, prefixed with its id.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IAudio.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IAudio.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IAudio",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IAudio.yml\" sourcestartlinenumber=\"1\">Sound. The host mixes everything and applies the user's volume for assistants.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IGestureContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IGestureContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IGestureContext",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IGestureContext.yml\" sourcestartlinenumber=\"1\">What the module gives an assistant while it performs a gesture.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IHitArea.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IHitArea.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IHitArea",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IKeyboard.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IKeyboard.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IKeyboard",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IKeyboard.yml\" sourcestartlinenumber=\"1\">The keyboard, for assistants with a manual mode (the Lander's game). Reading the state is always allowed;\ncapturing keys makes K-Desktop swallow them so the application in front does not get them as well.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ILoop.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ILoop.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ILoop",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IPointer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IPointer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IPointer",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IPointer.yml\" sourcestartlinenumber=\"1\">The mouse. The overlay lets every click through; to be clickable an assistant places hit areas over its body\n(invisible windows with that shape). Their events arrive at <xref href=\"KDesktop.Assistant.Sdk.IAssistant.OnPointer(KDesktop.Assistant.Sdk.PointerEvent)\" data-throw-if-not-resolved=\"false\"></xref>.\nThe right button is the host's: it opens the assistant menu (talk, write, extras, settings…).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IRendering.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IRendering.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IRendering",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IRendering.yml\" sourcestartlinenumber=\"1\">Drawing services. The host keeps one transparent overlay over every monitor that never takes the mouse or the\nfocus; each surface is a small canvas on it that the compositor moves for free.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ISound.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ISound.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ISound",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ISurface.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ISurface.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ISurface",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ISurface.yml\" sourcestartlinenumber=\"1\">A canvas on the overlay. Call <xref href=\"KDesktop.Assistant.Sdk.ISurface.Present(KDesktop.Assistant.Sdk.PixelRect%2cSystem.Action%7bSystem.Windows.Media.DrawingContext%7d)\" data-throw-if-not-resolved=\"false\"></xref> only when something changed: the last frame stays on screen (also\nafter the GPU is lost or comes back from a full-screen game), so an assistant at rest presents nothing and costs nothing.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IWindowServices.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IWindowServices.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IWindowServices",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IWindowServices.yml\" sourcestartlinenumber=\"1\">Moving and changing windows from the assistant process.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.IWorld.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.IWorld.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.IWorld",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.IWorld.yml\" sourcestartlinenumber=\"1\">The desktop as the host sees it.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ManoeuvreSpeed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ManoeuvreSpeed.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ManoeuvreSpeed",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.MonitorInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.MonitorInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.MonitorInfo",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.MonitorInfo.yml\" sourcestartlinenumber=\"1\">A monitor: its bounds, its work area (without the taskbar) and its scaling (1.0 = 100 %).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.MusicBeat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.MusicBeat.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.MusicBeat",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.MusicBeat.yml\" sourcestartlinenumber=\"1\">The beat of the music playing (<xref href=\"KDesktop.Assistant.Sdk.IWorld.Music\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.OtherAssistant.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.OtherAssistant.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.OtherAssistant",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.OtherAssistant.yml\" sourcestartlinenumber=\"1\">Another assistant on the desktop (<xref href=\"KDesktop.Assistant.Sdk.IWorld.Others\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.PixelRect.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.PixelRect.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.PixelRect",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.PixelRect.yml\" sourcestartlinenumber=\"1\">A rectangle in physical screen pixels (the virtual desktop: every monitor, whatever its scaling). All the\ncoordinates the SDK hands out or takes are in these units.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Place.Area.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Place.Area.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Place.Area",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Place.AtPoint.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Place.AtPoint.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Place.AtPoint",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Place.Clock.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Place.Clock.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Place.Clock",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Place.OfWindow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Place.OfWindow.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Place.OfWindow",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Place.Tray.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Place.Tray.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Place.Tray",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Place.Tray.yml\" sourcestartlinenumber=\"1\">The notification area of the taskbar, near the clock (volume, network, power…).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Place.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Place.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Place",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Place.yml\" sourcestartlinenumber=\"1\">A place on the desktop a gesture refers to.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.PointerCursor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.PointerCursor.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.PointerCursor",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.PointerEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.PointerEvent.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.PointerEvent",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.PointerEventKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.PointerEventKind.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.PointerEventKind",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Reaction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Reaction.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Reaction",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ReactionContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ReactionContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ReactionContext",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ReactionContext.yml\" sourcestartlinenumber=\"1\">The context of a <xref href=\"KDesktop.Assistant.Sdk.Gesture.React\" data-throw-if-not-resolved=\"false\"></xref>, filled by the host.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ReactionSource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ReactionSource.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ReactionSource",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ReactionSource.yml\" sourcestartlinenumber=\"1\">Where a reaction comes from.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Rope.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Rope.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Rope",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Rope.yml\" sourcestartlinenumber=\"1\">A rope (cable, hook line, leash) simulated with Verlet integration, in screen pixels like everything else.\nThe start is always held (by the assistant); the end hangs free or is held too (stuck in a window, on a projectile).\nIt only resists stretching, so it sags and goes slack, and it never gets longer than <xref href=\"KDesktop.Assistant.Sdk.Rope.MaxLength\" data-throw-if-not-resolved=\"false\"></xref> while\nits end is free. It steps itself at a fixed 120 Hz whatever the frame rate, so it behaves the same on any screen.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ShowcaseGroup.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ShowcaseGroup.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ShowcaseGroup",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ShowcaseGroup.yml\" sourcestartlinenumber=\"1\">Groups of the showcase for an assistant's own animations (<xref href=\"KDesktop.Assistant.Sdk.ShowcaseItem\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.ShowcaseItem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.ShowcaseItem.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.ShowcaseItem",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.ShowcaseItem.yml\" sourcestartlinenumber=\"1\">One of its own animations, for the showcase: a dance, a trick, the way it plays with a ball… What the host\nalready asks of every assistant (entrances, exits, states, reactions, gestures) is not listed: the host launches those\nitself. K-Desktop shows these in the assistant's «Try» tab and in the catalog, and asks for one with\n<xref href=\"KDesktop.Assistant.Sdk.IAssistant.PlayShowcaseAsync(System.String%2cSystem.Threading.CancellationToken)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SpeechText.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SpeechText.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SpeechText",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SpeechText.yml\" sourcestartlinenumber=\"1\">What it says, for <xref href=\"KDesktop.Assistant.Sdk.IAssistant.ShowSpeech(KDesktop.Assistant.Sdk.SpeechText)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.StateDetail.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.StateDetail.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.StateDetail",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.StateDetail.yml\" sourcestartlinenumber=\"1\">The detail of a state (<xref href=\"KDesktop.Assistant.Sdk.IAssistant.SetState(KDesktop.Assistant.Sdk.AssistantState%2cKDesktop.Assistant.Sdk.StateDetail)\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SurfaceLayer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SurfaceLayer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SurfaceLayer",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SurfaceLayer.yml\" sourcestartlinenumber=\"1\">Where a surface goes in the stacking order of the overlay.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.FastScroll.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.FastScroll.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.FastScroll",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.FastScroll.yml\" sourcestartlinenumber=\"1\">The user scrolled hard (several quick notches of the wheel), anywhere. <code class=\"paramref\">Strength</code> 0…1, positive\ndownwards; <code class=\"paramref\">Position</code> is the cursor's.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.FullscreenChanged.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.FullscreenChanged.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.FullscreenChanged",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.HourStruck.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.HourStruck.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.HourStruck",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.HourStruck.yml\" sourcestartlinenumber=\"1\">The clock struck an hour (local time).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.MonitorsChanged.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.MonitorsChanged.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.MonitorsChanged",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.NotificationShown.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.NotificationShown.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.NotificationShown",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.NotificationShown.yml\" sourcestartlinenumber=\"1\">A Windows notification (toast) appeared at <code class=\"paramref\">Bounds</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.PauseChanged.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.PauseChanged.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.PauseChanged",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.PauseChanged.yml\" sourcestartlinenumber=\"1\">K-Desktop was paused or resumed.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.PowerChanged.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.PowerChanged.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.PowerChanged",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.QuietModeChanged.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.QuietModeChanged.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.QuietModeChanged",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.RecycleBinEmptied.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.RecycleBinEmptied.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.RecycleBinEmptied",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.ThemeChanged.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.ThemeChanged.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.ThemeChanged",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.UserIdle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.UserIdle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.UserIdle",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.UserIdle.yml\" sourcestartlinenumber=\"1\">No input for <code class=\"paramref\">Seconds</code> (raised at 60 s and then every few minutes).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.UserReturned.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.UserReturned.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.UserReturned",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WheelTurned.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WheelTurned.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.WheelTurned",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.WheelTurned.yml\" sourcestartlinenumber=\"1\">One turn of the mouse wheel, only while the assistant asks for them (<xref href=\"KDesktop.Assistant.Sdk.IPointer.WatchWheel\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowActivated.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowActivated.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.WindowActivated",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowClosed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowClosed.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.WindowClosed",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowMoved.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowMoved.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.WindowMoved",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.WindowMoved.yml\" sourcestartlinenumber=\"1\">A window moved or changed size (raised once it settles, not for every pixel).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowOpened.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.WindowOpened.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent.WindowOpened",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemEvent.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemEvent",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemEvent.yml\" sourcestartlinenumber=\"1\">Things that happen on the PC, delivered to <xref href=\"KDesktop.Assistant.Sdk.IAssistant.OnSystemEvent(KDesktop.Assistant.Sdk.SystemEvent)\" data-throw-if-not-resolved=\"false\"></xref> on the engine thread. They\nare what lets an assistant react on its own (the Lander jumps when a notification appears, goes to sleep when\nthe user leaves…). <xref href=\"KDesktop.Assistant.Sdk.IWorld.Current\" data-throw-if-not-resolved=\"false\"></xref> is already up to date when one arrives.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.SystemState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.SystemState.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.SystemState",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.SystemState.yml\" sourcestartlinenumber=\"1\">What the host knows about the user and the PC right now. Read it at any time from the engine thread.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.TaskbarInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.TaskbarInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.TaskbarInfo",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.TaskbarInfo.yml\" sourcestartlinenumber=\"1\">The taskbar of one monitor and, on the main one, the notification area and the clock.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.TickInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.TickInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.TickInfo",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.Variety-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.Variety-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.Variety<T>",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.Variety-1.yml\" sourcestartlinenumber=\"1\">A set of variants to choose from at random: several entrances, reactions, idle animations or lines, so\nthe assistant does not do the same thing every time. Each variant has a weight (how often it comes up compared with\nthe others) and a cooldown (seconds it rests after being picked). It never picks the same one twice in a row while\nthere is another to choose. Give it a seed in tests to always get the same sequence.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.WindowCommand.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.WindowCommand.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.WindowCommand",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.WindowCommand.yml\" sourcestartlinenumber=\"1\">What <xref href=\"KDesktop.Assistant.Sdk.IWindowServices.TryCommand(System.Int64%2cKDesktop.Assistant.Sdk.WindowCommand)\" data-throw-if-not-resolved=\"false\"></xref> does to a window.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.WindowInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.WindowInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.WindowInfo",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.WindowInfo.yml\" sourcestartlinenumber=\"1\">A visible top-level window as the window manager sees it.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.WorldExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.WorldExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.WorldExtensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.WorldSnapshot.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.WorldSnapshot.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk.WorldSnapshot",
+      "Summary": "<p sourcefile=\"api/KDesktop.Assistant.Sdk.WorldSnapshot.yml\" sourcestartlinenumber=\"1\">A picture of the desktop at one moment. Immutable: a new one is made whenever something changes\n(<xref href=\"KDesktop.Assistant.Sdk.IWorld.Changed\" data-throw-if-not-resolved=\"false\"></xref>).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/KDesktop.Assistant.Sdk.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/KDesktop.Assistant.Sdk.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "KDesktop.Assistant.Sdk",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/assistant/brain.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/assistant/brain.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/assistant/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/assistant/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/assistant/memory-knowledge.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/assistant/memory-knowledge.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/assistant/tools.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/assistant/tools.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/assistant/voice.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/assistant/voice.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/actions.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/actions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/arrangements.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/arrangements.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/calendar.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/calendar.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/clipboard.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/clipboard.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/commands.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/commands.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/events.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/events.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/macros-kboard.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/macros-kboard.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/mail.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/mail.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/panels.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/panels.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/quickmenu-launcher.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/quickmenu-launcher.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/remote.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/remote.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/settings.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/settings.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/telegram.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/telegram.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/texts.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/texts.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/k-desktop/voice.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/k-desktop/voice.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/gestures.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/gestures.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/host.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/host.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/no-code.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/no-code.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/publishing.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/publishing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "en/sdk/showcase.md",
+      "output": {
+        ".html": {
+          "relative_path": "en/sdk/showcase.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "en/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "en/toc.html"
+        },
+        ".json": {
+          "relative_path": "en/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/assistant/brain.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/assistant/brain.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/assistant/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/assistant/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/assistant/memory-knowledge.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/assistant/memory-knowledge.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/assistant/tools.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/assistant/tools.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/assistant/voice.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/assistant/voice.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/actions.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/actions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/arrangements.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/arrangements.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/calendar.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/calendar.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/clipboard.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/clipboard.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/commands.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/commands.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/events.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/events.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/macros-kboard.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/macros-kboard.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/mail.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/mail.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/panels.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/panels.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/quickmenu-launcher.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/quickmenu-launcher.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/remote.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/remote.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/settings.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/settings.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/telegram.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/telegram.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/texts.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/texts.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/k-desktop/voice.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/k-desktop/voice.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/gestures.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/gestures.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/host.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/host.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/no-code.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/no-code.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/publishing.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/publishing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "es/sdk/showcase.md",
+      "output": {
+        ".html": {
+          "relative_path": "es/sdk/showcase.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "es/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "es/toc.html"
+        },
+        ".json": {
+          "relative_path": "es/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/achievement-toast-desktop.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/achievement-toast-desktop.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/achievement-toast.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/achievement-toast.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/achievements.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/achievements.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/action-picker.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/action-picker.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/action-window-closed.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/action-window-closed.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/action-window.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/action-window.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/assistant-install.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/assistant-install.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/assistant-list.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/assistant-list.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/assistant-panel-achievements.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/assistant-panel-achievements.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/assistant-panel.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/assistant-panel.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/assistant-settings.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/assistant-settings.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/assistant-voice.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/assistant-voice.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/brain.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/brain.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/commands.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/commands.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/desktop-assistants.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/desktop-assistants.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/events.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/events.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/history.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/history.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/kboard.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/kboard.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/knowledge.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/knowledge.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/lander-settings.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/lander-settings.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/lander-try.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/lander-try.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/launcher-calc.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/launcher-calc.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/launcher-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/launcher-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/launcher.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/launcher.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/macros.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/macros.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/memory.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/memory.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/notes.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/notes.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/pair-qr.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/pair-qr.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/quickmenu-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/quickmenu-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/quickmenu-editor.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/quickmenu-editor.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/quickmenu.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/quickmenu.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/settings-appearance.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/settings-appearance.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/settings-launcher.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/settings-launcher.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/settings-voice.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/settings-voice.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/settings-web.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/settings-web.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/stats.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/stats.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/tools-builtin.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/tools-builtin.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/tools-mcp-server.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/tools-mcp-server.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/tools.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/tools.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/voice-heard-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/voice-heard-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/voice-heard.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/voice-heard.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/voice-osd-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/voice-osd-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/voice-osd.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/voice-osd.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/wake-wizard-recording.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/wake-wizard-recording.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/wake-wizard-step1.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/wake-wizard-step1.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/en/wake-wizard.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/en/wake-wizard.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/achievement-toast-desktop.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/achievement-toast-desktop.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/achievement-toast.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/achievement-toast.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/achievements.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/achievements.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/action-picker.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/action-picker.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/action-window-closed.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/action-window-closed.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/action-window.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/action-window.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/assistant-install.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/assistant-install.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/assistant-list.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/assistant-list.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/assistant-panel-achievements.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/assistant-panel-achievements.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/assistant-panel.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/assistant-panel.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/assistant-settings.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/assistant-settings.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/assistant-voice.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/assistant-voice.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/brain.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/brain.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/commands.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/commands.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/desktop-assistants.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/desktop-assistants.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/events.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/events.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/history.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/history.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/kboard.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/kboard.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/knowledge.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/knowledge.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/lander-settings.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/lander-settings.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/lander-try.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/lander-try.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/launcher-calc.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/launcher-calc.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/launcher-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/launcher-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/launcher.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/launcher.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/macros.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/macros.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/memory.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/memory.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/notes.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/notes.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/pair-qr.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/pair-qr.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/quickmenu-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/quickmenu-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/quickmenu-editor.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/quickmenu-editor.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/quickmenu.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/quickmenu.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/settings-appearance.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/settings-appearance.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/settings-launcher.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/settings-launcher.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/settings-voice.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/settings-voice.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/settings-web.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/settings-web.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/stats.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/stats.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/tools-builtin.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/tools-builtin.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/tools-mcp-server.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/tools-mcp-server.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/tools.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/tools.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/voice-heard-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/voice-heard-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/voice-heard.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/voice-heard.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/voice-osd-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/voice-osd-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/voice-osd.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/voice-osd.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/wake-wizard-recording.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/wake-wizard-recording.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/wake-wizard-step1.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/wake-wizard-step1.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/es/wake-wizard.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/es/wake-wizard.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/favicon.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/favicon.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/k-desktop-en.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/k-desktop-en.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/k-desktop-es.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/k-desktop-es.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

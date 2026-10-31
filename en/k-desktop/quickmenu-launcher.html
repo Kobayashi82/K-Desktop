@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>QuickMenu and launcher | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="QuickMenu and launcher | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/quickmenu-launcher.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="quickmenu-and-launcher">QuickMenu and launcher</h1>
+
+<h2 id="quickmenu">QuickMenu</h2>
+<p>A QuickMenu is a menu with your commands that opens where the mouse is: cascading submenus, icons, an acrylic
+background and keyboard navigation.</p>
+<p><img src="../../images/en/quickmenu-closeup.png" alt="A QuickMenu"></p>
+<ul>
+<li><strong>Open it</strong> from a command with the action <em>Open QuickMenu</em> (give that command a hotkey such as <code>Mouse 4 + Mouse 1</code>),
+from the phone or with <code>KDesktop.exe --menu &quot;Name&quot;</code>.</li>
+<li><strong>Use it</strong>: left click runs and closes, right click runs and keeps the menu open, middle click edits that item. With
+the keyboard: arrows, Enter and Esc.</li>
+<li><strong>Close it</strong> with Esc or a click outside (K-Desktop's window too). Its hotkey again closes it if the mouse is over the
+menu; if not, it opens it again where the mouse is.</li>
+<li><strong>Size</strong>: from <em>Compact</em> to <em>Huge</em>, per menu.</li>
+</ul>
+<h3 id="editing">Editing</h3>
+<p>In <em>QuickMenu</em>, drag commands from the list on the right onto the menu: above, into or below an item. Items can be
+commands, submenus and separators, each with its own name and icon if you want.</p>
+<p><img src="../../images/en/quickmenu-editor.png" alt="The QuickMenu editor"></p>
+<ul>
+<li><strong>Quick command</strong> creates a command from a program, a file, a folder or a web page and adds it in one go; you can
+refine it later in <em>Commands</em>.</li>
+<li>Double click or F2 renames, Del removes, Alt+↑↓ moves, Ctrl+Z / Ctrl+Y undo and redo, Ctrl+C / X / V / D copy, cut,
+paste and duplicate; right click for more.</li>
+<li><strong>Try it</strong> opens the menu as it will look, and the lightning button creates a command that opens it (to give it a
+hotkey or a voice phrase).</li>
+<li>The button next to <em>Add to the menu</em> hides that panel for more room. The mouse wheel moves the menu sideways; if it is
+also taller than the space, the wheel moves it up and down, and Ctrl + wheel sideways.</li>
+</ul>
+<h3 id="ai-menu">AI menu</h3>
+<p><strong>Create AI menu</strong> (under <em>New QuickMenu</em>) creates the QuickMenu «AI» with seven commands for whatever you have selected:
+<strong>Translate</strong> and <strong>Correct</strong> paste the answer over the selection; <strong>Summarize</strong>, <strong>Explain</strong> and <strong>Reply</strong> show it on a
+sheet. Each one is an <em>Assistant: ask</em> action with <code>{selection}</code> that K-Desktop answers. <strong>Read aloud</strong> is an
+<em>Assistant: say</em> with <code>{selection}</code>: K-Desktop reads it with its voice. <strong>Translate the screen</strong> needs no
+selection: you pick an area with the mouse, <em>Copy text from the screen</em> reads its text and <em>Assistant: ask</em> translates
+it on a sheet (with <code>{result}</code>). In each command you can change
+the text, the answer or choose another assistant. It also creates the command «AI menu», which opens it: give it a
+hotkey. It needs the Assistant module on and a brain.</p>
+<h2 id="launcher">Launcher</h2>
+<p>The launcher is a search box with its own hotkey (<em>Settings → Launcher</em>). Type part of a name —initials or loose letters
+work: «cmfy» finds ComfyUI— choose with ↑ ↓ and press Enter. Esc, or the same hotkey, closes it.</p>
+<p><img src="../../images/en/launcher.png" alt="The launcher"></p>
+<p>It finds:</p>
+<ul>
+<li><p><strong>Your commands</strong>, hidden ones too if you want.</p>
+</li>
+<li><p><strong>Programs of the Start menu</strong>, Store apps included.</p>
+</li>
+<li><p><strong>Sums</strong>: type <code>12*3.5</code> and Enter copies the result.</p>
+<p><img src="../../images/en/launcher-calc.png" alt="The launcher's calculator"></p>
+</li>
+<li><p><strong>What you copied</strong> (<em>Clipboard history</em>): what in the <a href="clipboard.html">history</a> has what you typed; Enter pastes it where
+you were.</p>
+</li>
+<li><p><strong>Files and folders</strong>: the ones named like what you typed, from the Windows search index and your folders (Desktop,
+Documents, Downloads…). They show a moment later, at the end. Start with <code>?</code> to search only files (<code>?electricity bill</code>).
+Enter opens it and Ctrl+Enter opens the folder it is in.</p>
+</li>
+<li><p><strong>The web</strong>: when nothing better matches, it offers to search the web (with the search engine you choose).</p>
+</li>
+</ul>
+<p>With <em>Most used first</em>, what you use most comes first and shows before you type anything.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

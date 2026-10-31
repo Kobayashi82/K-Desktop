@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IAssistant | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IAssistant | K-Desktop ">
+      
+      <meta name="description" content="An assistant: a character that lives on the desktop. The host (K-Desktop&#39;s assistant process) loads it from its package, gives it the world and its services, and asks it for gestures; the assistant never sees the AI, the tools, the pipe or K-Desktop.">
+      <link rel="icon" href="../images/favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/new/main/apiSpec/new?filename=KDesktop_Assistant_Sdk_IAssistant.md&amp;value=---%0Auid%3A%20KDesktop.Assistant.Sdk.IAssistant%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="KDesktop.Assistant.Sdk.IAssistant">
+
+
+
+  <h1 id="KDesktop_Assistant_Sdk_IAssistant" data-uid="KDesktop.Assistant.Sdk.IAssistant" class="text-break">
+Interface IAssistant  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L29"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><span class="xref">KDesktop</span>.<span class="xref">Assistant</span>.<a class="xref" href="KDesktop.Assistant.Sdk.html">Sdk</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>KDesktop.Assistant.Sdk.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>An assistant: a character that lives on the desktop. The host (K-Desktop's assistant process) loads it from its
+package, gives it the world and its services, and asks it for gestures; the assistant never sees the AI, the
+tools, the pipe or K-Desktop.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IAssistant : IDisposable</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable.dispose">IDisposable.Dispose()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+  <h2 id="KDesktop_Assistant_Sdk_IAssistant_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>
+<b>One thread.</b> Every member is called on the host's engine thread, and so are the continuations of awaits
+inside them (the thread has its own synchronization context). No locking is needed; never block it.
+</p>
+<p>
+<b>The host only wakes it when needed.</b> <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Tick_KDesktop_Assistant_Sdk_TickInfo_">Tick(TickInfo)</a> returns how long it can sleep: an assistant at rest
+asks for a few ticks per second (or fewer) and draws nothing, which keeps the cost close to zero; while moving it
+asks for one tick per frame and the host paces it with the compositor.
+</p>
+<p>
+<b>Failures are contained.</b> An exception in any member is logged; several in a row unload the assistant.
+</p>
+<p>
+<b>Only the essentials are required.</b> <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Attach_KDesktop_Assistant_Sdk_IAssistantHost_">Attach(IAssistantHost)</a>, <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Enter_KDesktop_Assistant_Sdk_EntranceKind_">Enter(EntranceKind)</a>, <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_ExitAsync_KDesktop_Assistant_Sdk_ExitKind_System_Threading_CancellationToken_">ExitAsync(ExitKind, CancellationToken)</a>,
+<a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Tick_KDesktop_Assistant_Sdk_TickInfo_">Tick(TickInfo)</a>, <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_PerformAsync_KDesktop_Assistant_Sdk_Gesture_KDesktop_Assistant_Sdk_IGestureContext_System_Threading_CancellationToken_">PerformAsync(Gesture, IGestureContext, CancellationToken)</a>, <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_SetState_KDesktop_Assistant_Sdk_AssistantState_KDesktop_Assistant_Sdk_StateDetail_">SetState(AssistantState, StateDetail)</a> and <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_BubbleAnchor">BubbleAnchor</a>; every other member
+has a default that does nothing (or says no), to implement when the character has something to show.
+</p>
+</div>
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_BodyBounds_" data-uid="KDesktop.Assistant.Sdk.IAssistant.BodyBounds*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_BodyBounds" data-uid="KDesktop.Assistant.Sdk.IAssistant.BodyBounds">
+  BodyBounds
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L103"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Where its body is now, in screen pixels: what the other assistants avoid stopping on
+(<a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html#KDesktop_Assistant_Sdk_IWorld_Others">Others</a>). Just the body, not its particles, bubbles or effects. Null while it is not on screen.
+Read after every tick. Without it the host takes the bounds of its «body» hit area.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">PixelRect? BodyBounds { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.PixelRect.html">PixelRect</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_BubbleAnchor_" data-uid="KDesktop.Assistant.Sdk.IAssistant.BubbleAnchor*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_BubbleAnchor" data-uid="KDesktop.Assistant.Sdk.IAssistant.BubbleAnchor">
+  BubbleAnchor
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L77"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Where speech bubbles of the module point to (usually the top of the head), in screen pixels. Null when hidden.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Point? BubbleAnchor { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_Showcase_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Showcase*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_Showcase" data-uid="KDesktop.Assistant.Sdk.IAssistant.Showcase">
+  Showcase
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L109"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Its own animations for the showcase, read when K-Desktop asks for the list (the «Try» tab of its card).
+Empty by default: the host's own items (entrances, exits, states, reactions, gestures) are always there.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyList&lt;ShowcaseItem&gt; Showcase { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="KDesktop.Assistant.Sdk.ShowcaseItem.html">ShowcaseItem</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_Attach_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Attach*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_Attach_KDesktop_Assistant_Sdk_IAssistantHost_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Attach(KDesktop.Assistant.Sdk.IAssistantHost)">
+  Attach(IAssistantHost)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L32"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called once, right after loading, before anything else.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Attach(IAssistantHost host)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>host</code> <a class="xref" href="KDesktop.Assistant.Sdk.IAssistantHost.html">IAssistantHost</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_CanPerform_" data-uid="KDesktop.Assistant.Sdk.IAssistant.CanPerform*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_CanPerform_KDesktop_Assistant_Sdk_Gesture_" data-uid="KDesktop.Assistant.Sdk.IAssistant.CanPerform(KDesktop.Assistant.Sdk.Gesture)">
+  CanPerform(Gesture)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L55"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether it can do this gesture now (not asleep in a game, has a way to reach the window…). Yes by default:
+<a class="xref" href="KDesktop.Assistant.Sdk.GestureOutcome.html#KDesktop_Assistant_Sdk_GestureOutcome_NotPerformed">NotPerformed</a> from <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_PerformAsync_KDesktop_Assistant_Sdk_Gesture_KDesktop_Assistant_Sdk_IGestureContext_System_Threading_CancellationToken_">PerformAsync(Gesture, IGestureContext, CancellationToken)</a> says no just as well.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool CanPerform(Gesture gesture)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gesture</code> <a class="xref" href="KDesktop.Assistant.Sdk.Gesture.html">Gesture</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_Enter_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Enter*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_Enter_KDesktop_Assistant_Sdk_EntranceKind_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Enter(KDesktop.Assistant.Sdk.EntranceKind)">
+  Enter(EntranceKind)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L35"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Appear (fly in, fade in, pop out of a hole…), according to why it comes (<a class="xref" href="KDesktop.Assistant.Sdk.EntranceKind.html">EntranceKind</a>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Enter(EntranceKind how)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>how</code> <a class="xref" href="KDesktop.Assistant.Sdk.EntranceKind.html">EntranceKind</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_ExitAsync_" data-uid="KDesktop.Assistant.Sdk.IAssistant.ExitAsync*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_ExitAsync_KDesktop_Assistant_Sdk_ExitKind_System_Threading_CancellationToken_" data-uid="KDesktop.Assistant.Sdk.IAssistant.ExitAsync(KDesktop.Assistant.Sdk.ExitKind,System.Threading.CancellationToken)">
+  ExitAsync(ExitKind, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Leave, according to why (<a class="xref" href="KDesktop.Assistant.Sdk.ExitKind.html">ExitKind</a>). The host waits for it (3 s at most; the token fires then) before
+unloading it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task ExitAsync(ExitKind why, CancellationToken ct)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>why</code> <a class="xref" href="KDesktop.Assistant.Sdk.ExitKind.html">ExitKind</a></dt>
+    <dd></dd>
+    <dt><code>ct</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_HideSpeech_" data-uid="KDesktop.Assistant.Sdk.IAssistant.HideSpeech*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_HideSpeech" data-uid="KDesktop.Assistant.Sdk.IAssistant.HideSpeech">
+  HideSpeech()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L94"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Hides what <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_ShowSpeech_KDesktop_Assistant_Sdk_SpeechText_">ShowSpeech(SpeechText)</a> showed: it has been said and read, the answer was cancelled, or the host's bubble
+takes over.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void HideSpeech()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_OnExtraAsync_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnExtraAsync*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_OnExtraAsync_System_String_System_Threading_CancellationToken_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnExtraAsync(System.String,System.Threading.CancellationToken)">
+  OnExtraAsync(string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L135"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>One of the extras of its manifest («lander.manual»…), launched from a command, the panel or the menu.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task OnExtraAsync(string extraId, CancellationToken ct)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>extraId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ct</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_OnPointer_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnPointer*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_OnPointer_KDesktop_Assistant_Sdk_PointerEvent_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnPointer(KDesktop.Assistant.Sdk.PointerEvent)">
+  OnPointer(PointerEvent)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L122"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The mouse over one of its hit areas (<a class="xref" href="KDesktop.Assistant.Sdk.IPointer.html#KDesktop_Assistant_Sdk_IPointer_CreateHitArea_System_String_">CreateHitArea(string)</a>): entering, leaving, clicks, drags and files
+dragged onto it. The right button never comes: it opens its menu.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPointer(PointerEvent e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <a class="xref" href="KDesktop.Assistant.Sdk.PointerEvent.html">PointerEvent</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_OnSettingsChanged_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnSettingsChanged*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_OnSettingsChanged_System_Text_Json_JsonElement_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnSettingsChanged(System.Text.Json.JsonElement)">
+  OnSettingsChanged(JsonElement)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L141"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The user changed its settings in K-Desktop's Options (values keyed as in its settings.json), or one of the common
+ones (<a class="xref" href="KDesktop.Assistant.Sdk.IAssistantHost.html#KDesktop_Assistant_Sdk_IAssistantHost_Common">Common</a>, already up to date).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnSettingsChanged(JsonElement settings)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>settings</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.text.json.jsonelement">JsonElement</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_OnSystemEvent_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnSystemEvent*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_OnSystemEvent_KDesktop_Assistant_Sdk_SystemEvent_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnSystemEvent(KDesktop.Assistant.Sdk.SystemEvent)">
+  OnSystemEvent(SystemEvent)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L130"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Something happened on the PC (a window opened, a notification, the user left or came back, a hard scroll…): the
+moment to react on its own. <a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html#KDesktop_Assistant_Sdk_IWorld_Current">Current</a> is already up to date.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnSystemEvent(SystemEvent e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>e</code> <a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.html">SystemEvent</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_OnVoiceLevel_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnVoiceLevel*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_OnVoiceLevel_System_Double_" data-uid="KDesktop.Assistant.Sdk.IAssistant.OnVoiceLevel(System.Double)">
+  OnVoiceLevel(double)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L70"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Loudness of its voice while speaking (0…1, about 30 times per second): lights or a mouth that follow it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnVoiceLevel(double level)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>level</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_PerformAsync_" data-uid="KDesktop.Assistant.Sdk.IAssistant.PerformAsync*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_PerformAsync_KDesktop_Assistant_Sdk_Gesture_KDesktop_Assistant_Sdk_IGestureContext_System_Threading_CancellationToken_" data-uid="KDesktop.Assistant.Sdk.IAssistant.PerformAsync(KDesktop.Assistant.Sdk.Gesture,KDesktop.Assistant.Sdk.IGestureContext,System.Threading.CancellationToken)">
+  PerformAsync(Gesture, IGestureContext, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L61"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Performs a gesture. The token fires when the time is up or the order is cancelled (&quot;stop&quot;, Escape):
+stop quickly and return. Never throw to say no: return <a class="xref" href="KDesktop.Assistant.Sdk.GestureOutcome.html#KDesktop_Assistant_Sdk_GestureOutcome_NotPerformed">NotPerformed</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;GestureOutcome&gt; PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>gesture</code> <a class="xref" href="KDesktop.Assistant.Sdk.Gesture.html">Gesture</a></dt>
+    <dd></dd>
+    <dt><code>ctx</code> <a class="xref" href="KDesktop.Assistant.Sdk.IGestureContext.html">IGestureContext</a></dt>
+    <dd></dd>
+    <dt><code>ct</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="KDesktop.Assistant.Sdk.GestureOutcome.html">GestureOutcome</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_PlayShowcaseAsync_" data-uid="KDesktop.Assistant.Sdk.IAssistant.PlayShowcaseAsync*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_PlayShowcaseAsync_System_String_System_Threading_CancellationToken_" data-uid="KDesktop.Assistant.Sdk.IAssistant.PlayShowcaseAsync(System.String,System.Threading.CancellationToken)">
+  PlayShowcaseAsync(string, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L116"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Plays one of its <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Showcase">Showcase</a> items now, whatever it was doing. Completes when it has finished
+(K-Desktop waits for it to say so, up to 30 s); the token fires when the user stops it or asks for another: stop
+quickly. False when it does not know the id or cannot now (it is hidden, it is in the middle of an order).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;bool&gt; PlayShowcaseAsync(string id, CancellationToken ct)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>id</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>ct</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_SetState_" data-uid="KDesktop.Assistant.Sdk.IAssistant.SetState*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_SetState_KDesktop_Assistant_Sdk_AssistantState_KDesktop_Assistant_Sdk_StateDetail_" data-uid="KDesktop.Assistant.Sdk.IAssistant.SetState(KDesktop.Assistant.Sdk.AssistantState,KDesktop.Assistant.Sdk.StateDetail)">
+  SetState(AssistantState, StateDetail)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>What the module is doing (listening, thinking, speaking…), for the character to show it, and with what:
+<a class="xref" href="KDesktop.Assistant.Sdk.StateDetail.html#KDesktop_Assistant_Sdk_StateDetail_Activity">Activity</a> says it is searching the internet, reading a page, looking at the screen…</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetState(AssistantState state, StateDetail detail)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>state</code> <a class="xref" href="KDesktop.Assistant.Sdk.AssistantState.html">AssistantState</a></dt>
+    <dd></dd>
+    <dt><code>detail</code> <a class="xref" href="KDesktop.Assistant.Sdk.StateDetail.html">StateDetail</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_ShowSpeech_" data-uid="KDesktop.Assistant.Sdk.IAssistant.ShowSpeech*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_ShowSpeech_KDesktop_Assistant_Sdk_SpeechText_" data-uid="KDesktop.Assistant.Sdk.IAssistant.ShowSpeech(KDesktop.Assistant.Sdk.SpeechText)">
+  ShowSpeech(SpeechText)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L88"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Shows what it says its own way, for an assistant whose manifest says <code>&quot;speech&quot;: &quot;own&quot;</code>: a balloon
+of its own, a sign it holds up, words in its cloud… The host calls it each time the answer grows while it is being
+written (<a class="xref" href="KDesktop.Assistant.Sdk.SpeechText.html#KDesktop_Assistant_Sdk_SpeechText_Finished">Finished</a> false), with all of it when it is ready, and again with a later
+<a class="xref" href="KDesktop.Assistant.Sdk.SpeechText.html#KDesktop_Assistant_Sdk_SpeechText_Until">Until</a> while its voice is still saying it. Each call replaces the text of the one before.
+The host still keeps the timing, the voice and the chat: show it until <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_HideSpeech">HideSpeech()</a>. Return false when
+it cannot now (hidden, in the middle of a manoeuvre, it does not fit): the host shows its own bubble instead, for
+the rest of that answer. Not called while the user chose K-Desktop's bubble for it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool ShowSpeech(SpeechText speech)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>speech</code> <a class="xref" href="KDesktop.Assistant.Sdk.SpeechText.html">SpeechText</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistant_Tick_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Tick*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistant_Tick_KDesktop_Assistant_Sdk_TickInfo_" data-uid="KDesktop.Assistant.Sdk.IAssistant.Tick(KDesktop.Assistant.Sdk.TickInfo)">
+  Tick(TickInfo)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistant.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Advances physics and behaviour, and presents a frame on its surfaces if something changed.
+Returns the seconds the host may wait before the next tick (it may call earlier: an event, a gesture,
+<a class="xref" href="KDesktop.Assistant.Sdk.IAssistantHost.html#KDesktop_Assistant_Sdk_IAssistantHost_RequestTick">RequestTick()</a>). Values at or under <a class="xref" href="KDesktop.Assistant.Sdk.IRendering.html#KDesktop_Assistant_Sdk_IRendering_FrameInterval">FrameInterval</a> mean
+«every frame».</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">double Tick(TickInfo tick)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>tick</code> <a class="xref" href="KDesktop.Assistant.Sdk.TickInfo.html">TickInfo</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

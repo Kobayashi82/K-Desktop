@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Getting started | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Getting started | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/getting-started.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="getting-started">Getting started</h1>
+
+<h2 id="requirements">Requirements</h2>
+<ul>
+<li>Windows 10 (1809 or later) or Windows 11, 64-bit.</li>
+<li>For the assistants' AI (optional): a graphics card with enough memory for the model you choose (a 4B model with vision
+takes about 5 GB), or another AI server on your network.</li>
+<li>For the phone remote: the PC and the phone on the same network. The Android app needs Android 5.0 or later.</li>
+</ul>
+<h2 id="installing">Installing</h2>
+<p>Download <strong>KDesktop.exe</strong> from the <a href="https://github.com/Kobayashi82/K-Desktop/releases">releases</a>. It is a single portable
+executable: put it wherever you like and open it. .NET does not need to be installed.</p>
+<ul>
+<li>The first time, a <strong>welcome</strong> guides you through the basics: language and theme, starting with Windows, the launcher
+key, voice (it downloads the speech models) and the assistants. Each step changes the setting at once, and you can
+skip it. To see it again: <em>About → Show the welcome</em>.</li>
+<li>The first time, K-Desktop registers itself to start with Windows (you can turn that off in <em>Settings → General</em>).</li>
+<li>It runs <strong>as administrator</strong>, so its shortcuts also work over programs that run as administrator. Each action that opens
+something decides whether that program starts as administrator or as a normal user.</li>
+<li>Your data lives in <code>%APPDATA%\K-Desktop 5</code>: settings, commands, menus, macros, history, backups, logs and the
+assistants.</li>
+</ul>
+<h2 id="your-first-five-minutes">Your first five minutes</h2>
+<ol>
+<li><strong>Create a command</strong>: <em>Commands → New command</em>, give it a name, a hotkey (press the keys or mouse buttons you want)
+and one or more actions. Press <strong>Run</strong> to try it.</li>
+<li><strong>Put it in a menu</strong>: in <em>QuickMenu</em>, build the menu that opens at the mouse, with its own shortcut.</li>
+<li><strong>Talk to it</strong>: <em>Settings → Voice</em> downloads the speech models and records your wake word. Then say «K-Desktop,
+<em>command name</em>».</li>
+<li><strong>Use your phone</strong>: <em>Settings → Web app</em>, scan the QR code with your phone, and your commands are there.</li>
+<li><strong>Automate</strong>: <em>Events</em> runs commands at a time, when a program opens, when you leave the PC…</li>
+</ol>
+<p><img src="../../images/en/commands.png" alt="Commands"></p>
+<h2 id="the-window">The window</h2>
+<p>The column on the left has every page: <strong>Commands</strong>, <strong>Events</strong>, <strong>QuickMenu</strong>, <strong>K-Board</strong>, <strong>Macros</strong>, <strong>Assistant</strong>
+(with the assistant module on), <strong>History</strong>, <strong>Settings</strong>, <strong>Achievements</strong> and <strong>About</strong>. At the bottom, the status icons
+(paused, remote control, phone, voice, assistant) can be clicked.</p>
+<p>Closing the window does not close K-Desktop: it stays in the notification area (tray). Right-click its icon to open the
+launcher, pause it, switch K-Board profiles, show the window or exit. While <strong>paused</strong>, no command runs (hotkeys,
+QuickMenus, K-Board, remote…): only the hotkeys to show the window, pause and exit work.</p>
+<h2 id="updates">Updates</h2>
+<p>K-Desktop looks for new versions at start and every 6 hours. In <em>Settings → Updates</em> you choose what happens when there is
+one: let you know, or install it by itself (it downloads it and restarts K-Desktop at a moment you are not using it, in a
+couple of seconds). The Android app is updated from the PC too.</p>
+<h2 id="command-line">Command line</h2>
+<pre><code>KDesktop.exe --menu &quot;Main&quot;          opens a QuickMenu (in the running instance)
+KDesktop.exe --run &quot;Name&quot;           runs a command
+KDesktop.exe --event &quot;Name&quot;         runs an event's commands
+KDesktop.exe --launcher             opens the launcher
+KDesktop.exe --show | --exit        shows the window / closes K-Desktop
+KDesktop.exe --welcome              shows the welcome of the first start
+KDesktop.exe --page macros          opens the window on a page (commands, quickmenus, events, macros, kboard,
+                                    assistant, achievements, stats, settings, about)
+KDesktop.exe --data &quot;C:\Folder&quot;     uses another data folder (an independent instance)
+KDesktop.exe --no-hooks --no-udp --no-web --no-elevate   for diagnostics
+</code></pre>
+<p>Any program, script or shortcut can use these to drive the K-Desktop that is already running.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

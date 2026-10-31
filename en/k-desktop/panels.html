@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Panels | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Panels | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/panels.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="panels">Panels</h1>
+
+<p>A panel is a small window on your desktop with figures of your PC: the network, the processor, the memory and the graphics
+card, always in sight. It stays <strong>over the desktop and under your windows</strong> (put on the taskbar, in front of it), never takes the focus and does not show in
+Alt + Tab or on the taskbar. You can have several, each one with its own figures and look.</p>
+<ol>
+<li><em>Panels → New panel</em>: it already shows the usual figures in two rows (↑ ↓, CPU, GPU, RAM, VRAM and the temperature of
+the graphics card) and appears at the top right of the main monitor.</li>
+<li>Drag it with the mouse, from anywhere on it, wherever you like. It remembers where, also on the other monitor and with another resolution.</li>
+<li>The switch <strong>On the desktop</strong> (in the list or on the header) shows it or hides it.</li>
+</ol>
+<h2 id="figures">Figures</h2>
+<table>
+<thead>
+<tr>
+<th>Figure</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Network upload</strong> / <strong>Network download</strong></td>
+<td>What the PC sends and receives right now, in kB/s, MB/s or GB/s.</td>
+</tr>
+<tr>
+<td><strong>Processor (CPU)</strong></td>
+<td>How busy the processor is, as Task Manager shows it.</td>
+</tr>
+<tr>
+<td><strong>Memory (RAM)</strong></td>
+<td>The memory in use.</td>
+</tr>
+<tr>
+<td><strong>Graphics card (GPU)</strong></td>
+<td>How busy the graphics card is (games, video, AI).</td>
+</tr>
+<tr>
+<td><strong>Graphics memory (VRAM)</strong></td>
+<td>The graphics card's own memory in use.</td>
+</tr>
+<tr>
+<td><strong>Graphics card temperature</strong></td>
+<td>In degrees; only with an NVIDIA card.</td>
+</tr>
+<tr>
+<td><strong>Gap</strong></td>
+<td>Nothing: an empty cell, so the columns line up the way you want.</td>
+</tr>
+</tbody>
+</table>
+<p><em>Add figure</em> adds one (also one it already has: the second one can look different), and you drag them to change the order.
+On each one you choose:</p>
+<ul>
+<li><strong>Name shown</strong>: its short name on the panel (CPU, ↑…); empty, the usual one.</li>
+<li><strong>How it looks</strong>: <strong>Figure only</strong>, <strong>With a bar</strong> (a thin bar under it; for the network, full is the highest speed of the last minute) or <strong>With a graph</strong> (the last minute, as a small
+area under it).</li>
+</ul>
+<h2 id="look">Look</h2>
+<ul>
+<li><strong>Rows</strong>: the figures go in columns of this many rows, from top to bottom. 1 puts them all on one line; as many as figures,
+one under the other.</li>
+<li><strong>Text size</strong>, <strong>Colour of the names</strong>, <strong>Colour of the figures</strong> and <strong>Background colour</strong>: <em>Automatic</em> follows
+K-Desktop's theme (the names in its accent colour).</li>
+<li><strong>Background opacity</strong>: 0 % leaves no background, only the text.</li>
+</ul>
+<p>Every change shows on the panel at once.</p>
+<h2 id="options">Options</h2>
+<ul>
+<li><strong>Updates every</strong>: from half a second to ten seconds (one second, if you don't change it).</li>
+<li><strong>Lock the position</strong>: dragging it doesn't move it.</li>
+<li><strong>Let the clicks through</strong> (locked): the clicks go to what is under it, as if it were not there. Its menu no longer opens,
+so you change it from here.</li>
+<li><strong>Always on top</strong>: over every window and the taskbar, even the ones that come up later. It hides by itself while a game or a video fills its screen.</li>
+<li><strong>Move it to the corner</strong>: back to the top right of the main monitor, in case it got lost.</li>
+</ul>
+<h2 id="its-menu">Its menu</h2>
+<p>A right click on the panel opens its menu: <strong>Lock the position</strong>, <strong>Always on top</strong>, <strong>Background opacity</strong>, <strong>Edit the
+panel…</strong> (opens it here) and <strong>Hide</strong>. With <em>Show desktop</em> (Win + D) it stays in sight. The tray icon menu also has
+<strong>Panels</strong>, to show or hide each one.</p>
+<h2 id="from-a-command">From a command</h2>
+<p>The action <strong>Panel</strong> shows, hides, locks or unlocks a panel, or all of them (<em>All panels</em>): give a hotkey to <em>Show or hide</em>
+and you have it at hand when you want it. Panels are also exported and imported (right click on the list), like commands.</p>
+<p>K-Desktop only reads what some panel shows, and only while it is on the desktop.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

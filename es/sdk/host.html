@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Lo que da el host | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Lo que da el host | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/sdk/host.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="lo-que-da-el-host">Lo que da el host</h1>
+
+<p>El host es el proceso de los asistentes. Con <code>IAssistantHost</code> le da al asistente todo lo que puede ver y usar; la IA, las
+herramientas, la voz y K-Desktop quedan fuera de su vista.</p>
+<table>
+<thead>
+<tr>
+<th>Miembro</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>World</code></td>
+<td>Ventanas, monitores, barra de tareas, los demás asistentes, la música, el estado del sistema (<code>IWorld</code>)</td>
+</tr>
+<tr>
+<td><code>Rendering</code></td>
+<td>Superficies de dibujo sobre todo el escritorio</td>
+</tr>
+<tr>
+<td><code>Pointer</code></td>
+<td>Zonas de clic y la rueda del ratón</td>
+</tr>
+<tr>
+<td><code>Keyboard</code></td>
+<td>Teclas, y capturarlas mientras juega</td>
+</tr>
+<tr>
+<td><code>Audio</code></td>
+<td>Sus sonidos</td>
+</tr>
+<tr>
+<td><code>Windows</code></td>
+<td>Mover y cambiar ventanas (<code>IWindowServices</code>)</td>
+</tr>
+<tr>
+<td><code>Settings</code>, <code>Common</code></td>
+<td>Sus ajustes y los <a href="getting-started.html#ajustes-comunes">comunes</a></td>
+</tr>
+<tr>
+<td><code>Language</code></td>
+<td>El idioma en el que habla</td>
+</tr>
+<tr>
+<td><code>DataDirectory</code>, <code>PackageDirectory</code></td>
+<td>Su carpeta de datos (se conserva entre versiones y en las copias) y su paquete</td>
+</tr>
+<tr>
+<td><code>PublishPanel</code>, <code>Notify</code>, <code>SetExtraState</code>, <code>ExtraHotkey</code>, <code>SetVoiceMood</code></td>
+<td>Su panel, un aviso, sus extras, el ánimo de su voz</td>
+</tr>
+<tr>
+<td><code>RequestTick</code>, <code>Post</code>, <code>Log</code></td>
+<td>Despertar antes, ejecutar algo en el hilo del motor, escribir en <code>assistant.log</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="dibujar">Dibujar</h2>
+<p>Un solo sistema de dibujo: superficies con la API de dibujo de WPF. <code>Rendering.CreateSurface()</code> da una superficie;
+<code>Present(zona, dc =&gt; …)</code> dibuja un fotograma en ella, en píxeles de pantalla. Presenta solo cuando algo cambia: el último
+fotograma se queda en pantalla (el host lo repite si se pierde la GPU o acaba un juego a pantalla completa).
+<code>Rendering.FrameInterval</code> es lo que dura un fotograma del monitor.</p>
+<h2 id="el-bocadillo">El bocadillo</h2>
+<p>Cuando el asistente dice algo (<code>Communicate</code>), el host dibuja el bocadillo con el texto, apuntando a <code>BubbleAnchor</code>
+(normalmente lo alto de su cabeza; null si no se ve) y siguiéndolo mientras se mueve, el tiempo que se tarda en leer. El
+asistente solo hace su gesto de «hablar», o nada: el bocadillo sale igual.</p>
+<p>Un clic central sobre el personaje abre la caja para escribirle (y también <em>Escribir a …</em> en su menú del botón derecho):
+los clics y dobles clics izquierdos son tuyos. Mantener pulsado el botón izquierdo sin moverlo (450 ms) es hablarle: te
+llegan <code>Down</code> y <code>Up</code>, pero ni <code>Click</code> ni arrastre. El botón derecho nunca te llega: abre su menú.</p>
+<h3 id="su-propio-texto">Su propio texto</h3>
+<p>Con <code>&quot;speech&quot;: &quot;own&quot;</code> en el manifiesto, lo que dice lo dibujas tú (un bocadillo propio, un cartel, palabras dentro de una
+nube…). El host llama a <code>ShowSpeech(SpeechText)</code> cada vez que la respuesta crece mientras se escribe (<code>Finished</code> false), con
+toda cuando está lista (<code>Finished</code> true), y otra vez con un <code>Until</code> más tarde mientras tu voz la sigue diciendo; cada
+llamada sustituye a la anterior. Enséñalo hasta que llegue <code>HideSpeech</code>: el host sigue llevando los tiempos, la voz y el
+chat.</p>
+<p><code>Text</code> es texto plano y llega entero aunque sea largo: córtalo a lo que quepa (todo está en el chat). Si ahora no puedes
+(estás escondido, en mitad de una maniobra, no cabe), devuelve <code>false</code>: el host enseña su bocadillo el resto de esa
+respuesta. En su ficha el usuario puede elegir <em>Usar siempre el bocadillo de K-Desktop</em>, y entonces no te llega nada.</p>
+<h3 id="respuestas-largas">Respuestas largas</h3>
+<p>Cuando el usuario pide algo largo («explícamelo bien», «hazme una lista») o la respuesta no cabe en un bocadillo, el
+bocadillo, tu propio texto y la voz reciben solo un resumen corto; K-Desktop enseña el texto entero en una hoja de lectura
+junto a tu <code>BubbleAnchor</code>. No tienes que hacer nada.</p>
+<h2 id="estados">Estados</h2>
+<p><code>SetState(state, detail)</code> dice qué está haciendo el módulo, para que lo enseñes a tu manera (el Lander enciende su antena y
+enseña un icono; la plantilla cambia de color):</p>
+<table>
+<thead>
+<tr>
+<th><code>AssistantState</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Idle</code></td>
+<td>De vuelta al reposo</td>
+</tr>
+<tr>
+<td><code>Listening</code></td>
+<td>Su palabra, su tecla para hablarle o el clic mantenido: está escuchando. Con <code>detail.Activity</code> = <code>Dictation</code>, K-Desktop está escribiendo lo que dice el usuario</td>
+</tr>
+<tr>
+<td><code>Thinking</code></td>
+<td>La IA está preparando una respuesta</td>
+</tr>
+<tr>
+<td><code>ThinkingHard</code></td>
+<td>La IA lo piensa más, despacio: puede tardar medio minuto</td>
+</tr>
+<tr>
+<td><code>LoadingBrain</code></td>
+<td>Se está cargando su modelo en memoria antes de poder pensar</td>
+</tr>
+<tr>
+<td><code>NoBrain</code></td>
+<td>La orden necesitaba la IA y no hay; llega justo antes de <code>Speaking</code>, que lo dice (un encogerse de hombros)</td>
+</tr>
+<tr>
+<td><code>Speaking</code></td>
+<td>Está contestando</td>
+</tr>
+<tr>
+<td><code>AwaitingConfirmation</code></td>
+<td>Una pregunta de sí o no espera al usuario (la ventanita que pide permiso)</td>
+</tr>
+<tr>
+<td><code>Busy</code></td>
+<td>Está en marcha una de sus herramientas o un comando: <code>detail.Activity</code> dice cuál (<code>SearchingWeb</code>, <code>ReadingWeb</code>, <code>Files</code>, <code>Notes</code>, <code>Memory</code>, <code>Weather</code>, <code>Music</code>, <code>Timer</code>, <code>Screen</code>, <code>Command</code>…; la de un servidor MCP o una del usuario: <code>Other</code> con <code>detail.Tool</code>)</td>
+</tr>
+<tr>
+<td><code>Sleeping</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><code>detail.Text</code> lo dice en su idioma («Buscando en internet»), por si lo escribes tú. Versiones posteriores pueden añadir
+actividades: trata las que no conozcas como <code>Other</code>.</p>
+<h2 id="sonido">Sonido</h2>
+<p><code>IAudio</code>: <code>Load</code> (muestras en coma flotante, mono o estéreo, a cualquier frecuencia) o <code>LoadWav</code> (del paquete), <code>Play</code> con
+ganancia y panorama, y <code>Loop</code> con ganancia, tono y panorama en vivo (para un motor). El host lo mezcla todo con el volumen
+del usuario; el dispositivo solo está abierto mientras suena algo. Con el sonido apagado, <code>Enabled</code> es false y todo suena en
+silencio.</p>
+<h2 id="zonas-de-clic">Zonas de clic</h2>
+<p><code>Pointer.CreateHitArea(id)</code>, cada una con su <code>id</code>, que llega en <code>PointerEvent.Area</code> (con varias —el cuerpo y unos juguetes,
+por ejemplo— dales nombres distintos; sin id es <code>body</code>). Colócala con una forma (<code>HitShape</code>) donde esté el personaje. Sobre
+la zona, el cursor es el que digas (<code>Cursor</code>: flecha, mano, agarrar) o uno que dibujes: <code>SetCursorImage(imagen, punto)</code> con
+un <code>BitmapSource</code> en píxeles del monitor (los cursores de Windows miden 32 px al 100 %; Kobii enseña un cepillo mientras lo
+cepillan); <code>null</code> vuelve al de siempre. <code>OnPointer</code> recibe entrar, salir, clics y arrastres.</p>
+<h2 id="archivos-que-le-sueltan">Archivos que le sueltan</h2>
+<p>Las zonas de clic aceptan archivos arrastrados desde el Explorador. Llegan a <code>OnPointer</code> como <code>FilesOver</code> (están encima: el
+momento de estirar los brazos), <code>FilesAway</code> (se fueron sin soltarlos, o el usuario pulsó Escape) y <code>FilesDropped</code> (el
+momento de cogerlos), con las rutas completas en <code>PointerEvent.Files</code>. Es solo la animación: qué hacer con ellos lo decide
+K-Desktop. Nunca se toman como «mover»: el archivo se queda donde estaba.</p>
+<p>Mientras los archivos están encima de tu asistente, K-Desktop esconde la imagen que Windows dibuja bajo el cursor y deja
+solo una etiqueta pequeña, «Dárselo a <nombre>». Esa imagen te llega en <code>PointerEvent.Preview</code> (un <code>BitmapSource</code> congelado
+en píxeles de pantalla; null si el programa de origen no dio ninguna), para enseñarla a tu manera: más pequeña, en sus
+manos, colgando de un rayo… El Lander la sujeta con su rayo tractor, Kobii la levanta sobre las manos y los asistentes sin
+código la llevan sobre la cabeza. No enseñarla también vale.</nombre></p>
+<h2 id="teclado-y-rueda">Teclado y rueda</h2>
+<ul>
+<li><code>IKeyboard</code>: <code>IsDown</code> siempre; <code>Capture</code> hace que K-Desktop se trague esas teclas (pulsadas sin Ctrl, Alt ni Win, para que
+los atajos sigan funcionando) mientras juega, y sus cambios llegan a <code>KeyChanged</code>. <code>Release</code> al acabar (también se sueltan
+si el asistente se va, el proceso se cae o K-Desktop se pone en pausa).</li>
+<li><code>SystemEvent.FastScroll</code> llega cuando el usuario gira la rueda con fuerza (con la posición del cursor); cada muesca
+(<code>SystemEvent.WheelTurned</code>, con la ventana bajo el cursor) solo con <code>Pointer.WatchWheel = true</code>: cuesta un mensaje por
+muesca, así que solo mientras importe.</li>
+</ul>
+<h2 id="ventanas">Ventanas</h2>
+<p><code>IWindowServices</code>: <code>TryMove</code> (la parte visible de una ventana, para arrastrarla fotograma a fotograma) y <code>TryCommand</code>
+(minimizar, maximizar, restaurar, traer delante —las de un proceso de administrador, y traer delante, las hace K-Desktop por
+ti—), <code>GetCaptionButtons</code> (de DWM), <code>Thumbnail</code> (una imagen congelada de la ventana) y <code>AppIcon</code> (el icono de su programa).</p>
+<h2 id="el-mundo">El mundo</h2>
+<ul>
+<li><code>World.Current</code>: los monitores (límites, área de trabajo, escalado), las ventanas con sus límites y las barras de tareas;
+<code>Changed</code> cuando cambia. <code>World.System</code>: el cursor y su velocidad, los segundos sin teclado ni ratón, la ventana de delante,
+la pantalla completa… <code>OnSystemEvent</code> para lo que pasa: una ventana que se abre, se mueve, se activa o se cierra, una
+notificación, el usuario que se va o vuelve, la pantalla completa, la energía y la batería, el tema, la hora en punto, la
+papelera vaciada (con dónde está su icono, o null)…</li>
+<li><strong>Sitio para todos</strong>: di dónde está tu cuerpo con <code>BodyBounds</code> (solo el cuerpo: sin partículas, bocadillos ni efectos;
+null si no se ve). <code>World.Others</code> dice dónde está cada uno de los demás y si va de camino a algún sitio (<code>Moving</code>). Antes de
+posarte, pararte o ir andando a un sitio, mira <code>World.TakenBy(rectángulo)</code>: da el que se queda ahí, o null si está libre.
+Pasar por delante vale; quedarse encima, no.</li>
+<li><strong>Música</strong>: con <code>World.ListenToMusic(true)</code>, <code>World.Music</code> dice si suena música con ritmo (<code>Playing</code>; una voz o un ruido no
+cuentan), sus pulsaciones por minuto (<code>Bpm</code>) y el pulso (<code>BeatAt(tick.Now)</code>: sube uno por pulso y su parte decimal es la
+fase, 0 = el golpe), para bailar a tiempo. El host lee el medidor de volumen de cada programa (no se graba nada), sin los
+sonidos de los asistentes. Tarda unos 3 s en encontrar el pulso. Deja de escuchar cuando no se te ve.</li>
+</ul>
+<h2 id="ayudas">Ayudas</h2>
+<ul>
+<li><strong><code>Variety&lt;T&gt;</code></strong>: para no hacer siempre lo mismo (entradas, reacciones, animaciones de reposo). Cada variante con su peso
+(<code>Add(x, weight: 2)</code> sale el doble de veces; 0 = nunca) y su descanso en segundos. <code>Pick()</code> elige al azar por peso, nunca la
+misma dos veces seguidas mientras haya otra, y si todas descansan da la que antes esté lista; <code>TryPick</code> entonces no da nada.
+<code>Pick(x =&gt; …)</code> elige solo entre las que valen ahora. <code>Use</code>, <code>CooldownLeft</code>, <code>Reset</code>; con una <code>seed</code> la secuencia es siempre
+la misma (pruebas).</li>
+<li><strong><code>Rope</code></strong>: una cuerda de Verlet en píxeles de pantalla para ganchos, cables y correas. Tú sujetas su <code>Start</code>; su final
+cuelga (<code>ReleaseEnd</code>, con la velocidad a la que lo sueltas) o va sujeto (<code>PinEnd</code>). Solo se resiste a estirarse, nunca pasa
+de <code>MaxLength</code> con el final suelto y avanza a 120 Hz fijos (<code>Step(tick.Elapsed)</code>), así se porta igual a cualquier ritmo de
+fotogramas. <code>Length</code> para recoger o soltar cable, <code>Gravity</code>, <code>Damping</code>, <code>IsTaut</code>, <code>Overstretch</code>, <code>Pull</code> (lo que sigue una
+ventana remolcada). <code>Draw(dc, pen)</code> la dibuja; <code>Bounds(margin)</code> da el tamaño de la superficie.</li>
+</ul>
+<p>Todos los tipos, en la <a href="../../api/KDesktop.Assistant.Sdk.html">referencia de la API</a> (en inglés).</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

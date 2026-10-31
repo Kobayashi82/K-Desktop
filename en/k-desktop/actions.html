@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Actions | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Actions | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/actions.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="actions">Actions</h1>
+
+<p>Every action a command can run. Add them with <em>Add action</em> in the command editor; they run in order.</p>
+<h2 id="open-and-run">Open and run</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Run application</strong></td>
+<td>Opens a program, file, shortcut or script, as the normal user or as administrator.</td>
+</tr>
+<tr>
+<td><strong>Open folder</strong></td>
+<td>Opens a folder or a special Windows location.</td>
+</tr>
+<tr>
+<td><strong>Open web page</strong></td>
+<td>Opens a URL in the browser of your choice.</td>
+</tr>
+<tr>
+<td><strong>Control application</strong></td>
+<td>Activates, closes, keeps on top or waits for an application by its process name.</td>
+</tr>
+<tr>
+<td><strong>Run script</strong></td>
+<td>Runs a CMD (BAT), PowerShell or VBScript script written right there.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="windows">Windows</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Window</strong></td>
+<td>Maximizes, minimizes, places (halves, quarters, thirds), centres, moves to another monitor or to the next or previous zone (<a href="arrangements.html">layouts</a>) or makes a window transparent.</td>
+</tr>
+<tr>
+<td><strong>Window layout</strong></td>
+<td>Puts each program in its zone of one of your <a href="arrangements.html">layouts</a>.</td>
+</tr>
+<tr>
+<td><strong>Always on top (on/off)</strong></td>
+<td>Pins the active window above the others, or releases it.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="keyboard-and-mouse">Keyboard and mouse</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Send keys / text</strong></td>
+<td>Sends a key combination, types text or moves the mouse.</td>
+</tr>
+<tr>
+<td><strong>Clipboard</strong></td>
+<td>Copies a text (with date, time…) or changes the one there: plain, upper case, lower case, clean links… and pastes it. Or opens the <a href="clipboard.html">clipboard history</a>.</td>
+</tr>
+<tr>
+<td><strong>Play macro</strong></td>
+<td>Plays a recorded macro (keyboard and mouse with their timing), once or several times.</td>
+</tr>
+<tr>
+<td><strong>K-Board</strong></td>
+<td>Turns a K-Board profile (remapped keys and buttons) on, off, or toggles it.</td>
+</tr>
+<tr>
+<td><strong>Dictate</strong></td>
+<td>Types what you say where the cursor is, without AI. Ends after a few seconds of silence, with Esc or by saying «stop dictating».</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sound">Sound</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Volume</strong></td>
+<td>Sets, raises, lowers or mutes the volume: of the speakers or the microphone (the default ones or one you choose), one program or the one in front.</td>
+</tr>
+<tr>
+<td><strong>Audio output</strong></td>
+<td>Changes the default sound device. With several chosen, each run switches to the next one.</td>
+</tr>
+<tr>
+<td><strong>Audio input</strong></td>
+<td>Changes the default microphone. With several chosen, each run switches to the next one.</td>
+</tr>
+<tr>
+<td><strong>Play sound</strong></td>
+<td>Plays a sound chosen in a panel by kind (alerts, alarms, calls, system and yours) with K-Desktop's and Windows' sounds, which play when clicked, or another file (.wav, .mp3, .wma, .m4a, .aac, .flac). The ones you put in your sounds folder show under «Yours».</td>
+</tr>
+<tr>
+<td><strong>Media</strong></td>
+<td>Plays, pauses, skips to the next or previous one, or stops, with Windows' media controls (Spotify, browsers, Media Player…): in what is playing or in a program you choose from the ones that have something now. A player that does not show up gets the media keys. The OSD shows the song that plays.</td>
+</tr>
+<tr>
+<td><strong>Record audio</strong></td>
+<td>Records what the PC plays, the microphone or both, or saves what just played (<em>Settings → Audio recording</em>). With <em>When it ends, transcribe it</em>, it turns what is said into text (without AI, with the voice model) and saves it in a <code>.txt</code> next to the audio; the command waits (Esc stops it) and leaves the text in <code>{result}</code>, so an <em>Assistant: ask</em> can summarize it.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="screen">Screen</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Record video</strong></td>
+<td>Records to MP4 a region you pick with the mouse, the active window or the mouse's monitor, with what the PC plays, the microphone, both or no sound. A pill at the top shows the time, <strong>Pause</strong> and <strong>Stop</strong>, and is not in the video; the same hotkey (<em>Start / stop</em>) or the tray also stop it. In <strong>Format</strong> it can also be a <strong>GIF</strong> or an <strong>animated WebP</strong> (much lighter): no sound and 30 seconds at most (it stops by itself; the pill says how much is left). When it stops, the file is in <code>{resultado}</code>. Frames, quality, pointer, clicks and folder in <em>Settings → Screen recording</em>.</td>
+</tr>
+<tr>
+<td><strong>Screenshot</strong></td>
+<td>Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it and saves it. With <em>Annotate first</em> an editor comes first: arrow, box, text, highlighter, blur (what is covered cannot be read), crop and <strong>copy text</strong> (drag over some text, or click for the whole picture: the Windows OCR reads it and copies it without closing the editor), with seven colours, a thickness to choose and Undo / Redo (Ctrl+Z / Ctrl+Y; keys 1–7 pick the tool). From there <strong>Copy</strong> or <strong>Save</strong> (what you press counts that time). Esc cancels and the command does not go on.</td>
+</tr>
+<tr>
+<td><strong>Copy text from the screen</strong></td>
+<td>Reads the text of a region you pick with the mouse, the active window or a monitor and copies it. No AI: Windows' text recognition (OCR). If you cancel the region (Esc) or it finds no text, the rest of the command is not run.</td>
+</tr>
+<tr>
+<td><strong>Colour picker</strong></td>
+<td>Freezes the screen with a magnifier by the mouse; a click copies the pixel's colour as <code>#1E90FF</code>, <code>rgb(30, 144, 255)</code> or <code>hsl(210, 100%, 56%)</code> (your choice). The arrows move the mouse one pixel and the wheel changes the zoom; Esc cancels and the rest of the command is not run.</td>
+</tr>
+<tr>
+<td><strong>Ruler</strong></td>
+<td>Freezes the screen and measures in pixels: moving the mouse, the distance between the edges around it (up to where the colour changes); dragging, a box. A click copies «width × height»; Esc cancels.</td>
+</tr>
+<tr>
+<td><strong>Magnifier</strong></td>
+<td>A lens (rectangular or round) that follows the mouse and enlarges what is around it, or the whole screen it is on.</td>
+</tr>
+<tr>
+<td><strong>Screen</strong></td>
+<td>Turns the screens off (all or the ones you choose), changes the projection (Win + P), the brightness, or a monitor's resolution and refresh rate.</td>
+</tr>
+<tr>
+<td><strong>Panel</strong></td>
+<td>Shows, hides, locks or unlocks one of your <a href="panels.html">panels</a>, or all of them.</td>
+</tr>
+<tr>
+<td><strong>Windows theme</strong></td>
+<td>Switches Windows and the apps to light or dark mode, or toggles between them.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="network-and-internet">Network and internet</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Web request</strong></td>
+<td>Sends an HTTP request (GET, POST…) without opening the browser: Home Assistant, APIs, phone notifications…</td>
+</tr>
+<tr>
+<td><strong>Wake a computer</strong></td>
+<td>Turns on another PC or a server over the network (Wake-on-LAN) and, if you want, waits until it answers.</td>
+</tr>
+<tr>
+<td><strong>Wi-Fi and Bluetooth</strong></td>
+<td>Turns the Wi-Fi or the Bluetooth on, off, or toggles it.</td>
+</tr>
+<tr>
+<td><strong>Send mail</strong></td>
+<td>Sends a mail from one of your accounts, with text with variables and attached files, or leaves it as a draft. See <a href="mail.html">Mail</a>.</td>
+</tr>
+<tr>
+<td><strong>Send via Telegram</strong></td>
+<td>Sends you (or a contact), by the bot or the account, a text with variables, a file, a screenshot or what is on the clipboard. See <a href="telegram.html">Telegram</a>.</td>
+</tr>
+<tr>
+<td><strong>Create event</strong></td>
+<td>Adds an event to a calendar, at a time or in a while. See <a href="calendar.html">Calendar</a>.</td>
+</tr>
+<tr>
+<td><strong>Join the meeting</strong></td>
+<td>Opens the Teams, Meet or Zoom link of the current or the next event.</td>
+</tr>
+<tr>
+<td><strong>Send to phone</strong></td>
+<td>A text, a link or a small file to your paired phones or browsers (all, or the one you choose), as a notification. With variables. See <a href="remote.html#what-the-pc-sends">What the PC sends</a>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="system">System</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Files and folders</strong></td>
+<td>Copy, move, rename, delete (to the recycle bin or for good), create a folder, zip, unzip or make a <strong>backup</strong>: sync (only what is new or changed, optionally removing from the destination what is gone) or a dated copy each time keeping the latest. The source is a list of files, folders or patterns (<code>C:\Music\*.mp3</code>) typed in or added with the buttons. The destination may be inside the source: it never copies itself. Progress shows on the OSD (Esc stops it) and the next action can wait until it is done.</td>
+</tr>
+<tr>
+<td><strong>Hidden files (on/off)</strong></td>
+<td>Shows or hides hidden files in Explorer.</td>
+</tr>
+<tr>
+<td><strong>Power plan</strong></td>
+<td>Switches the Windows power plan (High performance, Balanced…) or goes to the next one.</td>
+</tr>
+<tr>
+<td><strong>Keep awake</strong></td>
+<td>The PC does not sleep (and, if you want, the screen stays on) for some minutes, while a program is open or until you turn it off. While it lasts a cup shows in the tray, with «30 more minutes» and «Let it sleep». Closing K-Desktop lets the PC sleep as usual.</td>
+</tr>
+<tr>
+<td><strong>Power</strong></td>
+<td>Shuts down, restarts, sleeps, locks or signs out, with a cancellable countdown.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="flow">Flow</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>If…</strong></td>
+<td>Checks something (a program open, the time, a device, the network, CPU use, a variable…) and, if it isn't so, stops the command, skips the next actions or runs another command instead. See <a href="commands.html#if-conditions">conditions</a>.</td>
+</tr>
+<tr>
+<td><strong>Wait</strong></td>
+<td>Pauses before the next action.</td>
+</tr>
+<tr>
+<td><strong>Commands</strong></td>
+<td>Runs, enables or disables another command.</td>
+</tr>
+<tr>
+<td><strong>Open QuickMenu</strong></td>
+<td>Shows a QuickMenu at the mouse position.</td>
+</tr>
+<tr>
+<td><strong>Show message</strong></td>
+<td>Shows an on-screen message for a while.</td>
+</tr>
+<tr>
+<td><strong>Show notification</strong></td>
+<td>A card in a corner with your title, text, picture, colour and sound, for as long as you say. Clicking it can open something (a file, a folder, a web page) or run another command, and the next action can wait until it closes. Its sound can be <em>Global</em> (the one of <em>Settings › Messages and notifications</em>). With something full screen it does what those settings say.</td>
+</tr>
+<tr>
+<td><strong>Disable in current app (on/off)</strong></td>
+<td>Disables or re-enables K-Desktop hotkeys in the active application (useful in games).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="assistant">Assistant</h2>
+<p>Only with the <a href="../assistant/index.html">assistant module</a> on.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Assistant: ask</strong></td>
+<td>Says something to an assistant, as if you said it out loud. Without text, it opens the box to write to it. <strong>With the answer</strong>: <em>Say it</em> (in its bubble and with its voice), <em>Paste it over the selection</em>, <em>Copy it</em>, <em>Show it on a sheet</em> or <em>Only keep it in {result}</em>. Except <em>Say it</em>, the command waits for the answer (Esc stops it), the assistant neither speaks nor shows its bubble, and the answer is left in <code>{result}</code>. With <em>If it is not on the desktop, it comes out to do it</em>, it comes out when it is hidden. Example: «Translate into Spanish: {selection}» and <em>Paste it over the selection</em>.</td>
+</tr>
+<tr>
+<td><strong>Assistant: say</strong></td>
+<td>The assistant says something in its bubble, without the AI. Handy in events: «The backup has finished». With <code>{selection}</code> it reads what you have selected with its voice (a long text, whole). With <em>If it is not on the desktop, it comes out to do it</em>, it comes out if it is hidden.</td>
+</tr>
+<tr>
+<td><strong>Assistant: chat</strong></td>
+<td>Opens, closes or toggles a separate <strong>chat window</strong>, with the same conversation as <em>Panel → Assistant</em>. It starts with the last assistant you talked to in it or with a fixed one. Its icon, at the top, changes the assistant (the ones not on the desktop come out when chosen); the pin keeps it on top and Esc closes it. It remembers where it was, its size, the pin and the assistant.</td>
+</tr>
+<tr>
+<td><strong>Assistant: brain</strong></td>
+<td>Takes the AI model out of the graphics card (before a game or a render) or loads it now so the first answer does not wait.</td>
+</tr>
+<tr>
+<td><strong>Assistant: use a tool</strong></td>
+<td>Uses one of the <a href="../assistant/tools.html">assistants' tools</a> without the AI: a built-in one (the weather, converting, reading a web page, the PC's status…), one of your own in JSON, or one from an <a href="../assistant/tools.html#mcp-servers">MCP server</a> (sending a Telegram message, putting something in your calendar, pausing downloads…). You pick it from a list, which leaves out the ones that are already a K-Desktop action, and fill in its data in a form or, with <em>Show as JSON</em>, by hand; variables work in its texts (<code>{selection}</code>, <code>{result}</code>…). What it gives back goes to <code>{result}</code>. It does not ask first, except for a script of yours that is new or changed, or a tool you set to <em>Always</em> in <em>Settings › Tools</em>; if the command runs by itself (an event, at startup…), that one is not done. If it fails, the rest of the command is not run. Example: <code>{selection}</code> in the text of the Telegram tool to send what is selected.</td>
+</tr>
+<tr>
+<td><strong>Assistant: action</strong></td>
+<td>Puts an assistant on the desktop, hides it, or runs one of its own actions, like the Lander's manual mode (if it is not on the desktop, it comes out for it or nothing is done, as you choose).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="variables-passing-data-from-one-action-to-another">Variables: passing data from one action to another</h2>
+<p>The texts of the actions (a message, an address, a text to type, a script…) can have variables. Type <code>{</code> in the field
+and the ones you can use show up; choose one with the arrows and put it with Enter.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{result}</code></td>
+<td>What the previous action that gives something gave (see below).</td>
+</tr>
+<tr>
+<td><code>{selection}</code></td>
+<td>What is selected in the window where you ran the command. It is copied once and the clipboard is left as it was.</td>
+</tr>
+<tr>
+<td><code>{clipboard}</code></td>
+<td>The copied text.</td>
+</tr>
+<tr>
+<td><code>{clipboard:2}</code></td>
+<td>What was copied before the last one, from the <a href="clipboard.html">clipboard history</a> (<code>:3</code>, <code>:4</code>… further back).</td>
+</tr>
+<tr>
+<td><code>{date}</code> and <code>{time}</code></td>
+<td>Today's date (2026-10-28) and the time (09:30:05).</td>
+</tr>
+<tr>
+<td><code>{name}</code></td>
+<td>What an earlier action kept with <strong>Save in a variable</strong> and that name.</td>
+</tr>
+</tbody>
+</table>
+<p>These give something: <strong>Copy text from the screen</strong> (the text read), <strong>Colour picker</strong> (the colour), <strong>Ruler</strong> (the size), <strong>Web request</strong> (the answer), <strong>Assistant: ask</strong> (the
+answer, except with <em>Say it</em>), <strong>Assistant: use a tool</strong> (what it gives back), <strong>Record audio</strong> (what is said, with <em>When it ends, transcribe it</em>), <strong>Clipboard</strong> (the text
+it leaves copied), <strong>Screenshot</strong> (the saved file), <strong>Record video</strong> (the video, when it stops) and <strong>Run script</strong> (what it writes, when <em>Wait until it finishes</em> is
+ticked and the window is <em>Hidden</em>; not in VBScript). These actions have the <strong>Save in a variable</strong> field: with a name
+(letters, digits and <code>_</code>), what they give stays available until the command ends, even if another action changes
+<code>{result}</code> later.</p>
+<p>Variables last one run of the command. The commands it runs with <em>Commands</em> and the commands of the same event share
+them. The Spanish names work too (<code>{resultado}</code>, <code>{seleccion}</code>, <code>{portapapeles}</code>, <code>{fecha}</code>, <code>{hora}</code>). Anything else
+between braces is left as it is.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

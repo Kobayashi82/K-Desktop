@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Events | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Events | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/events.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="events">Events</h1>
+
+<p>An event is «when this happens, run these commands». Each event has a trigger, optional conditions and the commands it
+runs; many triggers also have a <strong>«When it ends»</strong> part (the program closes, you come back to the PC, the device is
+removed…) with its own commands.</p>
+<p><img src="../../images/en/events.png" alt="Events"></p>
+<h2 id="triggers">Triggers</h2>
+<table>
+<thead>
+<tr>
+<th>Trigger</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>When K-Desktop starts / exits</td>
+<td>What used to be «Run on startup / on exit» in each command</td>
+</tr>
+<tr>
+<td>At a time</td>
+<td>Every day or on some days of the week, at the time you say; or on one day only, if you give it a <em>Day</em></td>
+</tr>
+<tr>
+<td>Every so often</td>
+<td>Every N minutes while K-Desktop runs</td>
+</tr>
+<tr>
+<td>When a program opens</td>
+<td>When it opens; «When it ends», when it closes. <em>When Steam opens, audio to the headphones</em></td>
+</tr>
+<tr>
+<td>Program in front</td>
+<td>When its window comes to the front, and when it stops being there</td>
+</tr>
+<tr>
+<td>PC not in use</td>
+<td>After some minutes without keyboard or mouse; «When it ends», when you come back</td>
+</tr>
+<tr>
+<td>Lock, sleep…</td>
+<td>When the session is locked or unlocked, or the PC sleeps or wakes up</td>
+</tr>
+<tr>
+<td>Battery or mains</td>
+<td>When a laptop goes on battery or back on mains power</td>
+</tr>
+<tr>
+<td>Battery level</td>
+<td>When the battery goes below a % (or above it); «When it ends», when it is back on the other side</td>
+</tr>
+<tr>
+<td>Sunrise or sunset</td>
+<td>At sunrise or sunset where you are, or some minutes before or after (worked out on the PC; <em>See today</em> shows today's). Without a place: «Where you are» in the assistant options or Windows' location</td>
+</tr>
+<tr>
+<td>File in a folder</td>
+<td>When a file appears (as soon as it stops growing), changes, is deleted or renamed. The commands get its path in <code>{file}</code></td>
+</tr>
+<tr>
+<td>Screen plugged in or out</td>
+<td>When you plug in or take out a monitor or the TV (also a TV plugged in but not in use yet); the commands get its name in <code>{screen}</code></td>
+</tr>
+<tr>
+<td>Call from outside</td>
+<td>When another computer, Home Assistant or a script asks for it by name, over UDP or the web</td>
+</tr>
+<tr>
+<td>Drive connected</td>
+<td>When a USB stick, disk or card is connected (and removed)</td>
+</tr>
+<tr>
+<td>Network</td>
+<td>When connecting to a network (or any), or when left without network</td>
+</tr>
+<tr>
+<td>Device connected</td>
+<td>When a controller, keyboard, headset or USB gadget is connected (and disconnected)</td>
+</tr>
+<tr>
+<td>PC usage</td>
+<td>When the CPU, the graphics card, the memory or the graphics memory (VRAM) goes above (or below) a % for a while</td>
+</tr>
+<tr>
+<td>Audio device</td>
+<td>When headphones, a speaker or a microphone are connected, or one becomes the default output or input</td>
+</tr>
+<tr>
+<td>Calendar event</td>
+<td>Some minutes before an event, when it starts or when it ends. See <a href="calendar.html">Calendar</a></td>
+</tr>
+<tr>
+<td>Mail arrives</td>
+<td>When a mail arrives at one of your accounts, and it can save its attachments. See <a href="mail.html">Mail</a></td>
+</tr>
+<tr>
+<td>A Telegram message arrives</td>
+<td>When yours or a contact's reaches the bot or the account. See <a href="telegram.html">Telegram</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="options">Options</h2>
+<ul>
+<li><strong>Commands</strong>: <em>Add command</em> picks commands you already have; <em>New command</em> creates a hidden one named after the event,
+adds it and opens it so you can put its actions in.</li>
+<li><strong>Ask an assistant</strong>: after the commands, it asks an assistant for something as if you said it (<em>Check the weather and
+send it to me on Telegram</em>). If the assistant is not on the desktop, nothing happens.</li>
+<li><strong>Only once</strong>: the event is deleted after it runs (if it has commands in <em>When it ends</em>, after those).
+With <em>At a time</em> and a <em>Day</em>, it is «on Friday at 9, just once».</li>
+<li><strong>Programmed by an assistant</strong>: what you ask for later («at 7 empty the recycle bin», see
+<a href="../assistant/tools.html">Tools</a>) shows here as one more event, with who programmed it and what you approved when you
+asked. You can change or delete it like any other.</li>
+<li><strong>Conditions</strong> (<em>Only if</em>): a list with the same conditions as the <a href="commands.html#if-conditions">If… action</a> (schedule,
+a program open, the network, the battery, PC usage…), each with <em>The opposite</em>. With several you choose whether <strong>all of
+them</strong> must be met or <strong>any of them</strong> is enough. Each one can be switched off without deleting it and tested (▶) to see
+whether it is met now. With none, the event always fires.</li>
+<li><strong>Don't repeat before</strong>: if it fires again sooner (in seconds), it does nothing.</li>
+<li><strong>Loop protection</strong>: an event that fires more than 10 times in a minute stops for 10 minutes, and K-Desktop tells you.</li>
+<li>Each event can be switched off, and run by hand to try it (<em>Test</em>, or <code>KDesktop.exe --event &quot;Name&quot;</code>). The lightning
+button creates a command that runs it (to give it a hotkey or a voice phrase).</li>
+<li><em>When</em>, <em>Only if</em> and <em>Options</em> fold; <em>Only if</em> opens by itself when it has something. Times and dates are set with the arrows,
+the wheel or by typing them (the date also with its calendar).</li>
+</ul>
+<h2 id="calling-an-event-from-outside">Calling an event from outside</h2>
+<p>The trigger <em>Call from outside</em> runs when a call with its name arrives. Case and accents do not matter.</p>
+<pre><code>UDP:   event door                      (port 2501, «Remote control» on)
+HTTP:  POST http://&lt;PC&gt;:2502/api/event
+       X-KD: 1
+       Authorization: Bearer &lt;token&gt;
+       {&quot;name&quot;: &quot;door&quot;}
+</code></pre>
+<p>Over UDP it needs <em>Settings → Remote control</em> on with <em>Events</em> allowed (and the key, if there is one, from another
+computer); over the web, the device needs to be paired (see <a href="remote.html">Phone and remote control</a>).</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

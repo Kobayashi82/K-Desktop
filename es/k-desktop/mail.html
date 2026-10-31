@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Correo | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Correo | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/mail.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="correo">Correo</h1>
+
+<p>K-Desktop vigila tus cuentas de correo y te avisa de lo que importa, lanza <a href="events.html">eventos</a> cuando llega un correo,
+manda correos desde tus comandos y deja que los asistentes busquen, resuman y preparen borradores. No es un cliente de
+correo: lo sigues leyendo donde siempre.</p>
+<h2 id="cuentas">Cuentas</h2>
+<p><em>Opciones › Correo › Añadir cuenta</em>: la dirección, un nombre para la cuenta (<em>Personal</em>, <em>Trabajo</em>…; así la entiende el
+asistente) y <strong>Cómo entra</strong>:</p>
+<ul>
+<li><strong>Con contraseña (de aplicación)</strong>. Gmail, iCloud y Yahoo piden una <em>contraseña de aplicación</em> (<em>Cómo conseguir una
+contraseña de aplicación</em> dice dónde); los demás, tu contraseña. <strong>Detectar los servidores</strong> encuentra IMAP y SMTP solo;
+si no, escríbelos.</li>
+<li><strong>Con la cuenta conectada</strong>: Gmail sin contraseña de aplicación, después de conectar la cuenta en <em>Opciones › Cuentas ›
+Google</em> marcando <em>Correo de Gmail</em>.</li>
+</ul>
+<p>Outlook y Hotmail no se pueden conectar: Microsoft ya no deja entrar a los programas con contraseña. <strong>Probar</strong> comprueba
+que entra en IMAP y en SMTP y, si no, dice por qué. La contraseña se guarda cifrada, solo para tu usuario en este PC.</p>
+<p>Cada cuenta tiene además:</p>
+<ul>
+<li><strong>Para qué</strong>: <em>Todo</em> (avisar, eventos, asistente y enviar) o <em>Solo enviar</em>, una cuenta solo para los informes y avisos de
+K-Desktop, que solo llega a las <strong>Direcciones permitidas</strong> (vacío: su propia dirección).</li>
+<li><strong>Avisar de</strong>: <em>Solo los importantes</em>, <em>Todos los correos nuevos</em> o <em>Nada</em> (solo eventos y asistente).</li>
+<li><strong>Marcar como leídos los correos que lee el asistente</strong>.</li>
+</ul>
+<h2 id="correos-importantes-y-avisos">Correos importantes y avisos</h2>
+<p><strong>Correos importantes</strong> dice qué correos importan: <strong>Remitentes</strong> (direcciones, dominios como <code>@banco.es</code> o nombres) y
+<strong>Palabras en el asunto</strong> (<em>factura, urgente</em>). Son los que se avisan con <em>Solo los importantes</em> y los que el asistente
+destaca.</p>
+<p><strong>Avisos</strong> elige cómo te avisa de un correo nuevo: una <strong>notificación</strong> (un clic abre el correo en la web: Gmail, iCloud,
+Yahoo…), un <strong>mensaje en pantalla (OSD)</strong> o <strong>lo dice un asistente</strong> (si está en el escritorio; si no, un OSD). <strong>Probar un
+aviso</strong> enseña uno. Un correo con una invitación de calendario llega siempre como notificación: al pulsarla se añade la cita
+al <a href="calendar.html">calendario</a>. Los importantes también te pueden llegar por <a href="telegram.html">Telegram</a>.</p>
+<h2 id="acciones-y-eventos">Acciones y eventos</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enviar correo</strong> (acción)</td>
+<td>Desde una de tus cuentas, con texto con variables y archivos adjuntos (una captura, un informe…), o <strong>Dejarlo como borrador</strong></td>
+</tr>
+<tr>
+<td><strong>Llega un correo</strong> (evento)</td>
+<td>Cuando llega un correo a una cuenta: de alguien, con palabras en el asunto, solo con adjuntos o solo los importantes. Puede <strong>guardar sus adjuntos</strong> en una carpeta (solo de un tipo: <code>*.pdf</code>). Los comandos reciben <code>{correo_asunto}</code>, <code>{correo_de}</code>, <code>{correo_fragmento}</code>, <code>{correo_adjuntos}</code>, <code>{correo_rutas}</code> (los archivos guardados) y <code>{correo_cuenta}</code></td>
+</tr>
+</tbody>
+</table>
+<p><em>Cuando llegue la factura de la luz, guarda su PDF en la carpeta Facturas y avísame.</em></p>
+<h2 id="los-asistentes">Los asistentes</h2>
+<p>Con el <a href="../assistant/index.html">módulo Asistente</a>: <strong>Mirar el correo</strong> y <strong>Leer un correo</strong> («¿algo del banco?», «resúmeme el
+último de Ana»), <strong>Dejar un borrador</strong>, <strong>Enviar un correo</strong>, <strong>Ordenar un correo</strong> (marcarlo como leído o no leído,
+archivarlo o mandarlo a la papelera; nunca se borra del todo) y <strong>Añadir una invitación al calendario</strong>. Leer nunca pregunta;
+enviar pregunta siempre; lo demás pregunta hasta que digas «no volver a preguntar» y se puede deshacer. Un correo nunca da
+órdenes: después de leer uno, el asistente pregunta antes de hacer nada.</p>
+<p>En <em>El asistente y el correo</em>: <strong>Los asistentes pueden enviar</strong> (apagado, solo dejan borradores) y <strong>Días de correo
+guardados</strong> (solo las cabeceras y un fragmento, para buscar sin preguntar al servidor).</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

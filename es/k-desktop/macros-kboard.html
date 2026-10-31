@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Macros y K-Board | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Macros y K-Board | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/macros-kboard.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="macros-y-k-board">Macros y K-Board</h1>
+
+<h2 id="macros">Macros</h2>
+<p>Una macro guarda lo que haces con el teclado y el ratón, con sus tiempos, para repetirlo.</p>
+<p><img src="../../images/es/macros.png" alt="Macros"></p>
+<ol>
+<li><em>Macros → Nueva macro</em> y luego <strong>Grabar</strong>.</li>
+<li>Haz lo que quieras repetir. <strong>Mayús + Esc</strong> acaba la grabación (y para una reproducción).</li>
+<li>Cambia los pasos si quieres: pulsar o soltar una tecla, escribir un texto, un clic, mover el ratón, girar la rueda, una
+pausa… cada uno con su tiempo.</li>
+<li><strong>Probar</strong> la reproduce una vez a los 3 segundos. <strong>Crear un comando que la reproduzca</strong> te deja un comando listo para
+darle un atajo.</li>
+</ol>
+<p>Opciones:</p>
+<ul>
+<li><strong>Grabar movimientos del ratón</strong>: apagado, solo se graban los clics (con su posición), la rueda y el teclado.</li>
+<li><strong>Modo juego</strong>: para juegos. Los clics no mueven el puntero, el ratón se graba como movimiento relativo (lo que leen los
+juegos aunque bloqueen el puntero) y las teclas y clics se mantienen un momento para que el juego los vea. Los juegos
+con antitrampas pueden ignorar cualquier pulsación simulada.</li>
+<li>La acción <em>Reproducir macro</em> la reproduce una vez o varias, en bucle o a otra velocidad.</li>
+</ul>
+<h2 id="k-board">K-Board</h2>
+<p>K-Board cambia lo que hacen las teclas, los botones del ratón y la rueda, en todas partes o solo en los programas que
+elijas: Bloq Mayús como Ctrl, la tecla de Windows apagada en los juegos, botones laterales que copian y pegan…</p>
+<p><img src="../../images/es/kboard.png" alt="K-Board"></p>
+<ul>
+<li>Un <strong>perfil</strong> es un conjunto de cambios. Puede haber varios encendidos a la vez.</li>
+<li>Haz clic en una tecla o un botón del teclado y el ratón dibujados (o <strong>Pulsar tecla</strong> para elegirla) y elige qué hace:
+<ul>
+<li><strong>otra tecla, botón o la rueda</strong>, mantenida mientras mantienes la original (vale para modificadores y en juegos);</li>
+<li><strong>un texto</strong> que escribir, con cualquier distribución de teclado (los saltos de línea pulsan Intro);</li>
+<li><strong>un comando</strong> (la tecla ya no llega al programa);</li>
+<li><strong>nada</strong> (la tecla queda apagada mientras el perfil está encendido).</li>
+</ul>
+</li>
+<li><strong>Con modificadores</strong>: marca Ctrl, Alt, Mayús o Win para cambiar una combinación (Ctrl + J) en vez de la tecla sola.</li>
+<li><strong>Solo en estas aplicaciones</strong>: vacío = en todas partes; con programas, el perfil solo actúa con uno de ellos delante.</li>
+<li><strong>Ejecutar siempre</strong>: también en los programas de <em>Desactivar en</em> (un juego), donde los atajos de los comandos siguen
+apagados pero las teclas se siguen cambiando.</li>
+<li>Enciende y apaga un perfil aquí, desde la bandeja o desde un comando con la acción <em>K-Board</em> (<strong>Crear un comando que
+active y desactive este perfil</strong>).</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

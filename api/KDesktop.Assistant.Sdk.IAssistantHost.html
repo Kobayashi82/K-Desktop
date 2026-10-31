@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IAssistantHost | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IAssistantHost | K-Desktop ">
+      
+      <meta name="description" content="Everything the host offers an assistant. Use it from the engine thread unless a member says otherwise.">
+      <link rel="icon" href="../images/favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/new/main/apiSpec/new?filename=KDesktop_Assistant_Sdk_IAssistantHost.md&amp;value=---%0Auid%3A%20KDesktop.Assistant.Sdk.IAssistantHost%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="KDesktop.Assistant.Sdk.IAssistantHost">
+
+
+
+  <h1 id="KDesktop_Assistant_Sdk_IAssistantHost" data-uid="KDesktop.Assistant.Sdk.IAssistantHost" class="text-break">
+Interface IAssistantHost  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L7"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><span class="xref">KDesktop</span>.<span class="xref">Assistant</span>.<a class="xref" href="KDesktop.Assistant.Sdk.html">Sdk</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>KDesktop.Assistant.Sdk.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Everything the host offers an assistant. Use it from the engine thread unless a member says otherwise.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IAssistantHost</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Audio_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Audio*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Audio" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Audio">
+  Audio
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IAudio Audio { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IAudio.html">IAudio</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Common_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Common*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Common" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Common">
+  Common
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L38"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The settings every assistant has the same way, set by the user in the «Basics» tab of its card: those
+its manifest names in <code>common</code>; the rest stay as usual. When they change, <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_OnSettingsChanged_System_Text_Json_JsonElement_">OnSettingsChanged(JsonElement)</a>
+is called. The volume of its sounds is not here: the host applies it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">CommonSettings Common { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.CommonSettings.html">CommonSettings</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_DataDirectory_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.DataDirectory*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_DataDirectory" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.DataDirectory">
+  DataDirectory
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L44"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Its own data folder (progress, statistics…): kept when it is updated or switched, included in K-Desktop's
+backups, and asked about when it is uninstalled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string DataDirectory { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Keyboard_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Keyboard*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Keyboard" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Keyboard">
+  Keyboard
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L24"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IKeyboard Keyboard { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IKeyboard.html">IKeyboard</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Language_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Language*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Language" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Language">
+  Language
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L16"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The language it speaks in («es», «en»…): the one the user gave it in its settings, or the one all the assistants
+speak in. Changes load the assistant again.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Language { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Log_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Log*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Log" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Log">
+  Log
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L87"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IAssistantLog Log { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IAssistantLog.html">IAssistantLog</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_PackageDirectory_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.PackageDirectory*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_PackageDirectory" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.PackageDirectory">
+  PackageDirectory
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L47"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Folder where its package was unpacked (read only: images, sounds…).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string PackageDirectory { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Pointer_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Pointer*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Pointer" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Pointer">
+  Pointer
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L22"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IPointer Pointer { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IPointer.html">IPointer</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Rendering_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Rendering*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Rendering" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Rendering">
+  Rendering
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L20"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IRendering Rendering { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IRendering.html">IRendering</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_SdkVersion_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.SdkVersion*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_SdkVersion" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.SdkVersion">
+  SdkVersion
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L10"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>SDK version of the host («1.0»): a package built for a newer one does not install.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Version SdkVersion { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.version">Version</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Settings_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Settings*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Settings" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Settings">
+  Settings
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L31"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Its settings: the values of its settings.json, with defaults filled in.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">JsonElement Settings { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.text.json.jsonelement">JsonElement</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Windows_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Windows*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Windows" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Windows">
+  Windows
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L28"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IWindowServices Windows { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IWindowServices.html">IWindowServices</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_World_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.World*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_World" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.World">
+  World
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L18"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IWorld World { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html">IWorld</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_ExtraHotkey_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.ExtraHotkey*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_ExtraHotkey_System_String_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.ExtraHotkey(System.String)">
+  ExtraHotkey(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L72"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The hotkey of the K-Desktop command that runs one of its extras, as K-Desktop shows it («CTRL + ALT + L»), or null
+when no command with a hotkey runs it. Up to date whenever the user changes the commands.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string? ExtraHotkey(string extraId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>extraId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Notify_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Notify*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Notify_System_String_System_String_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Notify(System.String,System.String)">
+  Notify(string, string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L58"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Shows a short notice from it (K-Desktop's toast), e.g. «Achievement unlocked».</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Notify(string title, string text)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>title</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>text</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_Post_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Post*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_Post_System_Action_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.Post(System.Action)">
+  Post(Action)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L85"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Runs <code class="paramref">action</code> on the engine thread. Can be called from any thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Post(Action action)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>action</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_PublishPanel_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.PublishPanel*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_PublishPanel_System_Text_Json_Nodes_JsonObject_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.PublishPanel(System.Text.Json.Nodes.JsonObject)">
+  PublishPanel(JsonObject)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L55"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Publishes the data its panel.json binds to (Panel → Assistant; also the images of a gallery with «source» in its
+settings). It is merged with what it published before: objects key by key, anything else (numbers, texts,
+lists) replaces. Publish everything in <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Enter_KDesktop_Assistant_Sdk_EntranceKind_">Enter(EntranceKind)</a>; after that, what changed is enough. Cheap
+to call: the host sends it at most four times a second.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void PublishPanel(JsonObject data)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>data</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.text.json.nodes.jsonobject">JsonObject</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_RequestTick_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.RequestTick*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_RequestTick" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.RequestTick">
+  RequestTick()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L82"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Asks for a tick as soon as possible. Can be called from any thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RequestTick()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_SetExtraState_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.SetExtraState*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_SetExtraState_System_String_KDesktop_Assistant_Sdk_ExtraState_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.SetExtraState(System.String,KDesktop.Assistant.Sdk.ExtraState)">
+  SetExtraState(string, ExtraState)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L66"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Shows, greys out or hides one of its extras in its right-click menu and its panel buttons, by what makes sense
+right now («Repeat the race» only after a race). Every extra is <a class="xref" href="KDesktop.Assistant.Sdk.ExtraState.html#KDesktop_Assistant_Sdk_ExtraState_Shown">Shown</a> each time it is
+loaded. Commands and voice still reach <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_OnExtraAsync_System_String_System_Threading_CancellationToken_">OnExtraAsync(string, CancellationToken)</a>: say there why it cannot be done.
+Cheap: only changes are sent.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetExtraState(string extraId, ExtraState state)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>extraId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>state</code> <a class="xref" href="KDesktop.Assistant.Sdk.ExtraState.html">ExtraState</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_IAssistantHost_SetVoiceMood_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.SetVoiceMood*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_IAssistantHost_SetVoiceMood_System_String_" data-uid="KDesktop.Assistant.Sdk.IAssistantHost.SetVoiceMood(System.String)">
+  SetVoiceMood(string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/IAssistantHost.cs/#L79"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The situation its voice speaks in: <code>error</code> (it crashed), <code>happy</code> (it celebrates) or any other
+its voice profile names in its <code>moods</code>; null, as usual. The effects of that mood are added to what it says from
+then on. Wherever it is, it sounds as if it were on the monitor in use.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetVoiceMood(string? mood)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mood</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

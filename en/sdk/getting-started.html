@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>With code | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="With code | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/sdk/getting-started.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="with-code">With code</h1>
+
+<p>An assistant with code is a .NET class library (<code>net10.0-windows</code>, WPF) that implements <code>IAssistant</code> from the SDK. The
+SDK is always provided by K-Desktop: a package never carries it.</p>
+<h2 id="starting-from-the-template">Starting from the template</h2>
+<p>You need the .NET 10 SDK. The template and the SDK come from NuGet
+(<a href="https://www.nuget.org/packages/KDesktop.Assistant.Templates">KDesktop.Assistant.Templates</a>,
+<a href="https://www.nuget.org/packages/KDesktop.Assistant.Sdk">KDesktop.Assistant.Sdk</a>):</p>
+<pre><code class="lang-powershell">dotnet new install KDesktop.Assistant.Templates
+dotnet new kdassistant -n MyAssistant --authorName &quot;Me&quot;
+cd MyAssistant
+dotnet build          # → bin\Debug\…\myassistant-1.0.0.kai
+</code></pre>
+<p>To build against a clone of the <a href="https://github.com/Kobayashi82/K-Desktop">K-Desktop repository</a> instead (to try a change in
+the SDK), add <code>--sdk &quot;&lt;K-Desktop&gt;\src\KDesktop.Assistant.Sdk&quot;</code>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MyAssistant.cs</code></td>
+<td>The class that implements <code>IAssistant</code>: it draws itself, has a click area and knows <code>Communicate</code>, <code>React</code> and <code>Announce</code></td>
+</tr>
+<tr>
+<td><code>Package\assistant.json</code></td>
+<td>The <a href="index.html#the-manifest">manifest</a></td>
+</tr>
+<tr>
+<td><code>Package\…</code></td>
+<td>Everything else that goes into the package as it is: <code>icon.png</code>, <code>settings.json</code>, <code>panel.json</code>, <code>persona\</code>, <code>voice\</code>, <code>assets\</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every build leaves the package in <code>bin\…\package\</code> exactly as it is installed and, next to it, the <code>.kai</code> (signed, if you
+have a key: see <a href="publishing.html#signing-the-package">Signing</a>).</p>
+<h2 id="trying-it-without-installing">Trying it without installing</h2>
+<pre><code class="lang-powershell">KDesktop.exe --assistant-dev &quot;&lt;project folder&gt;&quot;
+</code></pre>
+<p>It loads the newest <code>bin\…\package</code> (a copy, so you can keep building) and <strong>reloads it on every build</strong>. If K-Desktop is
+open with the same data folder it connects to it; otherwise it works alone. The log is <code>Logs\assistant.log</code> in the data
+folder. <code>KDesktop.exe --assistant --exit</code> closes it.</p>
+<h2 id="the-smallest-assistant">The smallest assistant</h2>
+<p>Only a few members are required; every other one has a default that does nothing (or says no).</p>
+<pre><code class="lang-csharp">public sealed class MyAssistant : IAssistant
+{
+    private IAssistantHost _host = null!;
+    private ISurface _surface = null!;
+    private IHitArea _hit = null!;
+    private Point _at;
+    private bool _dirty = true;
+
+    public Point? BubbleAnchor =&gt; new Point(_at.X, _at.Y - 20);
+
+    public void Attach(IAssistantHost host)
+    {
+        _host = host;
+        _surface = host.Rendering.CreateSurface();
+        _hit = host.Pointer.CreateHitArea();
+    }
+
+    public void Enter(EntranceKind how)
+    {
+        var work = _host.World.Current.PrimaryMonitor?.WorkArea ?? new PixelRect(0, 0, 800, 600);
+        _at = new Point(work.Right - 200, work.Bottom - 24);
+    }
+
+    public Task ExitAsync(ExitKind why, CancellationToken ct) =&gt; Task.CompletedTask;
+
+    public double Tick(TickInfo tick)
+    {
+        if (_dirty)
+        {
+            _dirty = false;
+            var area = new PixelRect((int)_at.X - 24, (int)_at.Y - 24, (int)_at.X + 24, (int)_at.Y + 24);
+            _surface.Present(area, dc =&gt; dc.DrawEllipse(Brushes.MediumPurple, null, _at, 18, 18));
+            _hit.Place(new HitShape.Ellipse(area));
+        }
+        return 30;   // nothing moves: sleep (anything that matters calls RequestTick)
+    }
+
+    public async Task&lt;GestureOutcome&gt; PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)
+    {
+        if (gesture is Gesture.Communicate)
+            try { await Task.Delay(Timeout.Infinite, ct); } catch (OperationCanceledException) { }
+        return GestureOutcome.Committed;
+    }
+
+    public void SetState(AssistantState state, StateDetail detail) { }
+
+    public void Dispose()
+    {
+        _hit.Dispose();
+        _surface.Dispose();
+    }
+}
+</code></pre>
+<h2 id="rules">Rules</h2>
+<ul>
+<li>Everything is called on the host's <strong>engine thread</strong>, and <code>await</code>s come back to it. Nothing needs locking; never block
+that thread.</li>
+<li><code>Tick</code> returns <strong>how long it may sleep</strong>: at rest, seconds; while animating, <code>Rendering.FrameInterval</code>. Only draw
+(<code>Present</code>) when something changes: the last frame stays on screen, even if the GPU is lost or a full-screen game ends.</li>
+<li>Coordinates are <strong>physical pixels</strong> of the virtual screen. For sizes, the monitor's scaling (<code>MonitorInfo.DpiScale</code>).</li>
+<li><strong>You are not alone</strong>: other assistants may be on the desktop at the same time, in the same process and on the same
+layer. Do not take the whole screen; <code>World.Others</code> says where the others are. What reaches you (gestures, orders,
+extras, settings) is yours alone.</li>
+<li>Never throw to say no: return <code>GestureOutcome.NotPerformed</code>. An exception is logged; several in a row unload the
+assistant.</li>
+</ul>
+<h2 id="coming-in-and-leaving">Coming in and leaving</h2>
+<p><code>Enter(how)</code> and <code>ExitAsync(why, ct)</code> say <strong>why</strong> it arrives or leaves:</p>
+<table>
+<thead>
+<tr>
+<th><code>EntranceKind</code></th>
+<th>When</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Startup</code></td>
+<td>K-Desktop starts or the module is switched on</td>
+<td>Its entrance</td>
+</tr>
+<tr>
+<td><code>Summoned</code></td>
+<td>The user puts it on the desktop</td>
+<td>An entrance that says «here I am»</td>
+</tr>
+<tr>
+<td><code>Reloaded</code></td>
+<td>It was there a moment ago and comes back: a new version, another language, the process restarted or recovered from a crash, rebuilt with <code>--assistant-dev</code></td>
+<td>Reappear where it was, without a show</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th><code>ExitKind</code></th>
+<th>When</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Shutdown</code></td>
+<td>K-Desktop closes or the module is switched off</td>
+<td>Leave at once</td>
+</tr>
+<tr>
+<td><code>Dismissed</code></td>
+<td>The user hides it (Settings, the tray, its menu)</td>
+<td>Its goodbye</td>
+</tr>
+<tr>
+<td><code>Uninstalling</code></td>
+<td>It is being removed (its data folder may be deleted right after)</td>
+<td>The last goodbye</td>
+</tr>
+<tr>
+<td><code>Reloading</code></td>
+<td>It comes back at once with <code>Reloaded</code></td>
+<td>Leave at once and save in <code>DataDirectory</code> where it was: the new one may be another process</td>
+</tr>
+</tbody>
+</table>
+<p>The host waits for the exit 3 s at most (then the token is cancelled).</p>
+<h2 id="common-settings">Common settings</h2>
+<p>What every assistant has the same way does not go in its <code>settings.json</code>: K-Desktop shows it in the <em>Basics</em> tab of its
+card, with the same units for all. The manifest says which ones it takes:</p>
+<pre><code class="lang-json">&quot;common&quot;: [&quot;size&quot;, &quot;volume&quot;, &quot;liveliness&quot;, &quot;dragging&quot;]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>What it is</th>
+<th>Who does it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>size</code></td>
+<td>Size, from 50 % to 200 %</td>
+<td>The assistant: <code>host.Common.Size</code> (1 = the size it is drawn for), on top of the monitor's scaling</td>
+</tr>
+<tr>
+<td><code>volume</code></td>
+<td>Volume of its sounds, from 0 % to 100 %</td>
+<td>The host, on everything played through <code>IAudio</code> (its voice is separate)</td>
+</tr>
+<tr>
+<td><code>liveliness</code></td>
+<td>How lively it is, from 0 % (as little as possible) to 200 %</td>
+<td>The assistant: <code>host.Common.Liveliness</code> (1 = normal) for what it does on its own</td>
+</tr>
+<tr>
+<td><code>dragging</code></td>
+<td>Picking it up with the mouse</td>
+<td>The host does not pass on the drags of its <code>body</code> click area when it is off; <code>host.Common.Dragging</code> for the rest</td>
+</tr>
+</tbody>
+</table>
+<p>When they change, <code>OnSettingsChanged</code> arrives with <code>host.Common</code> already up to date.</p>
+<h2 id="settings-and-panel">Settings and panel</h2>
+<p>K-Desktop draws them with its own controls, without loading any code of the assistant:</p>
+<ul>
+<li><strong><code>settings.json</code></strong> (<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/settings.schema.json">schema</a>)
+→ its tabs on its card in <em>Settings → Assistants</em> (or its right-click menu → <em>Settings</em>). Pages (tabs if there are
+several), sections and controls: <code>toggle</code>, <code>slider</code>, <code>number</code>, <code>choice</code>, <code>text</code>, <code>color</code>, <code>gallery</code>, <code>apps</code>, <code>hotkey</code>,
+<code>button</code> (runs an extra or, with <code>resetData</code>, deletes its data folder after asking), <code>info</code> and <code>keys</code>. <code>enabledWhen</code> dims
+a control while a switch is off. What the user changes is saved (only what differs from the default) and, if it is on the
+desktop, reaches it at once: <code>OnSettingsChanged</code> with <strong>all</strong> the values (also in <code>host.Settings</code>).</li>
+<li><strong><code>panel.json</code></strong> (<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/panel.schema.json">schema</a>)
+→ <em>Panel → Assistant</em>, on its own tab (kept, so it shows while it is not on the desktop): <code>stat</code> (in a row), <code>progress</code>, <code>list</code>, <code>achievements</code>, <code>buttons</code> and <code>text</code>. The
+data arrives with <code>host.PublishPanel</code>, which is <strong>merged</strong> with what was published before: publish everything in <code>Enter</code>
+and then only what changes. A gallery with <code>source</code> takes its pictures from that same data
+(<code>[{ id, name, image, locked, lockText }]</code>).</li>
+</ul>
+<h2 id="extras">Extras</h2>
+<p><code>extras</code> in the manifest are its own actions: they show in its right-click menu, in its panel and as <strong>Assistant: action</strong>
+in K-Desktop's commands; with <code>hotkey</code>, the install card offers to create a command with that shortcut. They arrive in
+<code>OnExtraAsync</code>.</p>
+<ul>
+<li><code>host.SetExtraState(id, Shown | Disabled | Hidden)</code> shows, dims or hides an extra in the menu and the panel's buttons;
+after each load all go back to <code>Shown</code>. Commands and voice still reach <code>OnExtraAsync</code> while it is hidden: explain there
+why it cannot be done.</li>
+<li><code>host.ExtraHotkey(id)</code> gives the shortcut of the K-Desktop command that runs it («CTRL + ALT + L»), to tell the user what
+to press.</li>
+</ul>
+<h2 id="voice-and-personality">Voice and personality</h2>
+<ul>
+<li><strong>Its voice</strong>: what it answers is said aloud by the host, with the <code>voice</code> profile of its manifest (<code>voice/&lt;id&gt;.json</code>,
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/voice.schema.json">schema</a>): an engine and a
+chain of effects —<code>pitch</code>, <code>formant</code>, <code>ring</code>, <code>vocoder</code>, <code>bitcrush</code>, <code>radio</code>, <code>chorus</code>, <code>flanger</code>, <code>echo</code>, <code>glitch</code>— and
+<code>moods</code>, the effects added in some situations. <code>OnVoiceLevel</code> says how loud it sounds while it talks (for lights or a
+mouth); <code>host.SetVoiceMood(&quot;error&quot;)</code>, <code>&quot;happy&quot;</code> or <code>null</code> change the mood of what it says from then on.</li>
+<li><strong>Its personality</strong>: <code>persona/{lang}.json</code>
+(<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/persona.schema.json">schema</a>), what tells the AI
+who it is and how it talks, and its fixed lines. Without the user's language, English or the first one there is.</li>
+<li><strong>What the user changes</strong>: in <em>Personality</em> and <em>Voice</em> the user can write it another personality (your fixed lines
+stay), and give it another language and voice. With another language, <code>host.Language</code> is that one and not K-Desktop's:
+read it in <code>Attach</code> (when it changes, the host loads the assistant again).</li>
+</ul>
+<h2 id="its-model">Its model</h2>
+<p><code>&quot;model&quot;: { &quot;suggested&quot;: [...] }</code> in the manifest: models of Hugging Face («owner/repo/file.gguf» or «owner/repo:Q4_K_M»),
+the best first. K-Desktop offers (unticked) the first one that fits in the user's graphics card, with its vision projector
+if there is one, and only if that file is not there yet; once downloaded, that assistant thinks with it. The Lander, for
+example:</p>
+<pre><code class="lang-json">&quot;model&quot;: { &quot;suggested&quot;: [&quot;unsloth/Qwen3.5-9B-GGUF:Q4_K_M&quot;, &quot;unsloth/Qwen3.5-4B-GGUF:Q4_K_M&quot;] }
+</code></pre>
+<p><code>&quot;think&quot;</code> (one or several too) suggests the model it <strong>thinks harder</strong> with: offered apart, unticked too. If it is the
+same file as <code>suggested</code>, it is not offered twice; without it, it thinks harder with its usual model.</p>
+<h2 id="what-next">What next</h2>
+<ul>
+<li><a href="host.html">What the host gives</a>: bubble, states, sound, click areas, dropped files, keyboard, windows, music…</li>
+<li><a href="gestures.html">Gestures</a>: carrying out the user's commands and the AI's tools.</li>
+<li><a href="showcase.html">Showcase</a>: the <em>Try</em> tab and the catalog's clips.</li>
+<li><a href="../../api/KDesktop.Assistant.Sdk.html">API reference</a>.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

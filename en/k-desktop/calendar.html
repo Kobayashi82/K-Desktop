@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Calendar and agenda | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Calendar and agenda | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/calendar.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="calendar-and-agenda">Calendar and agenda</h1>
+
+<p>K-Desktop keeps your appointments in one place: calendars of its own, your Google calendars and any <code>.ics</code> address
+(Outlook, holidays, sports…). It reminds you before each event, fires <a href="events.html">events</a>, has actions to create
+events and join meetings, and the assistants can check and change your agenda.</p>
+<h2 id="the-agenda">The Agenda</h2>
+<p><strong>Agenda</strong>, in the side menu above <em>History</em>, is there while some calendar has <strong>Show in the agenda</strong>. It shows the events,
+each in its calendar's colour, in two ways:</p>
+<ul>
+<li><strong>List</strong>: the days from today on, with today always at the top (even with nothing on it). The event going on now has
+<strong>Now</strong>, and the ones already over are dimmed.</li>
+<li><strong>Month</strong>: the whole month; all-day events are a band in their colour and the rest show their time. The arrows (or the
+mouse wheel) change the month, <strong>+N more</strong> opens that day in the list and a double click on a day adds an event on it.</li>
+</ul>
+<p><strong>Today</strong> goes back to today in both. The coloured buttons at the top show or hide each calendar (at least one has to be
+shown). Also:</p>
+<ul>
+<li><strong>New event</strong>, or a click on one to <strong>Edit</strong> it (or <strong>View</strong> it, if its calendar is read-only); right click: <em>Join</em>,
+<em>Copy</em> and <em>Delete</em>.</li>
+<li><strong>Join</strong> opens the Teams, Meet or Zoom link of an online meeting.</li>
+<li><strong>Search events…</strong>, <strong>Show earlier days</strong> and <strong>Show more days</strong>.</li>
+<li><strong>Update now</strong> reads the server calendars again; <strong>Import .ics</strong> and <strong>Export to .ics</strong> move events between calendars
+and other programs.</li>
+</ul>
+<p>An event has a title, calendar, start and end (or <em>All day</em>), <strong>Repeats</strong> (daily, every weekday, weekly, monthly on a day
+or on «the second Tuesday», yearly, every so many of them; for ever, until a day or a number of times), <strong>Reminder</strong>,
+location, <strong>Meeting link</strong>
+(found by itself in the location or the notes) and notes. Changing or deleting a repeating event asks: <em>This one only</em>,
+<em>This and following</em> or <em>All of them</em>. An event from a read-only calendar can only be viewed.</p>
+<h2 id="calendars">Calendars</h2>
+<p><em>Settings → Calendar</em> lists every calendar. Each one has its <strong>name</strong> (the assistant knows them by it: «put it in Work»),
+<strong>colour</strong>, <strong>Show in the agenda</strong> and a <strong>Reminder for new events</strong>. <strong>Default calendar</strong> is where new events go when you
+do not say another one.</p>
+<ul>
+<li><strong>New calendar</strong>: your own (Work, Family…), kept on this PC and in its backups.</li>
+<li><strong>Subscribe to an .ics</strong>: a read-only calendar from an address, read every so often (15 minutes by default). It is the
+way to see Outlook, or Google without connecting the account (<em>Where to find the .ics address</em> explains how). The
+address is kept encrypted: a secret calendar address lets anybody who has it read the calendar.</li>
+<li><strong>Google</strong>: connect the account in <em>Settings → Accounts → Google</em> (calendar only, or read and edit), then <strong>Show its
+calendars</strong> and choose which ones. Google asks for your own free application (a <em>Client ID</em>); <em>How to get the Client ID</em>
+walks you through it. K-Desktop never sees your password: you sign in in the browser.</li>
+</ul>
+<h2 id="reminders">Reminders</h2>
+<p><em>Settings → Calendar → Reminders</em> chooses <strong>How it reminds you</strong>: an <strong>on-screen message (OSD)</strong>, a <strong>notification</strong>
+(with <em>Join</em> when the event has a meeting link) or <strong>an assistant says it</strong> (if it is on the desktop; otherwise an OSD).
+<strong>Google reminders here too</strong> is off by default, because the phone already gives them. <strong>Try a reminder</strong> shows one.</p>
+<h2 id="actions-and-events">Actions and events</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Create event</strong> (action)</td>
+<td>Adds an event at a time or in a while, with title, location and notes that can have variables</td>
+</tr>
+<tr>
+<td><strong>Join the meeting</strong> (action)</td>
+<td>Opens the link of the current meeting (from 10 minutes before it starts) or the next one</td>
+</tr>
+<tr>
+<td><strong>Calendar event</strong> (event)</td>
+<td>Some minutes before an event, when it starts or when it ends: from a calendar, with a word in the title, online meetings only, with a location… The commands get <code>{appointment}</code>, <code>{appointment_time}</code>, <code>{appointment_place}</code>, <code>{appointment_notes}</code>, <code>{appointment_link}</code> and <code>{appointment_calendar}</code></td>
+</tr>
+</tbody>
+</table>
+<p><em>10 minutes before a Work meeting: do not disturb and open Teams.</em></p>
+<h2 id="the-assistants">The assistants</h2>
+<p>With the <a href="../assistant/index.html">Assistant module</a>, the tools <strong>Check the calendar</strong>, <strong>Add an event</strong>, <strong>Change an
+event</strong> and <strong>Delete an event</strong>: «what do I have tomorrow?», «put the dentist on Friday at 5», «move the meeting to 11»,
+«cancel Thursday's dinner». Adding never asks, changing asks until you say «don't ask again», and deleting always asks;
+all three can be undone.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

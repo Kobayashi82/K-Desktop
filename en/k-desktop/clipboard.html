@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Clipboard history | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Clipboard history | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/clipboard.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="clipboard-history">Clipboard history</h1>
+
+<p>K-Desktop keeps what you copy (texts, pictures and files) so you can paste it again, and it can be used instead of
+Windows' own history.</p>
+<h2 id="opening-it">Opening it</h2>
+<ul>
+<li>With its hotkey, in <em>Settings → Clipboard</em>. If you set it to <strong>Win + V</strong>, this history opens instead of Windows'
+one.</li>
+<li>From the tray: <strong>Clipboard history</strong>.</li>
+<li>From a command or a QuickMenu: the <strong>Clipboard</strong> action with <strong>Show the history</strong>.</li>
+<li>From the <a href="quickmenu-launcher.html">launcher</a>: what you copied shows among the results (Enter pastes it).</li>
+</ul>
+<p>In any text of an action or of <a href="texts.html">Texts</a>, <code>{clipboard:2}</code> is what was copied before the last one (<code>:3</code>, <code>:4</code>…
+further back).</p>
+<p>It opens next to the mouse. Type to search and choose with ↑ ↓:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enter (or click)</td>
+<td>Pastes it in the window where you were</td>
+</tr>
+<tr>
+<td>Shift + Enter</td>
+<td>Pastes it without format</td>
+</tr>
+<tr>
+<td>Ctrl + 1…9</td>
+<td>Pastes that row</td>
+</tr>
+<tr>
+<td>Ctrl + P (or the row's pin)</td>
+<td>Pins it (or unpins it)</td>
+</tr>
+<tr>
+<td>Del</td>
+<td>Deletes it from the history</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td>Changes the filter: All, Text, Pictures, Files, Pinned</td>
+</tr>
+<tr>
+<td>Esc</td>
+<td>Closes it</td>
+</tr>
+</tbody>
+</table>
+<p>With a right click: paste, paste without format, <strong>paste with a change</strong> (upper case, lower case, each word capitalised,
+remove extra spaces, clean links), copy without pasting, open the picture or the files' folder, pin and delete.</p>
+<h2 id="options">Options</h2>
+<p>In <em>Settings → Clipboard</em>:</p>
+<ul>
+<li><strong>Keep what you copy</strong>: off, nothing new is kept. From the tray, <strong>Pause the history</strong> stops it for a while.</li>
+<li><strong>Pictures</strong>: copied pictures too (up to 20 MB each).</li>
+<li><strong>Assistants can read it</strong>: to ask them «what did I copy before?»; they only see the texts.</li>
+<li><strong>How many to keep</strong> (200 by default) and <strong>Delete after days</strong> (0: never). Pinned ones always stay.</li>
+<li><strong>Don't keep what is copied in</strong>: programs whose copies are never kept; password managers by default.</li>
+<li><strong>Clear the history</strong>: deletes everything but the pinned ones.</li>
+</ul>
+<h2 id="privacy">Privacy</h2>
+<ul>
+<li>It is kept encrypted for your Windows user and only on this PC (it is not in the backups).</li>
+<li>It never keeps what a program marks as private (password managers do) nor what K-Desktop pastes in passing, like the
+long texts of <a href="texts.html">Texts</a>.</li>
+<li>While K-Desktop is paused it keeps nothing either.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

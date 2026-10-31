@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace KDesktop.Assistant.Sdk | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace KDesktop.Assistant.Sdk | K-Desktop ">
+      
+      
+      <link rel="icon" href="../images/favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="KDesktop.Assistant.Sdk">
+
+  <h1 id="KDesktop_Assistant_Sdk" data-uid="KDesktop.Assistant.Sdk" class="text-break">Namespace KDesktop.Assistant.Sdk</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.AssistantStates.html">AssistantStates</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.CaptionButtons.html">CaptionButtons</a></dt>
+      <dd><p>The minimize, maximize/restore and close buttons of a window, when they can be found.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.CommonSettings.html">CommonSettings</a></dt>
+      <dd><p>The settings every assistant has the same way (<a class="xref" href="KDesktop.Assistant.Sdk.IAssistantHost.html#KDesktop_Assistant_Sdk_IAssistantHost_Common">Common</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.html">Gesture</a></dt>
+      <dd><p>What the module wants to achieve; the assistant decides how. An assistant that only knows
+<a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Communicate.html">Gesture.Communicate</a> and <a class="xref" href="KDesktop.Assistant.Sdk.Gesture.React.html">Gesture.React</a> already works: for the rest the module falls back to
+Communicate and performs the action itself.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.ActivateWindow.html">Gesture.ActivateWindow</a></dt>
+      <dd><p>Bring a window to the front (perch on it, knock on the door…). Commit when it should happen.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Announce.html">Gesture.Announce</a></dt>
+      <dd><p>it is about to say something on its own (a timer that rang, «avísame cuando» that happened, «Asistente:
+decir»), so it catches the user's eye first: it comes closer to the cursor, waves, blinks… The host waits for it
+(at most <a class="xref" href="KDesktop.Assistant.Sdk.IGestureContext.html#KDesktop_Assistant_Sdk_IGestureContext_TimeLeft">TimeLeft</a>, about 2 s; half a second in «Fast») and then speaks with
+<a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Communicate.html">Gesture.Communicate</a>: end as soon as it is done. Nothing to Commit.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Communicate.html">Gesture.Communicate</a></dt>
+      <dd><p>The generic one: stay visible while the host shows <code class="paramref">Text</code> in the bubble.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.GoTo.html">Gesture.GoTo</a></dt>
+      <dd><p>Go somewhere (fly, walk, teleport).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Mark.html">Gesture.Mark</a></dt>
+      <dd><p>Leave a mark somewhere for a while (beacon, flag, alarm clock), with an optional label.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.MoveWindow.html">Gesture.MoveWindow</a></dt>
+      <dd><p>Move a window to <code class="paramref">Destination</code>. Either move it frame by frame with
+<a class="xref" href="KDesktop.Assistant.Sdk.IWindowServices.html#KDesktop_Assistant_Sdk_IWindowServices_TryMove_System_Int64_KDesktop_Assistant_Sdk_PixelRect_">TryMove(long, PixelRect)</a> and return <a class="xref" href="KDesktop.Assistant.Sdk.GestureOutcome.html#KDesktop_Assistant_Sdk_GestureOutcome_PerformedSelf">PerformedSelf</a> (K-Desktop then puts
+it exactly in place), or call Commit and let the module move it. If <code class="paramref">Window</code> is maximized it
+arrives already restored by a previous PressButton(Restore).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.PointAt.html">Gesture.PointAt</a></dt>
+      <dd><p>Point at a window, a point or an area (a spotlight, an arm…).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.PressButton.html">Gesture.PressButton</a></dt>
+      <dd><p>Press a caption button. Call <a class="xref" href="KDesktop.Assistant.Sdk.IGestureContext.html#KDesktop_Assistant_Sdk_IGestureContext_Commit">Commit()</a> at the moment of the effect (when the shot
+hits): the window minimizes right then.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.React.html">Gesture.React</a></dt>
+      <dd><p>A short reaction to how something went. <a class="xref" href="KDesktop.Assistant.Sdk.Gesture.React.html#KDesktop_Assistant_Sdk_Gesture_React_Context">Context</a> says where it comes from, how many in a
+row and whether it is the first of the day, so the same reaction need not look the same every time.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Scan.html">Gesture.Scan</a></dt>
+      <dd><p>Sweep an area (screenshot, reading the screen).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Typing.html">Gesture.Typing</a></dt>
+      <dd><p>Pretend to type into a window (keys or text are being sent to it).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Gesture.WaitForWindow.html">Gesture.WaitForWindow</a></dt>
+      <dd><p>Something was just opened: wait for its window. <a class="xref" href="KDesktop.Assistant.Sdk.IGestureContext.html#KDesktop_Assistant_Sdk_IGestureContext_Appeared">Appeared</a> completes with the new
+window (or null when it does not show up in time).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.HitShape.html">HitShape</a></dt>
+      <dd><p>The shape of a hit area, in screen pixels.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.HitShape.Ellipse.html">HitShape.Ellipse</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.HitShape.Polygon.html">HitShape.Polygon</a></dt>
+      <dd><p>Any polygon (a rotated body, for example).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.HitShape.Rectangle.html">HitShape.Rectangle</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.MonitorInfo.html">MonitorInfo</a></dt>
+      <dd><p>A monitor: its bounds, its work area (without the taskbar) and its scaling (1.0 = 100 %).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.OtherAssistant.html">OtherAssistant</a></dt>
+      <dd><p>Another assistant on the desktop (<a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html#KDesktop_Assistant_Sdk_IWorld_Others">Others</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Place.html">Place</a></dt>
+      <dd><p>A place on the desktop a gesture refers to.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Place.Area.html">Place.Area</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Place.AtPoint.html">Place.AtPoint</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Place.Clock.html">Place.Clock</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Place.OfWindow.html">Place.OfWindow</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Place.Tray.html">Place.Tray</a></dt>
+      <dd><p>The notification area of the taskbar, near the clock (volume, network, power…).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.PointerEvent.html">PointerEvent</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ReactionContext.html">ReactionContext</a></dt>
+      <dd><p>The context of a <a class="xref" href="KDesktop.Assistant.Sdk.Gesture.React.html">Gesture.React</a>, filled by the host.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Rope.html">Rope</a></dt>
+      <dd><p>A rope (cable, hook line, leash) simulated with Verlet integration, in screen pixels like everything else.
+The start is always held (by the assistant); the end hangs free or is held too (stuck in a window, on a projectile).
+It only resists stretching, so it sags and goes slack, and it never gets longer than <a class="xref" href="KDesktop.Assistant.Sdk.Rope.html#KDesktop_Assistant_Sdk_Rope_MaxLength">MaxLength</a> while
+its end is free. It steps itself at a fixed 120 Hz whatever the frame rate, so it behaves the same on any screen.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ShowcaseItem.html">ShowcaseItem</a></dt>
+      <dd><p>One of its own animations, for the showcase: a dance, a trick, the way it plays with a ball… What the host
+already asks of every assistant (entrances, exits, states, reactions, gestures) is not listed: the host launches those
+itself. K-Desktop shows these in the assistant's «Try» tab and in the catalog, and asks for one with
+<a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_PlayShowcaseAsync_System_String_System_Threading_CancellationToken_">PlayShowcaseAsync(string, CancellationToken)</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SpeechText.html">SpeechText</a></dt>
+      <dd><p>What it says, for <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_ShowSpeech_KDesktop_Assistant_Sdk_SpeechText_">ShowSpeech(SpeechText)</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.StateDetail.html">StateDetail</a></dt>
+      <dd><p>The detail of a state (<a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_SetState_KDesktop_Assistant_Sdk_AssistantState_KDesktop_Assistant_Sdk_StateDetail_">SetState(AssistantState, StateDetail)</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.html">SystemEvent</a></dt>
+      <dd><p>Things that happen on the PC, delivered to <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_OnSystemEvent_KDesktop_Assistant_Sdk_SystemEvent_">OnSystemEvent(SystemEvent)</a> on the engine thread. They
+are what lets an assistant react on its own (the Lander jumps when a notification appears, goes to sleep when
+the user leaves…). <a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html#KDesktop_Assistant_Sdk_IWorld_Current">Current</a> is already up to date when one arrives.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.FastScroll.html">SystemEvent.FastScroll</a></dt>
+      <dd><p>The user scrolled hard (several quick notches of the wheel), anywhere. <code class="paramref">Strength</code> 0…1, positive
+downwards; <code class="paramref">Position</code> is the cursor's.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.FullscreenChanged.html">SystemEvent.FullscreenChanged</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.HourStruck.html">SystemEvent.HourStruck</a></dt>
+      <dd><p>The clock struck an hour (local time).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.MonitorsChanged.html">SystemEvent.MonitorsChanged</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.NotificationShown.html">SystemEvent.NotificationShown</a></dt>
+      <dd><p>A Windows notification (toast) appeared at <code class="paramref">Bounds</code>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.PauseChanged.html">SystemEvent.PauseChanged</a></dt>
+      <dd><p>K-Desktop was paused or resumed.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.PowerChanged.html">SystemEvent.PowerChanged</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.QuietModeChanged.html">SystemEvent.QuietModeChanged</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.RecycleBinEmptied.html">SystemEvent.RecycleBinEmptied</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.ThemeChanged.html">SystemEvent.ThemeChanged</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.UserIdle.html">SystemEvent.UserIdle</a></dt>
+      <dd><p>No input for <code class="paramref">Seconds</code> (raised at 60 s and then every few minutes).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.UserReturned.html">SystemEvent.UserReturned</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.WheelTurned.html">SystemEvent.WheelTurned</a></dt>
+      <dd><p>One turn of the mouse wheel, only while the assistant asks for them (<a class="xref" href="KDesktop.Assistant.Sdk.IPointer.html#KDesktop_Assistant_Sdk_IPointer_WatchWheel">WatchWheel</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.WindowActivated.html">SystemEvent.WindowActivated</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.WindowClosed.html">SystemEvent.WindowClosed</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.WindowMoved.html">SystemEvent.WindowMoved</a></dt>
+      <dd><p>A window moved or changed size (raised once it settles, not for every pixel).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemEvent.WindowOpened.html">SystemEvent.WindowOpened</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SystemState.html">SystemState</a></dt>
+      <dd><p>What the host knows about the user and the PC right now. Read it at any time from the engine thread.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.TaskbarInfo.html">TaskbarInfo</a></dt>
+      <dd><p>The taskbar of one monitor and, on the main one, the notification area and the clock.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Variety-1.html">Variety&lt;T&gt;</a></dt>
+      <dd><p>A set of variants to choose from at random: several entrances, reactions, idle animations or lines, so
+the assistant does not do the same thing every time. Each variant has a weight (how often it comes up compared with
+the others) and a cooldown (seconds it rests after being picked). It never picks the same one twice in a row while
+there is another to choose. Give it a seed in tests to always get the same sequence.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.WindowInfo.html">WindowInfo</a></dt>
+      <dd><p>A visible top-level window as the window manager sees it.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.WorldExtensions.html">WorldExtensions</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.WorldSnapshot.html">WorldSnapshot</a></dt>
+      <dd><p>A picture of the desktop at one moment. Immutable: a new one is made whenever something changes
+(<a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html#KDesktop_Assistant_Sdk_IWorld_Changed">Changed</a>).</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.MusicBeat.html">MusicBeat</a></dt>
+      <dd><p>The beat of the music playing (<a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html#KDesktop_Assistant_Sdk_IWorld_Music">Music</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.PixelRect.html">PixelRect</a></dt>
+      <dd><p>A rectangle in physical screen pixels (the virtual desktop: every monitor, whatever its scaling). All the
+coordinates the SDK hands out or takes are in these units.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.TickInfo.html">TickInfo</a></dt>
+      <dd></dd>
+    </dl>
+    <h3 id="interfaces">
+Interfaces
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html">IAssistant</a></dt>
+      <dd><p>An assistant: a character that lives on the desktop. The host (K-Desktop's assistant process) loads it from its
+package, gives it the world and its services, and asks it for gestures; the assistant never sees the AI, the
+tools, the pipe or K-Desktop.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IAssistantHost.html">IAssistantHost</a></dt>
+      <dd><p>Everything the host offers an assistant. Use it from the engine thread unless a member says otherwise.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IAssistantLog.html">IAssistantLog</a></dt>
+      <dd><p>Its lines go to K-Desktop's assistant log, prefixed with its id.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IAudio.html">IAudio</a></dt>
+      <dd><p>Sound. The host mixes everything and applies the user's volume for assistants.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IGestureContext.html">IGestureContext</a></dt>
+      <dd><p>What the module gives an assistant while it performs a gesture.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IHitArea.html">IHitArea</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IKeyboard.html">IKeyboard</a></dt>
+      <dd><p>The keyboard, for assistants with a manual mode (the Lander's game). Reading the state is always allowed;
+capturing keys makes K-Desktop swallow them so the application in front does not get them as well.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ILoop.html">ILoop</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IPointer.html">IPointer</a></dt>
+      <dd><p>The mouse. The overlay lets every click through; to be clickable an assistant places hit areas over its body
+(invisible windows with that shape). Their events arrive at <a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_OnPointer_KDesktop_Assistant_Sdk_PointerEvent_">OnPointer(PointerEvent)</a>.
+The right button is the host's: it opens the assistant menu (talk, write, extras, settings…).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IRendering.html">IRendering</a></dt>
+      <dd><p>Drawing services. The host keeps one transparent overlay over every monitor that never takes the mouse or the
+focus; each surface is a small canvas on it that the compositor moves for free.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ISound.html">ISound</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ISurface.html">ISurface</a></dt>
+      <dd><p>A canvas on the overlay. Call <a class="xref" href="KDesktop.Assistant.Sdk.ISurface.html#KDesktop_Assistant_Sdk_ISurface_Present_KDesktop_Assistant_Sdk_PixelRect_System_Action_System_Windows_Media_DrawingContext__">Present(PixelRect, Action&lt;DrawingContext&gt;)</a> only when something changed: the last frame stays on screen (also
+after the GPU is lost or comes back from a full-screen game), so an assistant at rest presents nothing and costs nothing.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IWindowServices.html">IWindowServices</a></dt>
+      <dd><p>Moving and changing windows from the assistant process.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.IWorld.html">IWorld</a></dt>
+      <dd><p>The desktop as the host sees it.</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.AnnounceReason.html">AnnounceReason</a></dt>
+      <dd><p>Why an assistant is about to speak on its own (<a class="xref" href="KDesktop.Assistant.Sdk.Gesture.Announce.html">Gesture.Announce</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.AssistantActivity.html">AssistantActivity</a></dt>
+      <dd><p>What the module is busy with, besides its state: what a character may show it doing.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.AssistantState.html">AssistantState</a></dt>
+      <dd><p>States the module tells the assistant about; each assistant shows them its own way.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.CaptionButton.html">CaptionButton</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.EntranceKind.html">EntranceKind</a></dt>
+      <dd><p>Why an assistant comes onto the desktop (<a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_Enter_KDesktop_Assistant_Sdk_EntranceKind_">Enter(EntranceKind)</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ExitKind.html">ExitKind</a></dt>
+      <dd><p>Why an assistant leaves the desktop (<a class="xref" href="KDesktop.Assistant.Sdk.IAssistant.html#KDesktop_Assistant_Sdk_IAssistant_ExitAsync_KDesktop_Assistant_Sdk_ExitKind_System_Threading_CancellationToken_">ExitAsync(ExitKind, CancellationToken)</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ExtraState.html">ExtraState</a></dt>
+      <dd><p>How one of its extras shows in its menu and its panel (<a class="xref" href="KDesktop.Assistant.Sdk.IAssistantHost.html#KDesktop_Assistant_Sdk_IAssistantHost_SetExtraState_System_String_KDesktop_Assistant_Sdk_ExtraState_">SetExtraState(string, ExtraState)</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.GestureKind.html">GestureKind</a></dt>
+      <dd><p>The gesture names, as listed in the «gestures» of the «traits» of assistant.json
+(camelCase there: &quot;pointAt&quot;, &quot;pressButton&quot;…).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.GestureOutcome.html">GestureOutcome</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ManoeuvreSpeed.html">ManoeuvreSpeed</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.PointerCursor.html">PointerCursor</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.PointerEventKind.html">PointerEventKind</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.Reaction.html">Reaction</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ReactionSource.html">ReactionSource</a></dt>
+      <dd><p>Where a reaction comes from.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.ShowcaseGroup.html">ShowcaseGroup</a></dt>
+      <dd><p>Groups of the showcase for an assistant's own animations (<a class="xref" href="KDesktop.Assistant.Sdk.ShowcaseItem.html">ShowcaseItem</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.SurfaceLayer.html">SurfaceLayer</a></dt>
+      <dd><p>Where a surface goes in the stacking order of the overlay.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="KDesktop.Assistant.Sdk.WindowCommand.html">WindowCommand</a></dt>
+      <dd><p>What <a class="xref" href="KDesktop.Assistant.Sdk.IWindowServices.html#KDesktop_Assistant_Sdk_IWindowServices_TryCommand_System_Int64_KDesktop_Assistant_Sdk_WindowCommand_">TryCommand(long, WindowCommand)</a> does to a window.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

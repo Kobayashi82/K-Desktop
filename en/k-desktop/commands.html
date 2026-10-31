@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Commands | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Commands | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/commands.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="commands">Commands</h1>
+
+<p>A <strong>command</strong> is a list of actions with a name. It can be run by a hotkey, from a QuickMenu, the launcher, your voice,
+your phone, the network, an event, another command or an assistant.</p>
+<p><img src="../../images/en/action-window.png" alt="A command being edited"></p>
+<h2 id="hotkeys">Hotkeys</h2>
+<p>A hotkey is any combination of keys, mouse buttons and the wheel: <code>CTRL + ALT + O</code>, <code>F13</code>, <code>Mouse 5</code>,
+<code>Mouse 4 + Mouse 1</code>, <code>CTRL + Wheel Up</code>… To record one, click the hotkey box and press it. A command can have several.</p>
+<ul>
+<li><strong>For one program only</strong>: limit the command to some programs (by their process name). When the same hotkey exists
+globally and for one program, the specific one wins inside that program and the global one everywhere else.</li>
+<li><strong>Disable in</strong>: in <em>Settings → Disable in</em> you list programs (games, remote desktops…) where K-Desktop's hotkeys do
+nothing. The action <em>Disable in current app</em> toggles it for the program in front.</li>
+<li>K-Desktop warns you when a hotkey is already used by another command, by K-Desktop itself or by an assistant.</li>
+</ul>
+<h3 id="hot-corners-and-mouse-gestures">Hot corners and mouse gestures</h3>
+<p>Next to <strong>Add hotkey</strong> there are two more buttons:</p>
+<ul>
+<li><strong>Screen corner</strong>: choose one of the four (↖ ↗ ↙ ↘) and the command runs when you rest the mouse there for a moment.
+Any corner where the cursor stops counts, also the one left loose by a taller or shifted screen; where two screens meet
+there is no corner. It never fires with a button held or in full screen.</li>
+<li><strong>Mouse gesture</strong>: a drawing of one stroke (←, →, ↑, ↓, C, L, N, S, U, V, Λ, W, M, Z or a circle) made holding the
+right button (or the middle one, Mouse 4 or Mouse 5). If you click without moving, or hold it still, the button works as always; Esc while
+drawing cancels it. The gesture window has a box to try the drawings with the left button, and <strong>Draw your own</strong>: give
+it a name and draw it three times.</li>
+</ul>
+<p>The wait in the corner, the gesture button, showing the stroke and the programs without gestures are in
+<em>Settings → Mouse</em>.</p>
+<h2 id="actions">Actions</h2>
+<p>Each command has a list of actions that run in order: open a program, place a window, send keys, change the volume, wait,
+run another command… See the <a href="actions.html">complete list of actions</a>.</p>
+<p><img src="../../images/en/action-picker.png" alt="Choosing an action"></p>
+<ul>
+<li>Each action can be switched off without deleting it, and its order changed by dragging.</li>
+<li><strong>Run</strong> in the editor tries the command at once.</li>
+<li>A command that takes a while (a wait, a macro, a script it waits for…) shows a ▶ in the list while it is running, and
+next to the number of commands you see how many are running: click it to see them or <strong>stop them all</strong>. <strong>Run</strong> turns
+into <strong>Stop</strong> while that command is still running.</li>
+<li>Two commands cannot have the same name (nor two events, QuickMenus, macros or K-Board profiles): if you type one that
+already exists, the previous name stays.</li>
+<li>An action that opens something chooses whether it runs <strong>as administrator or as a normal user</strong>.</li>
+</ul>
+<h2 id="if-conditions">If… (conditions)</h2>
+<p>The <strong>If…</strong> action checks something and, if it is not so, stops the command, skips the next actions or <strong>runs another command instead</strong> (chosen from the list; it gets the same <a href="actions.html#variables-passing-data-from-one-action-to-another">variables</a>). It can check:</p>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A program is open / is in front</td>
+<td>«If Steam is open»</td>
+</tr>
+<tr>
+<td>A time and days</td>
+<td>«If it's Monday to Friday from 9:00 to 18:00»</td>
+</tr>
+<tr>
+<td>A device is connected</td>
+<td>«If the Xbox controller is connected»</td>
+</tr>
+<tr>
+<td>The sound plays through a device / something is playing</td>
+<td>«If sound plays through the headphones»</td>
+</tr>
+<tr>
+<td>A network</td>
+<td>«If connected to HomeWiFi», «If there's no network»</td>
+</tr>
+<tr>
+<td>Battery or mains</td>
+<td>«If running on battery»</td>
+</tr>
+<tr>
+<td>A host answers</td>
+<td>«If 192.168.1.10 answers»</td>
+</tr>
+<tr>
+<td>A file exists</td>
+<td>«If D:\backup.lock exists»</td>
+</tr>
+<tr>
+<td>The clipboard</td>
+<td>«If the clipboard contains &quot;http&quot;»</td>
+</tr>
+<tr>
+<td>CPU, GPU or memory use</td>
+<td>«If the processor is above 80 %»</td>
+</tr>
+<tr>
+<td>Battery below a %</td>
+<td>«If the battery is below 20 %»</td>
+</tr>
+<tr>
+<td>Screens plugged in</td>
+<td>«If there are 2 screens or more»</td>
+</tr>
+<tr>
+<td>It is daytime</td>
+<td>«If it is daytime», «If it is night» (between sunrise and sunset where you are)</td>
+</tr>
+<tr>
+<td>A text or variable: has something, contains, is equal to, is greater or less than</td>
+<td>«If {result} contains &quot;error&quot;», «If {result} is greater than 80»</td>
+</tr>
+</tbody>
+</table>
+<p>Every condition can be turned around with <strong>The opposite</strong> («isn't», «doesn't»…). When comparing, numbers are compared as numbers
+(«7» is less than «10»; «2,5» and «2.5» are the same) and text without minding upper or lower case.</p>
+<h2 id="history">History</h2>
+<p><em>History</em> lists everything that ran: which command, when, from where (hotkey, menu, launcher, voice, phone, network,
+event, assistant, MCP server, command line…) and whether it went well.</p>
+<p><img src="../../images/en/history.png" alt="History"></p>
+<h2 id="organising">Organising</h2>
+<ul>
+<li><strong>Search</strong> by name, hotkey or action, and <strong>filter</strong> the list: all commands, those in no QuickMenu, or those of one
+QuickMenu.</li>
+<li><strong>Enable or disable</strong> a command, <strong>hide</strong> it from the list (it still works), <strong>duplicate</strong> it or delete it (it also leaves
+the QuickMenus it was in).</li>
+<li><strong>Available for remote control</strong>: whether the phone and the network can see and run it.</li>
+<li><strong>Icon</strong>: automatic (from its first action), a built-in vector icon in any colour, a Windows icon library, any image or a
+website's favicon.</li>
+<li>In the editor, <strong>Test only this action</strong> runs one action alone.</li>
+</ul>
+<h3 id="export-and-import">Export and import</h3>
+<p>A command, a macro, a K-Board profile, an event, a QuickMenu, a layout or a text can be taken on its own to another PC (or
+kept apart) with
+<strong>Export…</strong>, from the list's right-click menu. It saves a <code>.kdx</code> file
+with everything it needs: the commands an event runs, the macros, QuickMenus, K-Board profiles, layouts and events a
+command uses, the commands of a menu or of a profile… and your own icons, sounds and gestures.</p>
+<p>To bring it in: <strong>Import…</strong> in the right-click menu of any of those lists (also in the empty space under the rows), or
+drop the <code>.kdx</code> on the K-Desktop window. It never overwrites anything:</p>
+<ul>
+<li>What you already have, the same, is used as it is.</li>
+<li>If you already have something but with changes, it asks: <strong>Add as a copy</strong> (it comes in apart, and so does what uses it,
+so it works as it was exported) or <strong>Use mine</strong>.</li>
+<li>A name that already exists gets a number («Greeting 2») and a hotkey you already use is left out.</li>
+</ul>
+<p>When it is done it opens what came in. From outside: <code>KDesktop.exe --import &quot;file.kdx&quot;</code>.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

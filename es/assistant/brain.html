@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Cerebro (la IA) | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Cerebro (la IA) | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/assistant/brain.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="cerebro-la-ia">Cerebro (la IA)</h1>
+
+<p>Los asistentes te entienden con un modelo de IA. Va <strong>en tu PC</strong> con <code>llama-server</code> (de llama.cpp), o en otro servidor que
+ya tengas, como Ollama, llama-swap o LM Studio. <em>Opciones → Asistente → Cerebro</em>.</p>
+<p><img src="../../images/es/brain.png" alt="Opciones → Cerebro"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Sin ningún modelo los asistentes siguen funcionando: las frases fijas (la hora, los temporizadores, las notas,
+«recuerda que…»), tus comandos y las reglas de ventanas y programas no necesitan IA. Elige <strong>Sin IA (solo reglas y tus
+comandos)</strong> para dejarlo así.</p>
+</div>
+<h2 id="dónde-se-piensa-la-respuesta">Dónde se piensa la respuesta</h2>
+<p>La página te dice adónde va lo que dices:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>En este PC</strong></td>
+<td>Lo que le dices no sale del ordenador</td>
+</tr>
+<tr>
+<td><strong>En otro equipo de tu red</strong></td>
+<td>Lo que le dices no sale de casa</td>
+</tr>
+<tr>
+<td><strong>En internet</strong></td>
+<td>Lo que le dices sale de tu red</td>
+</tr>
+</tbody>
+</table>
+<h2 id="modelos-de-este-pc">Modelos de este PC</h2>
+<ol>
+<li><strong>Dónde están los modelos de este PC → llama-server → Añadir llama-server…</strong>: el <code>llama-server.exe</code> que abre los
+modelos. Si tiene una carpeta <code>models</code> al lado, también se busca ahí. Con varios, cada modelo se abre con el de su
+carpeta o el más cercano; si no, con el normal (<em>Hacerlo el normal</em>).</li>
+<li><strong>Carpetas con modelos</strong>: se buscan los archivos <code>.gguf</code> que haya dentro. Una de ellas es donde van <em>los que descargas</em>
+(<em>Abrir</em>, o moverla a otro sitio).</li>
+<li><strong>Añadir modelo</strong>: pega el enlace de un modelo de Hugging Face o escribe su nombre (<code>unsloth/Qwen3.5-9B-GGUF</code>, o
+<code>unsloth/Qwen3.5-9B-GGUF:Q4_K_M</code> para una cuantización). Cada archivo dice si <strong>cabe</strong> en tu gráfica, va <strong>justo</strong> o <strong>no
+cabe (irá lento)</strong>; el más grande que cabe ya viene elegido. Los modelos que ven imágenes ofrecen también su parte de
+visión.</li>
+</ol>
+<p>La lista <strong>Modelos</strong> enseña los de este PC y los de los otros servidores, el que está en memoria en verde, con <em>Cargar</em>,
+<em>Liberar</em>, <em>Borrar</em> y <strong>Opciones de llama-server</strong> solo para ese modelo (por ejemplo <code>-c 32768</code> para más contexto).</p>
+<h2 id="otros-servidores">Otros servidores</h2>
+<p><em>Otros servidores → Añadir</em>: Ollama, o cualquier servidor compatible con OpenAI (llama-swap, LM Studio…), en este PC o en
+otro, con su dirección y, solo si la pide, una clave de API (se guarda cifrada para tu usuario). <em>Probar</em> dice cuántos
+modelos tiene. Sus modelos salen en la misma lista.</p>
+<h2 id="elegir-el-modelo">Elegir el modelo</h2>
+<table>
+<thead>
+<tr>
+<th>Ajuste</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Modelo</strong></td>
+<td><em>Automático</em>: el más grande que cabe en tu gráfica. O uno concreto, o <em>Sin IA</em></td>
+</tr>
+<tr>
+<td><strong>Para pensar más</strong></td>
+<td>El que usa cuando dices «piénsalo bien», cuando el modelo ve que no le basta o cuando le dices que se ha equivocado. <em>El mismo modelo</em> (razonando antes de contestar), otro modelo, o <em>Nunca</em>. Con otro modelo, <strong>Razonar antes de contestar</strong> decide si razona primero o contesta tal cual (tarda menos)</td>
+</tr>
+<tr>
+<td></td>
+<td>Los dos tienen <strong>Examinar…</strong> (un <code>.gguf</code> de cualquier carpeta) y <strong>Cargar</strong> cuando el elegido no está en memoria</td>
+</tr>
+<tr>
+<td><strong>Cuánto razona al pensar más</strong></td>
+<td>Poco, normal, mucho (solo cuando razona). Más va mejor con lo difícil, pero tarda más</td>
+</tr>
+<tr>
+<td><strong>Descargarlo tras</strong></td>
+<td>Tanto tiempo sin usarlo, sale de la memoria (o <em>Nunca</em>: solo si se lo pides). Volver a cargarlo tarda unos segundos</td>
+</tr>
+<tr>
+<td><strong>Un modelo a la vez</strong></td>
+<td>Al cargar uno, se descargan los demás. Apagado, se quedan varios mientras quepan</td>
+</tr>
+<tr>
+<td><strong>Visión</strong></td>
+<td>Los modelos que ven imágenes se cargan con su parte de visión (ocupa un poco más)</td>
+</tr>
+<tr>
+<td><strong>Liberar la gráfica al jugar</strong></td>
+<td>Con un juego a pantalla completa, el modelo sale de la gráfica. Una película no cuenta. Se vuelve a cargar al hablarle</td>
+</tr>
+</tbody>
+</table>
+<p>Cada asistente puede pensar con <strong>su propio modelo</strong> (<em>su ficha → Básico → Piensa con</em>, y otro propio para pensar más: <em>Global</em>, <em>El mismo modelo</em> o uno de la lista, con
+su casilla para razonar o no, y cuánto razona). El
+paquete de un asistente puede sugerir un modelo: la ficha de instalación y su pestaña <em>Básico</em> ofrecen descargarlo (nunca
+marcado de entrada), solo si cabe y no lo tienes.</p>
+<h2 id="liberar-la-gráfica">Liberar la gráfica</h2>
+<p>El modelo se carga solo al hablar con un asistente, ya mientras dices la orden. Para sacarlo de la memoria:</p>
+<ul>
+<li><strong>Liberar</strong>, junto a él, arriba de la página;</li>
+<li>di o escribe «descarga el cerebro» / «descarga el modelo» (y «carga el cerebro» para tenerlo listo);</li>
+<li>la acción <strong>Asistente: cerebro</strong> en un comando o un evento (antes de un juego, un render…).</li>
+</ul>
+<h2 id="pensar-más">Pensar más</h2>
+<p>Los modelos pequeños contestan al momento, pero pueden fallar una cuenta o un acertijo. Pídele «piénsalo bien»,
+«piénsalo mejor» o «piénsalo otra vez» (antes o después de la pregunta), o dile «está mal»: lo piensa más y lo comprueba.
+Un modelo grande también puede decidir solo pensarlo más. Tarda más: hasta medio minuto.</p>
+<h2 id="probar-modelo">Probar modelo</h2>
+<p>Al final de la página, <strong>Probar modelo</strong> le da al modelo una lista de órdenes de prueba y te dice cuántas acierta y cuánto
+tarda de media. No se ejecuta nada de verdad. <strong>Abrir el banco</strong> abre <code>Assistant\bench.json</code>, para escribir tus propias
+órdenes.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

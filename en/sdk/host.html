@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>What the host gives | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="What the host gives | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/sdk/host.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="what-the-host-gives">What the host gives</h1>
+
+<p>The host is the assistant process. Through <code>IAssistantHost</code> it gives the assistant everything it can see and use; the AI,
+the tools, the voice and K-Desktop stay out of sight.</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>World</code></td>
+<td>Windows, monitors, taskbar, the other assistants, music, the system state (<code>IWorld</code>)</td>
+</tr>
+<tr>
+<td><code>Rendering</code></td>
+<td>Drawing surfaces over the whole desktop</td>
+</tr>
+<tr>
+<td><code>Pointer</code></td>
+<td>Click areas and the mouse wheel</td>
+</tr>
+<tr>
+<td><code>Keyboard</code></td>
+<td>Keys, and capturing them while playing</td>
+</tr>
+<tr>
+<td><code>Audio</code></td>
+<td>Its sounds</td>
+</tr>
+<tr>
+<td><code>Windows</code></td>
+<td>Moving and changing windows (<code>IWindowServices</code>)</td>
+</tr>
+<tr>
+<td><code>Settings</code>, <code>Common</code></td>
+<td>Its settings and the <a href="getting-started.html#common-settings">common ones</a></td>
+</tr>
+<tr>
+<td><code>Language</code></td>
+<td>The language it speaks in</td>
+</tr>
+<tr>
+<td><code>DataDirectory</code>, <code>PackageDirectory</code></td>
+<td>Its data folder (kept between versions and in backups) and its package</td>
+</tr>
+<tr>
+<td><code>PublishPanel</code>, <code>Notify</code>, <code>SetExtraState</code>, <code>ExtraHotkey</code>, <code>SetVoiceMood</code></td>
+<td>Its panel, a notice, its extras, its voice's mood</td>
+</tr>
+<tr>
+<td><code>RequestTick</code>, <code>Post</code>, <code>Log</code></td>
+<td>Wake up sooner, run something on the engine thread, write to <code>assistant.log</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="drawing">Drawing</h2>
+<p>One drawing system: surfaces with WPF's drawing API. <code>Rendering.CreateSurface()</code> gives a surface; <code>Present(area, dc =&gt; …)</code>
+draws a frame on it, in screen pixels. Only present when something changes: the last frame stays on screen (the host
+repeats it after the GPU is lost or a full-screen game ends). <code>Rendering.FrameInterval</code> is the length of a frame of the
+monitor.</p>
+<h2 id="the-bubble">The bubble</h2>
+<p>When the assistant says something (<code>Communicate</code>), the host draws the bubble with the text, pointing at <code>BubbleAnchor</code>
+(usually the top of its head; null when it is not visible) and following it while it moves, for as long as it takes to read.
+The assistant only plays its «talking» gesture, or nothing: the bubble shows anyway.</p>
+<p>A middle click on the character opens the box to write to it (so does <em>Write to …</em> in its right-click menu): left clicks
+and double clicks are yours. Holding the left button down without moving it (450 ms) is talking to it: you get <code>Down</code> and
+<code>Up</code>, but no <code>Click</code> or drag. The right button never reaches you: it opens its menu.</p>
+<h3 id="its-own-text">Its own text</h3>
+<p>With <code>&quot;speech&quot;: &quot;own&quot;</code> in the manifest you draw what it says yourself (a bubble of your own, a sign, words inside a
+cloud…). The host calls <code>ShowSpeech(SpeechText)</code> each time the answer grows while it is being written (<code>Finished</code> false),
+with all of it when it is ready (<code>Finished</code> true), and again with a later <code>Until</code> while your voice is still saying it; each
+call replaces the one before. Show it until <code>HideSpeech</code> comes: the host still keeps the timing, the voice and the chat.</p>
+<p><code>Text</code> is plain text and arrives whole even when long: cut it to what fits (all of it is in the chat). If you cannot show
+it now (hidden, in the middle of a manoeuvre, it does not fit), return <code>false</code>: the host shows its bubble for the rest of
+that answer. On its card the user can choose <em>Always use K-Desktop's speech bubble</em>, and then nothing reaches you.</p>
+<h3 id="long-answers">Long answers</h3>
+<p>When the user asks for something long («explain it in detail», «make me a list») or the answer does not fit a bubble, the
+bubble, your own text and the voice get only a short summary; K-Desktop shows the whole text on a reading sheet next to
+your <code>BubbleAnchor</code>. Nothing to do on your side.</p>
+<h2 id="states">States</h2>
+<p><code>SetState(state, detail)</code> says what the module is doing, to show it your way (the Lander lights its antenna and shows an
+icon; the template changes colour):</p>
+<table>
+<thead>
+<tr>
+<th><code>AssistantState</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Idle</code></td>
+<td>Back to rest</td>
+</tr>
+<tr>
+<td><code>Listening</code></td>
+<td>Its word, its key to talk or the long click: it is listening. With <code>detail.Activity</code> = <code>Dictation</code>, K-Desktop is typing what the user says</td>
+</tr>
+<tr>
+<td><code>Thinking</code></td>
+<td>The AI is working on an answer</td>
+</tr>
+<tr>
+<td><code>ThinkingHard</code></td>
+<td>The AI thinks it over, slowly: it may take half a minute</td>
+</tr>
+<tr>
+<td><code>LoadingBrain</code></td>
+<td>Its model is being loaded into memory before it can think</td>
+</tr>
+<tr>
+<td><code>NoBrain</code></td>
+<td>The order needed the AI and there is none; it comes right before <code>Speaking</code>, which says so (a shrug)</td>
+</tr>
+<tr>
+<td><code>Speaking</code></td>
+<td>It is answering</td>
+</tr>
+<tr>
+<td><code>AwaitingConfirmation</code></td>
+<td>A yes/no question is waiting for the user (the small window that asks for permission)</td>
+</tr>
+<tr>
+<td><code>Busy</code></td>
+<td>One of its tools or a command is running: <code>detail.Activity</code> says which (<code>SearchingWeb</code>, <code>ReadingWeb</code>, <code>Files</code>, <code>Notes</code>, <code>Memory</code>, <code>Weather</code>, <code>Music</code>, <code>Timer</code>, <code>Screen</code>, <code>Command</code>…; an MCP server's or the user's own: <code>Other</code> with <code>detail.Tool</code>)</td>
+</tr>
+<tr>
+<td><code>Sleeping</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><code>detail.Text</code> says it in its language («Searching the web»), in case you write it yourself. Later versions may add
+activities: treat those you do not know as <code>Other</code>.</p>
+<h2 id="sound">Sound</h2>
+<p><code>IAudio</code>: <code>Load</code> (floating-point samples, mono or stereo, any rate) or <code>LoadWav</code> (from the package), <code>Play</code> with gain and
+pan, and <code>Loop</code> with live gain, pitch and pan (for an engine). The host mixes it all under the user's volume; the device
+is only open while something plays. With sound off, <code>Enabled</code> is false and everything plays silence.</p>
+<h2 id="click-areas">Click areas</h2>
+<p><code>Pointer.CreateHitArea(id)</code>, each with its <code>id</code>, which arrives in <code>PointerEvent.Area</code> (with several —the body and some toys,
+say— give them different names; without an id it is <code>body</code>). Place it with a shape (<code>HitShape</code>) wherever the character is.
+Over the area the cursor is the one you say (<code>Cursor</code>: arrow, hand, grab) or one you draw: <code>SetCursorImage(image, hotspot)</code>
+with a <code>BitmapSource</code> in monitor pixels (Windows cursors are 32 px at 100 %; Kobii shows a brush while being brushed);
+<code>null</code> goes back to the usual one. <code>OnPointer</code> gets entering, leaving, clicks and drags.</p>
+<h2 id="files-dropped-on-it">Files dropped on it</h2>
+<p>Click areas take files dragged from the Explorer. They reach <code>OnPointer</code> as <code>FilesOver</code> (over it: the moment to reach
+out), <code>FilesAway</code> (they left without being dropped, or the user pressed Escape) and <code>FilesDropped</code> (the moment to catch
+them), with the full paths in <code>PointerEvent.Files</code>. It is only the animation: what to do with them is decided by
+K-Desktop. They are never taken as «move»: the file stays where it was.</p>
+<p>While the files are over your assistant, K-Desktop hides the picture Windows draws under the cursor and leaves only a small
+label, «Give it to <name>». That picture reaches you in <code>PointerEvent.Preview</code> (a frozen <code>BitmapSource</code> in screen pixels;
+null if the source program gave none), to show it your way: smaller, in its hands, hanging from a beam… The Lander holds it
+with its tractor beam, Kobii raises it over its hands, assistants without code carry it over their head. Not showing it is
+fine too.</name></p>
+<h2 id="keyboard-and-wheel">Keyboard and wheel</h2>
+<ul>
+<li><code>IKeyboard</code>: <code>IsDown</code> always; <code>Capture</code> makes K-Desktop swallow those keys (pressed without Ctrl, Alt or Win, so
+shortcuts still work) while playing, and their changes reach <code>KeyChanged</code>. <code>Release</code> when done (they are also released
+if the assistant leaves, the process crashes or K-Desktop is paused).</li>
+<li><code>SystemEvent.FastScroll</code> arrives when the user turns the wheel hard (with the cursor position); each notch
+(<code>SystemEvent.WheelTurned</code>, with the window under the cursor) only with <code>Pointer.WatchWheel = true</code>: it costs a message
+per notch, so only while it matters.</li>
+</ul>
+<h2 id="windows">Windows</h2>
+<p><code>IWindowServices</code>: <code>TryMove</code> (a window's visible part, for frame-by-frame dragging) and <code>TryCommand</code> (minimise, maximise,
+restore, bring to front —those of an administrator process, and bringing to front, are done by K-Desktop for you—),
+<code>GetCaptionButtons</code> (from DWM), <code>Thumbnail</code> (a frozen picture of the window) and <code>AppIcon</code> (its program's icon).</p>
+<h2 id="the-world">The world</h2>
+<ul>
+<li><code>World.Current</code>: the monitors (bounds, work area, scaling), the windows with their bounds and the taskbars; <code>Changed</code>
+when it changes. <code>World.System</code>: the cursor and its speed, seconds without keyboard or mouse, the window in front, full
+screen… <code>OnSystemEvent</code> for what happens: a window opened, moved, activated or closed, a notification, the user left
+or came back, full screen, power and battery, the theme, the hour striking, the recycle bin emptied (with where its icon
+is, or null)…</li>
+<li><strong>Room for everyone</strong>: say where your body is with <code>BodyBounds</code> (only the body: no particles, bubbles or effects; null when
+not visible). <code>World.Others</code> says where each of the others is and whether it is on its way somewhere (<code>Moving</code>). Before
+landing, stopping or walking to a place, look at <code>World.TakenBy(rectangle)</code>: it gives the one that stays there, or null
+when it is free. Passing in front is fine; staying on top is not.</li>
+<li><strong>Music</strong>: with <code>World.ListenToMusic(true)</code>, <code>World.Music</code> says whether music with a beat is playing (<code>Playing</code>; a voice
+or noise does not count), its beats per minute (<code>Bpm</code>) and the beat (<code>BeatAt(tick.Now)</code>: it grows by one per beat and its
+fraction is the phase, 0 = the hit), to dance in time. The host reads each program's volume meter (nothing is recorded),
+without the assistants' own sounds. It takes some 3 s to find the beat. Stop listening when you are not visible.</li>
+</ul>
+<h2 id="helpers">Helpers</h2>
+<ul>
+<li><strong><code>Variety&lt;T&gt;</code></strong>: not to do the same thing every time (entrances, reactions, idle animations). Each variant with its
+weight (<code>Add(x, weight: 2)</code> comes up twice as often; 0 = never) and its cooldown in seconds. <code>Pick()</code> picks at random by
+weight, never the same twice in a row while there is another, and if all are resting gives the one ready soonest;
+<code>TryPick</code> gives nothing then. <code>Pick(x =&gt; …)</code> picks only among those that fit now. <code>Use</code>, <code>CooldownLeft</code>, <code>Reset</code>; with a
+<code>seed</code> the sequence is always the same (tests).</li>
+<li><strong><code>Rope</code></strong>: a Verlet rope in screen pixels for hooks, cables and leashes. You hold its <code>Start</code>; its end hangs
+(<code>ReleaseEnd</code>, with the speed you let it go at) or is held (<code>PinEnd</code>). It only resists stretching, never goes past
+<code>MaxLength</code> with a loose end and steps at a fixed 120 Hz (<code>Step(tick.Elapsed)</code>), so it behaves the same at any frame
+rate. <code>Length</code> to reel in or let out, <code>Gravity</code>, <code>Damping</code>, <code>IsTaut</code>, <code>Overstretch</code>, <code>Pull</code> (what a towed window follows).
+<code>Draw(dc, pen)</code> draws it; <code>Bounds(margin)</code> gives the size of the surface.</li>
+</ul>
+<p>See the <a href="../../api/KDesktop.Assistant.Sdk.html">API reference</a> for every type.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

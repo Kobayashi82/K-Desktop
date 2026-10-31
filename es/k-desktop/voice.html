@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Voz | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Voz | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/voice.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="voz">Voz</h1>
+
+<p>K-Desktop entiende órdenes habladas <strong>en tu PC</strong>: ni el audio ni el texto salen de él, y no hace falta internet.</p>
+<p><img src="../../images/es/settings-voice.png" alt="Opciones → Voz"></p>
+<h2 id="prepararla">Prepararla</h2>
+<ol>
+<li><em>Opciones → Voz → Modelos de voz → Descargar</em>. Se descargan una vez: <strong>Parakeet</strong> (de voz a texto, muchos
+idiomas), <strong>Silero</strong> (detecta cuándo hablas), el detector de la palabra de activación y <strong>EmbeddingGemma</strong> (encuentra el
+comando por su significado). Cargados, ocupan unos 700 MB de RAM; se pueden liberar tras unos minutos sin usarlos
+(Parakeet no, mientras haya una palabra de activación escuchando: así la comprueba al momento).</li>
+<li>Elige el <strong>micrófono</strong> (o el predeterminado de Windows).</li>
+<li>Graba una <strong>palabra de activación</strong> (<em>Opciones → Palabras de activación → Añadir palabra</em>) o pon un <strong>atajo para hablar</strong>.</li>
+</ol>
+<h2 id="hablarle">Hablarle</h2>
+<ul>
+<li><strong>Atajo</strong>: mantenlo pulsado mientras dices qué hacer («abre la papelera»), o púlsalo una vez y habla: acaba cuando dejas
+de hablar. Pulsarlo otra vez acaba antes; Esc cancela.</li>
+<li><strong>Palabra de activación</strong>: con <em>Escucha continua</em>, di la palabra y la orden seguidas («K-Desktop, abre el navegador»), o
+solo la palabra y espera a «Escuchando…».</li>
+</ul>
+<p><img src="../../images/es/voice-heard-closeup.png" alt="Lo que ha oído"></p>
+<p>Se ejecuta el comando que nombras. Se encuentra <strong>por su nombre</strong> (también cuando el reconocimiento se equivoca un poco) o
+<strong>por su significado</strong> («pon algo de música» encuentra tu comando «Spotify»). A un comando le puedes enseñar más frases.</p>
+<h2 id="palabras-de-activación">Palabras de activación</h2>
+<p>En <em>Opciones → Palabras de activación</em> grabas tu propia palabra con tu voz, en unos segundos, con un pequeño asistente: un poco de silencio, la palabra varias
+veces y un poco de habla normal para que aprenda lo que <em>no</em> es la palabra.</p>
+<p><img src="../../images/es/wake-wizard-recording.png" alt="Grabar una palabra de activación"></p>
+<ul>
+<li>Cada palabra es de <strong>K-Desktop</strong> (tus comandos), de <strong>un asistente</strong>, o de nadie (no se escucha).</li>
+<li><strong>Sensibilidad</strong>: más a la derecha la pilla con más facilidad, pero también puede saltar sin que la digas. <strong>Probar</strong> te
+dice qué tal va.</li>
+<li><em>Responder más rápido</em>: si el detector no tiene dudas, contesta sin comprobarlo con Parakeet.</li>
+<li>No sale nada (ni «Escuchando…», ni el sonido, ni baja la música) hasta que comprueba que de verdad era la palabra.</li>
+<li>Dicha a mitad de frase («le estaba enseñando a mi hermano el Lander») entiende que hablas <em>de</em> él, no <em>con</em> él, y no
+hace nada.</li>
+</ul>
+<h2 id="mientras-hablas">Mientras hablas</h2>
+<ul>
+<li><strong>Ignorar lo que suena en el PC</strong>: la cancelación de eco quita del micrófono la música y las películas, para que te
+entienda aunque suene algo.</li>
+<li><strong>Bajar el volumen mientras hablas</strong>: los demás programas bajan hasta que acaba la orden (con un asistente, hasta que
+termina de contestar).</li>
+<li><strong>Sonido al escuchar</strong>.</li>
+</ul>
+<h2 id="música-vídeos-y-volumen">Música, vídeos y volumen</h2>
+<p><em>Opciones → Multimedia</em>: órdenes como «reproduce», «pausa», «siguiente», «sube el volumen», «volumen al 30» funcionan sin
+crear ningún comando, en cualquiera de los idiomas instalados. Usan las teclas multimedia, así que valen con cualquier
+reproductor que las atienda: la música, el navegador, una película («pausa la película»).</p>
+<h2 id="dictado">Dictado</h2>
+<p>La acción <em>Dictar</em> (y su propio atajo en <em>Opciones → Voz</em>) escribe lo que dices donde está el cursor, sin IA. Di «nueva
+línea», «punto y aparte», «borra eso» o «deja de dictar»; también acaba tras unos segundos de silencio o con Esc.</p>
+<p>Con <em>Iniciar el dictado con la voz</em> encendido (<em>Opciones → Voz</em>, debajo del atajo para dictar), también se empieza
+como una orden de voz: «vamos a dictar», «empieza a dictar», «escribe lo que te diga».</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Without code | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Without code | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/sdk/no-code.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="without-code">Without code</h1>
+
+<p>An assistant can be just pictures and JSON: instead of an assembly, its <code>entry</code> is a <code>character.json</code>
+(<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/character.schema.json">schema</a>) and
+K-Desktop moves it.</p>
+<p>It stands on the taskbar or on top of the windows, strolls now and then (and sometimes falls off the edge of a window),
+follows the window it stands on, can be dragged and dropped, sleeps when you are away, and plays an animation for each
+thing: listening to you, thinking, talking in its bubble, being glad or sorry about what happened, a click. It talks,
+thinks and uses tools like any other assistant; its voice and personality are set in <em>Personality</em> and <em>Voice</em>. With
+several assistants on the desktop it never stays on top of another.</p>
+<p>Nothing of the package runs: K-Desktop only reads its pictures and sounds, and its install card says it has no code.
+<strong>Pip</strong> (<a href="https://github.com/Kobayashi82/K-Desktop/tree/main/samples/CharacterAssistant"><code>samples/CharacterAssistant</code></a>) is a
+complete example.</p>
+<h2 id="the-files">The files</h2>
+<pre><code>MyCharacter\
+  assistant.json      &quot;entry&quot;: &quot;character.json&quot;, &quot;traits&quot;: { &quot;travel&quot;: &quot;walk&quot;, &quot;gestures&quot;: [&quot;communicate&quot;, &quot;react&quot;, &quot;announce&quot;] }
+  character.json
+  icon.png
+  frames\idle0.png …  PNG with transparency, all the same height
+  sounds\hello.wav    optional
+</code></pre>
+<pre><code class="lang-json">{
+  &quot;height&quot;: 80,
+  &quot;faces&quot;: &quot;right&quot;,
+  &quot;walkSpeed&quot;: 60,
+  &quot;animations&quot;: {
+    &quot;idle&quot;: { &quot;frames&quot;: [&quot;frames/idle0.png&quot;, &quot;frames/idle1.png&quot;], &quot;fps&quot;: 2 },
+    &quot;walk&quot;: { &quot;strip&quot;: &quot;frames/walk.png&quot;, &quot;frames&quot;: 6, &quot;fps&quot;: 10 },
+    &quot;talk&quot;: { &quot;frames&quot;: [&quot;frames/talk0.png&quot;, &quot;frames/talk1.png&quot;], &quot;fps&quot;: 8, &quot;sound&quot;: &quot;sounds/hello.wav&quot; }
+  }
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>height</code></td>
+<td>Its height at 100 % size; every frame is drawn this tall. Its feet are the bottom edge of the picture, unless <code>ground</code> says otherwise</td>
+</tr>
+<tr>
+<td><code>ground</code></td>
+<td>Transparent rows under its feet in the pictures (pixels of the pictures, 0 by default). That much of each picture goes below the ground, so the feet touch it (a shadow under the feet can be left there)</td>
+</tr>
+<tr>
+<td><code>faces</code></td>
+<td>The way the pictures look; walking the other way, they are mirrored</td>
+</tr>
+<tr>
+<td><code>walkSpeed</code></td>
+<td>How fast it walks</td>
+</tr>
+<tr>
+<td><code>animations</code></td>
+<td>The animations, by name (below)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="animations">Animations</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>idle</code></td>
+<td>At rest (<strong>the only required one</strong>)</td>
+</tr>
+<tr>
+<td><code>walk</code></td>
+<td>Walking</td>
+</tr>
+<tr>
+<td><code>talk</code>, <code>listen</code>, <code>think</code></td>
+<td>Talking in its bubble, listening to you, thinking</td>
+</tr>
+<tr>
+<td><code>happy</code>, <code>sad</code>, <code>surprised</code></td>
+<td>How it went: well, badly, or a surprise</td>
+</tr>
+<tr>
+<td><code>click</code></td>
+<td>You clicked it</td>
+</tr>
+<tr>
+<td><code>drag</code>, <code>fall</code></td>
+<td>Picked up with the mouse, falling</td>
+</tr>
+<tr>
+<td><code>sleep</code></td>
+<td>You are away</td>
+</tr>
+<tr>
+<td><code>enter</code>, <code>exit</code></td>
+<td>Coming onto the desktop and leaving</td>
+</tr>
+<tr>
+<td><code>announce</code></td>
+<td>Before saying something on its own (a timer, a notice): it walks towards the mouse first</td>
+</tr>
+<tr>
+<td><code>catch</code></td>
+<td>Files dropped on it (while they are over it, it carries their picture over its head)</td>
+</tr>
+</tbody>
+</table>
+<p>A missing one uses another: <code>think</code> → <code>listen</code> → <code>idle</code>, <code>click</code> → <code>happy</code> → <code>idle</code>, <code>announce</code> and <code>catch</code> → <code>happy</code>,
+<code>drag</code> → <code>fall</code> → <code>idle</code>…</p>
+<p>Each animation has:</p>
+<ul>
+<li><code>frames</code> (a list of pictures) <strong>or</strong> <code>strip</code> + <code>frames</code> (one strip of N frames of the same width);</li>
+<li><code>fps</code>;</li>
+<li><code>loop</code>: by default all repeat except <code>happy</code>, <code>sad</code>, <code>surprised</code>, <code>click</code>, <code>enter</code>, <code>exit</code>, <code>announce</code> and <code>catch</code>;</li>
+<li><code>sound</code>: a WAV played when it starts.</li>
+</ul>
+<h2 id="variants">Variants</h2>
+<p>Instead of one animation, a list. Each time it plays, K-Desktop picks one by its <code>weight</code> (twice the weight, twice as
+often; 1 by default), respecting its <code>cooldown</code> (seconds it rests after coming up), and never repeating the last one for
+those that play once; those that repeat (<code>idle</code>, <code>walk</code>, <code>talk</code>…) pick again at the end of each round.</p>
+<p>In <code>enter</code> and <code>exit</code>, <code>when</code> says which reason each one is for: <code>startup</code> (K-Desktop starts or the module is switched
+on) and <code>summoned</code> (the user puts it on the desktop); <code>dismissed</code> (the user hides it) and <code>uninstalling</code> (it is removed).
+With none for that reason there is no entrance or exit; coming back after a reload (a new version, another language) never
+has one.</p>
+<pre><code class="lang-json">&quot;idle&quot;: [
+  { &quot;frames&quot;: [&quot;frames/idle0.png&quot;, &quot;frames/idle1.png&quot;], &quot;fps&quot;: 2, &quot;weight&quot;: 6 },
+  { &quot;frames&quot;: [&quot;frames/look0.png&quot;, &quot;frames/look1.png&quot;], &quot;fps&quot;: 2, &quot;cooldown&quot;: 20 }
+],
+&quot;enter&quot;: [
+  { &quot;frames&quot;: [&quot;frames/wake0.png&quot;, &quot;frames/wake1.png&quot;], &quot;fps&quot;: 4, &quot;when&quot;: [&quot;startup&quot;] },
+  { &quot;frames&quot;: [&quot;frames/drop0.png&quot;, &quot;frames/drop1.png&quot;], &quot;fps&quot;: 8, &quot;when&quot;: [&quot;summoned&quot;] }
+]
+</code></pre>
+<h2 id="settings">Settings</h2>
+<p>Size, volume, how lively it is and whether it can be picked up with the mouse are set by the user on its card (the
+<a href="getting-started.html#common-settings">common settings</a>); a character takes them all.</p>
+<h2 id="making-the-package">Making the package</h2>
+<pre><code class="lang-powershell">tools\character\pack.ps1 &lt;folder&gt;
+</code></pre>
+<p>It zips the folder (with <code>assistant.json</code> at its root) into <code>&lt;id&gt;-&lt;version&gt;.kai</code> with the paths as K-Desktop wants them.
+Open it with K-Desktop to install it. To record clips of it for the catalog, see <a href="showcase.html#recording-them">Showcase</a>.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

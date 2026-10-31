@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Macros and K-Board | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Macros and K-Board | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/macros-kboard.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="macros-and-k-board">Macros and K-Board</h1>
+
+<h2 id="macros">Macros</h2>
+<p>A macro stores your keyboard and mouse input with its timing, to repeat it.</p>
+<p><img src="../../images/en/macros.png" alt="Macros"></p>
+<ol>
+<li><em>Macros → New macro</em>, then <strong>Record</strong>.</li>
+<li>Do what you want to repeat. <strong>Shift + Esc</strong> ends the recording (and stops a playback).</li>
+<li>Edit the steps if you want: press or release a key, type a text, click, move the mouse, turn the wheel, pause… each one
+with its time.</li>
+<li><strong>Test</strong> plays it once after 3 seconds. <strong>Create a command that plays it</strong> gives you a command ready to bind to a
+hotkey.</li>
+</ol>
+<p>Options:</p>
+<ul>
+<li><strong>Record mouse movements</strong>: when off, only clicks (with their position), the wheel and the keyboard are recorded.</li>
+<li><strong>Game mode</strong>: for games. Clicks do not move the pointer, the mouse is recorded as relative movement (what games read
+even when they lock the pointer) and keys and clicks are held for a moment so the game sees them. Games with
+anti-cheat may ignore any simulated input.</li>
+<li>The <em>Play macro</em> action plays it once or several times, in a loop or at another speed.</li>
+</ul>
+<h2 id="k-board">K-Board</h2>
+<p>K-Board changes what keys, mouse buttons and the wheel do, everywhere or only in the programs you choose: Caps Lock as
+Ctrl, the Windows key off in games, side buttons that copy and paste…</p>
+<p><img src="../../images/en/kboard.png" alt="K-Board"></p>
+<ul>
+<li>A <strong>profile</strong> is a set of remaps. Several can be on at the same time.</li>
+<li>Click a key or button on the drawn keyboard and mouse (or <strong>Press key</strong> to pick it) and choose what it does:
+<ul>
+<li><strong>another key, button or the wheel</strong>, held down while you hold the original one (it works for modifiers and in
+games);</li>
+<li><strong>a text</strong> to type, with any keyboard layout (line breaks press Enter);</li>
+<li><strong>a command</strong> (the key no longer reaches the program);</li>
+<li><strong>nothing</strong> (the key is disabled while the profile is on).</li>
+</ul>
+</li>
+<li><strong>With modifiers</strong>: tick Ctrl, Alt, Shift or Win to remap a combination (Ctrl + J) instead of the key itself.</li>
+<li><strong>Only in these applications</strong>: empty = everywhere; with programs, the profile only works while one of them is in front.</li>
+<li><strong>Always run</strong>: also in the programs of <em>Disable in</em> (a game), where the command hotkeys stay off but the keys are still
+changed.</li>
+<li>Switch a profile on and off here, from the tray, or from a command with the <em>K-Board</em> action (<strong>Create a command that
+switches this profile on and off</strong>).</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

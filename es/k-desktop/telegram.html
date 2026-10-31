@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Telegram | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Telegram | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/telegram.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="telegram">Telegram</h1>
+
+<p>K-Desktop puede tener su propia identidad en Telegram: le escribes desde el móvil para lanzar comandos o hablar con el
+asistente, te avisa de cosas (correos importantes, lo que mandan tus comandos) y tú decides quién más puede escribirle y qué
+puede hacer cada uno. Funciona sin el módulo Asistente; con él, Telegram es una forma más de hablar con los asistentes.</p>
+<p>Hay dos formas, y puedes tener las dos a la vez. Cada una tiene su página en <em>Opciones › Cuentas</em>, con su propio dueño, sus
+contactos y sus opciones:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Telegram Bot</strong></th>
+<th><strong>Telegram</strong> (una cuenta con número)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qué es</td>
+<td>Un bot que creas en dos minutos con @BotFather</td>
+<td>Una cuenta normal de Telegram, mejor con un teléfono solo para K-Desktop</td>
+</tr>
+<tr>
+<td>Escribe primero</td>
+<td>Solo a quien le escribió antes</td>
+<td>A cualquiera de sus contactos</td>
+</tr>
+<tr>
+<td>Botones</td>
+<td>Sí (comandos, Sí / No)</td>
+<td>No: las opciones van numeradas y se contesta con el número o la palabra</td>
+</tr>
+<tr>
+<td>Archivos</td>
+<td>Hasta 50 MB de salida y 20 MB de entrada</td>
+<td>Hasta 2 GB</td>
+</tr>
+</tbody>
+</table>
+<h2 id="el-bot">El bot</h2>
+<ol>
+<li><strong>Cómo crear el bot</strong> abre una guía paso a paso: en Telegram, abre @BotFather, mándale <code>/newbot</code>, dale un nombre y un
+usuario que acabe en «bot», y copia el <strong>token</strong> que te da.</li>
+<li><em>Opciones › Cuentas › Telegram Bot › Añadir un bot</em>, pega el token y <strong>Conectar</strong>. Se comprueba con Telegram antes de
+guardarlo, cifrado.</li>
+<li><strong>Vincular mi cuenta</strong>: manda al bot el código de 6 cifras que sale, o abre su enlace, o escanea el QR con el móvil.
+Desde entonces eres su <strong>dueño</strong>.</li>
+</ol>
+<h2 id="la-cuenta-con-número">La cuenta con número</h2>
+<ol>
+<li>Ten la cuenta en un teléfono (mejor una SIM de verdad que un número virtual).</li>
+<li><strong>Cómo conseguir el api_id y el api_hash</strong> abre la guía: Telegram pide una «aplicación» tuya, gratis, en my.telegram.org
+(<em>API development tools</em>); copias sus dos valores.</li>
+<li><em>Opciones › Cuentas › Telegram › Iniciar sesión</em>: el api_id, el api_hash y el número; después el código que Telegram
+manda a la app (o por SMS) y, si la cuenta tiene verificación en dos pasos, su contraseña. La sesión se guarda cifrada,
+solo para tu usuario en este PC. <strong>Cerrar sesión</strong> la cierra también en Telegram.</li>
+<li><strong>Vincular mi cuenta</strong>: desde tu Telegram, manda a la cuenta el código que sale (búscala por su número o su usuario).</li>
+</ol>
+<p>Telegram vigila las cuentas que escriben a mucha gente. K-Desktop va despacio a propósito (un mensaje cada poco más de un
+segundo y, de serie, como mucho 3 personas por hora que nunca le han escrito), nunca escribe en masa y avisa en la página
+si Telegram limita la cuenta durante un tiempo.</p>
+<h2 id="quién-puede-escribirle">Quién puede escribirle</h2>
+<p>El dueño puede hacer de todo. Los demás hacen lo que permite su <strong>nivel</strong>, también en los grupos; cuenta el nivel de quien
+escribe, no el del chat:</p>
+<table>
+<thead>
+<tr>
+<th>Nivel</th>
+<th>Qué puede hacer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ignorar</strong></td>
+<td>Nada: sus mensajes se descartan</td>
+</tr>
+<tr>
+<td><strong>Solo charla</strong></td>
+<td>Hablar con el asistente, sin herramientas</td>
+</tr>
+<tr>
+<td><strong>Comandos elegidos</strong></td>
+<td>Lanzar los comandos que elijas, sin IA</td>
+</tr>
+<tr>
+<td><strong>Herramientas que solo leen</strong></td>
+<td>Charla y herramientas que no cambian nada (el tiempo, la hora, buscar…)</td>
+</tr>
+<tr>
+<td><strong>Herramientas elegidas</strong></td>
+<td>Charla y las herramientas y comandos que elijas</td>
+</tr>
+<tr>
+<td><strong>Como tú</strong></td>
+<td>Lo mismo que tú en el PC</td>
+</tr>
+</tbody>
+</table>
+<p>Lo que pide confirmación te lo pregunta siempre <strong>a ti</strong>, nunca a quien lo pidió: en el PC si estás delante y, si no, por
+Telegram con <em>Sí</em> / <em>No</em>, que caducan a los 5 minutos sin hacer nada.</p>
+<ul>
+<li><strong>Contactos</strong>: cada uno con su nivel, <strong>K-Desktop puede escribirle</strong>, los comandos y herramientas elegidos, <strong>Quién le
+contesta</strong> y <strong>Cómo le contesta</strong>. En la cuenta, <strong>Añadir contacto</strong> lo trae de sus contactos de Telegram o lo añade
+<strong>Con su número</strong> (también a sus contactos de Telegram, para que pueda escribirle primero).</li>
+<li><strong>Alguien nuevo</strong> que escribe espera tu decisión: te avisa en el PC y por Telegram, con <strong>Permitir</strong>, <strong>Ignorar</strong> y
+<strong>Bloquear</strong>.</li>
+<li><strong>Todos los demás</strong>: el nivel de quien no es un contacto. Por encima de <em>Solo charla</em> hace falta <strong>Entiendo el riesgo</strong>:
+cualquiera que lo encuentre podría usar tu PC.</li>
+<li><strong>Límites</strong>: mensajes por minuto de cada uno, <strong>Solo yo mientras juego</strong> (con algo a pantalla completa solo te contesta a
+ti) y cuántos mensajes por hora a quien nunca le ha escrito.</li>
+<li><strong>Grupos</strong>: solo contesta si lo mencionan o le responden a un mensaje suyo; cada grupo se puede ignorar.</li>
+<li><strong>Bloqueados</strong>: sus mensajes se descartan sin decir nada y K-Desktop nunca les escribe.</li>
+</ul>
+<h2 id="comandos-desde-telegram">Comandos desde Telegram</h2>
+<p><code>/comandos</code> enseña los comandos que esa persona puede lanzar (como botones en el bot, numerados en la cuenta); escribir <code>/</code>
+y el nombre también lo lanza (<code>/modo_juego</code> lanza «Modo juego»: dan igual las mayúsculas, los acentos y los espacios).
+Contesta cómo fue («✓ Modo juego»). Las fotos, notas de voz y archivos que mandáis tú y tus contactos se guardan en
+<em>Descargas</em>.</p>
+<h2 id="hablar-con-el-asistente">Hablar con el asistente</h2>
+<p>Lo que se escribe sin <code>/</code> va al asistente (con el módulo Asistente encendido), con los límites de cada persona:</p>
+<ul>
+<li><strong>Quién contesta</strong>: el que está en pantalla o uno en concreto (y cada contacto puede tener el suyo).</li>
+<li><strong>Cómo contesta</strong>: <em>Como le escriben</em> (a una nota de voz, con voz; a un texto, con texto), <em>Con texto</em>, <em>Con su voz</em> (una
+nota de voz con la voz del asistente) o <em>Con texto y voz</em>.</li>
+<li>Las <strong>notas de voz</strong> se pasan a texto en tu PC (con los modelos de voz de <em>Opciones › Voz</em>); <strong>Decir lo que entendió</strong>
+contesta antes con ese texto. Una <strong>foto</strong> sin texto va al asistente para que la mire.</li>
+<li><strong>Decir lo que hizo</strong> pone debajo de la respuesta lo que hizo («✓ Abrió Spotify»).</li>
+</ul>
+<p>Los textos de otros son datos, no órdenes: en un grupo, con un mensaje reenviado o con un archivo de otra persona, lo que
+actúa te pregunta antes. Quien no es el dueño tiene su propia conversación y no ve la memoria del asistente.</p>
+<h2 id="cuál-escribe">Cuál escribe</h2>
+<ul>
+<li><strong>Contesta por donde le escribieron</strong>: al bot, el bot; a la cuenta, la cuenta.</li>
+<li>Para <strong>escribir primero</strong>, <em>Automático</em> usa la cuenta si esa persona es su dueño o uno de sus contactos y, si no, el bot.
+La acción <strong>Enviar por Telegram</strong> tiene <strong>Con</strong> (<em>Automático</em>, <em>El bot</em>, <em>La cuenta</em>), y al asistente le puedes decir «por
+el bot» o «por la cuenta».</li>
+<li><strong>Correos importantes</strong>: en <em>Avisos por Telegram</em> de cada página; si los dos lo tienen, llega una vez, por la cuenta.</li>
+</ul>
+<h2 id="acciones-eventos-y-herramientas">Acciones, eventos y herramientas</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enviar por Telegram</strong> (acción)</td>
+<td>A ti o a un contacto: un texto con variables, un archivo, una captura de pantalla o lo que hay en el portapapeles. A quién le llegó queda en <code>{resultado}</code></td>
+</tr>
+<tr>
+<td><strong>Llega un mensaje de Telegram</strong> (evento)</td>
+<td>Solo tus mensajes o los de alguien, con unas palabras, de un tipo (texto, nota de voz, foto o archivo). Los comandos reciben <code>{telegram_texto}</code>, <code>{telegram_de}</code>, <code>{telegram_archivo}</code> y <code>{telegram_id}</code></td>
+</tr>
+<tr>
+<td>Herramientas del asistente</td>
+<td><strong>Mandar un mensaje por Telegram</strong>, <strong>Mandar un archivo por Telegram</strong> (un archivo, una captura o lo último que llegó) y <strong>Leer Telegram</strong> (los últimos mensajes de un chat). Mandarte algo a ti pregunta hasta que digas «no volver a preguntar»; a cualquier otro, siempre</td>
+</tr>
+</tbody>
+</table>
+<p><em>Cuando me mande «nota …» desde el móvil, que la apunte en mis notas.</em></p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

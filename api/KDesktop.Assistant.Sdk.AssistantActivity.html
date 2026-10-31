@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Enum AssistantActivity | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Enum AssistantActivity | K-Desktop ">
+      
+      <meta name="description" content="What the module is busy with, besides its state: what a character may show it doing.">
+      <link rel="icon" href="../images/favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/new/main/apiSpec/new?filename=KDesktop_Assistant_Sdk_AssistantActivity.md&amp;value=---%0Auid%3A%20KDesktop.Assistant.Sdk.AssistantActivity%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="KDesktop.Assistant.Sdk.AssistantActivity">
+
+
+
+
+  <h1 id="KDesktop_Assistant_Sdk_AssistantActivity" data-uid="KDesktop.Assistant.Sdk.AssistantActivity" class="text-break">
+Enum AssistantActivity  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/States.cs/#L5"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><span class="xref">KDesktop</span>.<span class="xref">Assistant</span>.<a class="xref" href="KDesktop.Assistant.Sdk.html">Sdk</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>KDesktop.Assistant.Sdk.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>What the module is busy with, besides its state: what a character may show it doing.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public enum AssistantActivity</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h2 id="fields">Fields
+</h2>
+  <dl class="parameters">
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_None"><code>None = 0</code></dt>
+  
+  <dd><p>Nothing in particular (or nothing to tell).</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Other"><code>Other = 1</code></dt>
+  
+  <dd><p>Something not listed here: a tool of the user or of an MCP server (<a class="xref" href="KDesktop.Assistant.Sdk.StateDetail.html#KDesktop_Assistant_Sdk_StateDetail_Tool">Tool</a>).</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Command"><code>Command = 2</code></dt>
+  
+  <dd><p>Running, finding or explaining one of the user's K-Desktop commands, or an event.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Apps"><code>Apps = 3</code></dt>
+  
+  <dd><p>Opening, closing or controlling a program or a window, or ending a process.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_SearchingWeb"><code>SearchingWeb = 4</code></dt>
+  
+  <dd><p>Searching the internet.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_ReadingWeb"><code>ReadingWeb = 5</code></dt>
+  
+  <dd><p>Reading a web page.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_OpeningWeb"><code>OpeningWeb = 6</code></dt>
+  
+  <dd><p>Opening a web page in the user's browser.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Files"><code>Files = 7</code></dt>
+  
+  <dd><p>Looking for files, or opening one.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Notes"><code>Notes = 8</code></dt>
+  
+  <dd><p>Writing down a note, or looking for one.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Memory"><code>Memory = 9</code></dt>
+  
+  <dd><p>Remembering or forgetting something about the user.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Weather"><code>Weather = 10</code></dt>
+  
+  <dd><p>Looking at the weather.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Music"><code>Music = 11</code></dt>
+  
+  <dd><p>What is playing, or controlling the player.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Timer"><code>Timer = 12</code></dt>
+  
+  <dd><p>Setting or cancelling a timer.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Watching"><code>Watching = 13</code></dt>
+  
+  <dd><p>Setting a watch («avísame cuando…»), or stopping one.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Dictation"><code>Dictation = 14</code></dt>
+  
+  <dd><p>K-Desktop writes what the user says where the cursor is (with <a class="xref" href="KDesktop.Assistant.Sdk.AssistantState.html#KDesktop_Assistant_Sdk_AssistantState_Listening">Listening</a>).</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Screen"><code>Screen = 15</code></dt>
+  
+  <dd><p>Looking at the screen (reading its text or seeing it).</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Writing"><code>Writing = 16</code></dt>
+  
+  <dd><p>Rewriting a text: translating, correcting, summing up…</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_Calculating"><code>Calculating = 17</code></dt>
+  
+  <dd><p>Doing sums, converting units or money, working out dates.</p>
+</dd>
+    <dt id="KDesktop_Assistant_Sdk_AssistantActivity_System"><code>System = 18</code></dt>
+  
+  <dd><p>Looking at the PC (processor, memory, disks…) or freeing its brain.</p>
+</dd>
+  </dl>
+
+
+  <h2 id="KDesktop_Assistant_Sdk_AssistantActivity_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>New ones may come in later versions: show the ones it does not know as <a class="xref" href="KDesktop.Assistant.Sdk.AssistantActivity.html#KDesktop_Assistant_Sdk_AssistantActivity_Other">Other</a>.</p>
+</div>
+
+</article>
+
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

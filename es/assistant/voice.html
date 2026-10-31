@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Voz y conversaci&#243;n | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Voz y conversaci&#243;n | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/assistant/voice.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="voz-y-conversación">Voz y conversación</h1>
+
+<p>Además del bocadillo, los asistentes contestan <strong>en voz alta</strong>, cada uno con su voz. Las voces naturales se descargan una
+vez y van sin internet. <em>Opciones → Asistente → Voz</em>.</p>
+<p><img src="../../images/es/assistant-voice.png" alt="Opciones → Asistente → Voz"></p>
+<p>Para <em>hablarles</em> se usa el reconocimiento de voz de K-Desktop (palabras de activación, una tecla para hablar…): ver
+<a href="../k-desktop/voice.html">Voz</a> y <a href="index.html#hablarle">Hablarle</a>.</p>
+<h2 id="quién-habla">Quién habla</h2>
+<p><strong>Idioma en el que te hablan</strong>: te contestan en ese idioma aunque les hables en otro, y las voces que se ofrecen son de
+ese idioma (<em>El de K-Desktop</em>, o uno de los seis).</p>
+<table>
+<thead>
+<tr>
+<th>Motor</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Automático</strong></td>
+<td>Kokoro; si no, Piper; si no, las voces de Windows</td>
+</tr>
+<tr>
+<td><strong>Voz natural (Kokoro)</strong></td>
+<td>La más natural. Español, inglés, francés, italiano y portugués (alemán todavía no). Unos 325 MB, más medio megabyte por voz</td>
+</tr>
+<tr>
+<td><strong>Voz natural (Piper)</strong></td>
+<td>Voces en todos los idiomas, de 20 a 115 MB cada una; las de calidad alta suenan mejor (las de calidad baja no se ofrecen)</td>
+</tr>
+<tr>
+<td><strong>Voces de Windows</strong></td>
+<td>Sin descargas. Hay más en <em>Configuración de Windows → Hora e idioma → Voz</em></td>
+</tr>
+<tr>
+<td><strong>Solo pitidos</strong></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>No hablar (solo el bocadillo)</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Velocidad</strong> y <strong>Volumen de la voz</strong> van en la misma página. Las voces de cada motor (descargarlas y elegirlas) están en
+<em>Voz → Voces</em>:</p>
+<ul>
+<li><strong>Carpetas con tus voces</strong> de Kokoro: voces que ya tienes (<code>.pt</code> o <code>.bin</code>, con su nombre de Kokoro, como <code>af_bella</code>; el
+idioma sale de la primera letra) se usan desde ahí sin descargarlas, marcadas como <em>tuya</em>. Una que también está en la
+lista sale una sola vez. K-Desktop nunca borra nada ahí.</li>
+<li><strong>Voz de Kokoro</strong> y <strong>Mezclar con</strong>: dos voces mezcladas dan una nueva, a medio camino entre las dos (<em>Cuánto de …</em>).</li>
+<li><strong>Voz de Piper</strong> y su <strong>Variante</strong> (algunas voces tienen varias personas o formas de hablar). <strong>Carpetas con tus voces</strong>:
+las voces de Piper que ya tienes (<code>.onnx</code> con su <code>.onnx.json</code>) se usan desde ahí sin descargarlas, y K-Desktop nunca
+borra nada de ahí. <strong>Borrar las que no se usan</strong> libera sitio.</li>
+<li>Para algunos idiomas Kokoro, y Piper siempre, necesitan <strong>espeak-ng</strong> (licencia GPL, 9 MB), que se descarga aparte con
+la voz.</li>
+<li><strong>Voz de Windows</strong>: cuál de las que tiene Windows.</li>
+<li><strong>Probar esta voz</strong>, debajo de cada una: la frase de prueba con esa voz, tal cual (sin efectos).</li>
+</ul>
+<h2 id="cómo-suenan">Cómo suenan</h2>
+<p><strong>Cómo suenan</strong>: cada asistente trae su perfil (el Lander habla por radio, desde la Luna), o elige uno para todos:
+<em>Natural</em>, <em>Robot clásico</em>, <em>Marciano</em>, <em>Control de misión</em>, <em>8 bits</em>, <em>Pitidos</em>, o uno tuyo.</p>
+<p><strong>Probar</strong>: elige <em>quién lo dice</em> y <em>cómo lo dice</em> (normal, contento, tras un fallo) y pulsa <em>Probar</em>.</p>
+<h3 id="perfiles-de-voz">Perfiles de voz</h3>
+<p><em>Voz → Perfiles de voz</em> es la lista: los de serie y los tuyos, con <strong>Nuevo al azar</strong> e <strong>Importar…</strong>. Al pulsar uno se abre su
+editor en la misma página (<strong>← Perfiles de voz</strong> vuelve a la lista), con <strong>Duplicar</strong>, <strong>Exportar</strong> y, si es tuyo, <strong>Borrar</strong>.
+Los de serie se quedan como están: <strong>Duplica</strong> uno para hacer el tuyo. El icono de <strong>Usar para todos</strong> (en la lista y en el editor) pone ese perfil en
+<em>Cómo suenan</em> (resaltado mientras lo usan todos; pulsado otra vez, o si lo borras, cada asistente vuelve al suyo). La <strong>Voz</strong> del perfil solo cuenta si <em>Quién habla</em> está
+en <em>Automático</em>. Un perfil
+tiene una voz (el motor), velocidad y volumen, y una cadena de <strong>efectos</strong> por la que pasa siempre su voz, en orden
+(arrástralos por los puntos para cambiarlo):</p>
+<table>
+<thead>
+<tr>
+<th>Efecto</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tono</strong></td>
+<td>Más agudo o más grave</td>
+</tr>
+<tr>
+<td><strong>Formantes</strong></td>
+<td>El tamaño de la boca, sin cambiar el tono</td>
+</tr>
+<tr>
+<td><strong>Modulador en anillo</strong></td>
+<td>Robot clásico</td>
+</tr>
+<tr>
+<td><strong>Vocoder</strong></td>
+<td>Robot de sintetizador, en una nota</td>
+</tr>
+<tr>
+<td><strong>Reducción de bits</strong></td>
+<td>Robot de 8 bits</td>
+</tr>
+<tr>
+<td><strong>Radio</strong></td>
+<td>Banda estrecha y estática, con un pitido al final y un chasquido al abrir y cerrar</td>
+</tr>
+<tr>
+<td><strong>Coro</strong></td>
+<td>Voz metálica y temblorosa (marciano)</td>
+</tr>
+<tr>
+<td><strong>Flanger</strong></td>
+<td>Como el coro, más rápido y más hondo: un avión a reacción</td>
+</tr>
+<tr>
+<td><strong>Eco</strong></td>
+<td>De una cabina (corto) al espacio (largo)</td>
+</tr>
+<tr>
+<td><strong>Fallo</strong></td>
+<td>Cortes y repeticiones, como si estuviera roto</td>
+</tr>
+</tbody>
+</table>
+<p>Además de <em>Siempre</em>, un perfil puede añadir efectos para algunos momentos, como cuando el asistente está <strong>contento</strong> o
+<strong>tras un fallo</strong>. <em>Probar al cambiar algo</em> te deja oír cada cambio según lo haces. Los perfiles se pueden <strong>exportar</strong> e
+<strong>importar</strong> (<code>.json</code>).</p>
+<h2 id="cuándo-hablan-en-voz-alta">Cuándo hablan en voz alta</h2>
+<ul>
+<li><strong>Callar con algo a pantalla completa</strong>: con una película o un juego a pantalla completa, solo el bocadillo.</li>
+<li><strong>Más bajito de noche</strong>: de 22:00 a 8:00, la voz a la mitad del volumen.</li>
+<li><strong>Suenan desde donde están</strong>: suena más por el altavoz del lado en el que está el asistente.</li>
+</ul>
+<p>Mientras un asistente piensa y contesta, el volumen de los demás programas sigue bajado (con <em>Bajar el volumen mientras
+hablas</em>), y no toma su propia voz por una orden.</p>
+<h2 id="cada-asistente-lo-suyo">Cada asistente, lo suyo</h2>
+<p>En la ficha de cada asistente, <strong>Personalidad</strong> y <strong>Voz</strong>:</p>
+<ul>
+<li><strong>Idioma</strong>: en el que contesta y habla. Por defecto, el de <em>Opciones → Asistente → General → Idioma en el que te
+hablan</em> (te contestan en él aunque les hables en otro).</li>
+<li><strong>Personalidad</strong>: lo que le dice a la IA quién es y cómo habla. Cámbiala a tu gusto (<em>Restablecer</em> vuelve a la de su
+paquete).</li>
+<li><strong>Voz</strong>: motor, voz (solo la del motor elegido), perfil, y velocidad y volumen propios, o «Global». <em>Probar su voz</em>.</li>
+</ul>
+<p>El propio K-Desktop (el asistente sin personaje) tiene las mismas páginas.</p>
+<h2 id="la-conversación">La conversación</h2>
+<ul>
+<li><strong>Frases fijas</strong>, sin IA: «para» / «cancela» corta lo que está haciendo; «repite»; «deshaz eso»; «repite el último
+comando».</li>
+<li><strong>Preguntas de vuelta</strong>: si te pregunta algo («¿Chrome o Edge?») tras una orden hablada, escucha unos segundos tu
+respuesta, sin la palabra de activación.</li>
+<li><strong>Permiso de palabra</strong>: cuando algo pregunta antes, contesta «sí», «no» o «sí, y no vuelvas a preguntar».</li>
+<li><strong>«Piénsalo bien»</strong> hace que lo piense más; <strong>«está mal»</strong> hace que lo vuelva a comprobar (ver
+<a href="brain.html#pensar-m%C3%A1s">Cerebro</a>).</li>
+<li><strong>Mientras piensa</strong> puede decir «Un momento» si la respuesta tarda un poco.</li>
+<li><strong>«Escribe lo que te diga»</strong> empieza un dictado: lo que digas después se escribe donde está el cursor.</li>
+<li><strong>Todo queda en el chat</strong> de <em>Panel → Asistente</em>, lo hayas dicho como lo hayas dicho, con un botón <em>Parar</em>.</li>
+</ul>
+<h2 id="respuestas-largas">Respuestas largas</h2>
+<p>Cuando le pides algo largo («explícamelo bien», «hazme una lista», «escríbeme un correo», «resúmeme…») o la respuesta no
+cabe en un bocadillo, <strong>dice solo un resumen corto</strong> y escribe el texto entero en una <strong>hoja de lectura</strong> a su lado. Ahí
+puedes <strong>Copiar</strong>, <strong>Guardar como nota</strong> o que te lo lea (<em>Léemela</em> / <em>Parar</em>). <strong>Seguir en el chat</strong> abre la ventana de chat con ese asistente. En el chat, <em>Leer entero</em> la vuelve a
+abrir.</p>
+<h2 id="la-acción-asistente-decir">La acción «Asistente: decir»</h2>
+<p>En un comando o un evento, <strong>Asistente: decir</strong> hace que un asistente diga algo en su bocadillo y en voz alta, sin la IA
+(«Ha terminado la copia»). Antes de decir algo por su cuenta —un temporizador, un «avísame cuando»— el asistente primero te
+llama la atención (el Lander vuela hasta el ratón, Kobii se acerca andando); con esta acción, solo si está marcado <strong>Ir hacia
+el ratón antes de decirlo</strong>. Con <strong>Callar con algo a pantalla completa</strong> en su voz, mientras algo está a pantalla completa en
+cualquier monitor solo sale el bocadillo.</p>
+<p>Para que te <strong>lea lo seleccionado</strong>, escribe <code>{seleccion}</code> como texto y ponle un atajo al comando: selecciona un texto en
+cualquier programa, pulsa el atajo y el asistente lo lee con su voz. Un texto largo lo lee <strong>entero</strong>: en el bocadillo sale
+el principio y el texto completo queda en su hoja de lectura, al lado. Lo cortas como cualquier otra respuesta: «para»,
+«calla» u otra orden. Si no hay nada seleccionado, un aviso lo dice.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

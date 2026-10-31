@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Herramientas | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Herramientas | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/assistant/tools.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="herramientas">Herramientas</h1>
+
+<p>Las herramientas son lo que los asistentes pueden <em>hacer</em> cuando les pides algo: poner un temporizador, buscar un archivo,
+leer una web, cerrar un programa… En cada orden solo le llegan a la IA las pocas herramientas que vienen a cuento, así
+elige bien aunque haya cientos.</p>
+<p><em>Opciones → Asistente → Herramientas</em> las enseña todas —las incluidas, las tuyas y las de cada servidor MCP— con un
+buscador. Abre cada grupo para apagar las que no quieras, elegir <strong>cuándo pregunta</strong> antes de hacerlo (<em>Sin preguntar</em>,
+<em>La primera vez</em>, <em>Siempre</em>) o <strong>Probarla</strong> con un pequeño formulario.</p>
+<p><img src="../../images/es/tools.png" alt="Opciones → Herramientas"></p>
+<p>Todo lo que hace un asistente sale en <em>Panel → Asistente → Actividad</em> (la suya, o la de todos con <em>Todos</em>): qué, cómo
+(regla, comando, IA, memoria…) y si funcionó. Lo que se puede deshacer tiene su botón <strong>Deshacer</strong> (o di «deshaz eso»).</p>
+<h2 id="las-incluidas">Las incluidas</h2>
+<p><img src="../../images/es/tools-builtin.png" alt="Herramientas incluidas"></p>
+<table>
+<thead>
+<tr>
+<th>Tema</th>
+<th>Herramientas</th>
+<th>Por ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Comandos</strong></td>
+<td>Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Revisar un comando o evento · Mirar el registro · Ver tus estadísticas · Enseñar frases de voz · Lanzar un evento · Crear un evento · Parar una cuenta atrás</td>
+<td>«pon el modo juego», «cuando abra Steam pon el modo juego», «¿qué hace el comando de las copias?», «¿por qué no saltó el evento de las ocho?», «¿qué falló ayer?», «¿qué comando uso más?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador»</td>
+</tr>
+<tr>
+<td><strong>Hora, avisos y cuentas</strong></td>
+<td>Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora</td>
+<td>«avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad»</td>
+</tr>
+<tr>
+<td><strong>Notas y memoria</strong></td>
+<td>Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo</td>
+<td>«apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis»</td>
+</tr>
+<tr>
+<td><strong>Archivos</strong></td>
+<td>Buscar archivos · Abrir un archivo · Leer un archivo · Pasar un audio a texto · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos</td>
+<td>«búscame el pdf de la factura de la luz», «abre lo último que descargué»</td>
+</tr>
+<tr>
+<td><strong>Internet</strong></td>
+<td>Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web · Comprobar la red · Mandar al móvil</td>
+<td>«cuánto cuesta una RTX 5080», «resúmeme esta página», «¿hay internet?», «¿responde el NAS?», «mándame esta dirección al móvil»</td>
+</tr>
+<tr>
+<td><strong>Pantalla y textos</strong></td>
+<td>Mirar la pantalla · Traducir y corregir textos · Leer lo copiado · Buscar en lo copiado antes · Copiar un texto</td>
+<td>«qué error me sale», «tradúceme esto al inglés», «¿qué tengo copiado?», «busca el enlace que copié esta mañana», «cópiame el teléfono del fontanero»</td>
+</tr>
+<tr>
+<td><strong>Programas y PC</strong></td>
+<td>Abrir un programa · Manejar ventanas y programas · Ver las ventanas abiertas · Colocar varias ventanas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro · Cambiar el volumen · Cambiar el dispositivo de audio · Pantalla · Modo claro u oscuro · Wi-Fi y Bluetooth · Bloquear el PC · Apagar o reiniciar · Hacer una captura · Plan de energía · Mantener despierto</td>
+<td>«minimiza Steam», «pon el navegador y VS Code uno al lado del otro», «pon el volumen al 30», «pon el modo oscuro», «bloquea el PC», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador»</td>
+</tr>
+<tr>
+<td><strong>Música y vídeo</strong></td>
+<td>Qué suena · Controlar la reproducción</td>
+<td>«qué canción es esta», «pausa el vídeo»</td>
+</tr>
+<tr>
+<td><strong>Tiempo y conversiones</strong></td>
+<td>El tiempo · Convertir unidades y monedas</td>
+<td>«va a llover mañana», «cuánto son 50 dólares en euros»</td>
+</tr>
+</tbody>
+</table>
+<p>Algunos detalles:</p>
+<ul>
+<li><strong>Avisar cuando pase algo</strong> vigila que se cierre un programa o aparezca una ventana, que se calmen el procesador o la
+gráfica, que acabe una descarga o que una carpeta deje de cambiar. Cuando pasa, lo dice el asistente que lo puso y, si se lo pides
+(«avísame en el móvil…»), <a href="../k-desktop/remote.html#lo-que-manda-el-pc">también te llega al móvil</a>.</li>
+<li><strong>Mandar al móvil</strong> manda un texto, un enlace o un archivo pequeño a tus dispositivos emparejados (todos, o el que nombres).
+Pregunta la primera vez, según <em>Preguntar antes de hacer algo</em>.</li>
+<li><strong>El calendario, el correo y Telegram</strong> tienen sus propias herramientas (mirar y cambiar la agenda, leer y mandar correos,
+escribir y leer Telegram): ver <a href="../k-desktop/calendar.html#los-asistentes">Calendario</a>,
+<a href="../k-desktop/mail.html#los-asistentes">Correo</a> y <a href="../k-desktop/telegram.html#acciones-eventos-y-herramientas">Telegram</a>.</li>
+<li><strong>Crear un evento</strong>: «cuando abra Steam pon el modo juego», «si dejo el PC 10 minutos sin tocar, bloquéalo», «cada vez
+que conecte los cascos dime su batería», «cuando llegue un pdf a Descargas, avísame». Hace un
+<a href="../k-desktop/events.html">evento</a> de cualquier tipo (una hora, un programa que se abre o pasa delante, el PC sin tocar,
+bloqueado o al despertar, un archivo en una carpeta, un pendrive, unos cascos, un mando o una pantalla, la red, la batería
+o el procesador por encima o por debajo de un %, amanecer o atardecer, al iniciar K-Desktop…) y <strong>lo guarda ya</strong>: ejecuta
+tus comandos (también al terminar, como cuando cierras el programa) o le pide algo al asistente, con un «Solo si» de horas,
+días o un programa abierto si se lo dices. Pregunta como lo más arriesgado que hará (tus comandos, una vez), dice qué ha
+creado, sale en Eventos marcado con el asistente que lo hizo, y «deshaz» lo quita.</li>
+<li><strong>Programar una orden</strong>: «a las 19:00 mira el tiempo, mándamelo por Telegram y apaga el ordenador», «mañana a las 9…»,
+«todos los días a las 8…». Se guarda como un <a href="../k-desktop/events.html">evento</a> que a su hora le pide la orden al
+asistente como si se la dijeras en ese momento. Lo que hará falta se aprueba <strong>al pedírselo</strong> (pregunta una vez, por lo
+más arriesgado, según <em>Preguntar antes de hacer algo</em>); a su hora no pregunta nada: hace lo aprobado, lo que no
+necesita permiso, y lo demás no. Apagar o reiniciar, siempre lo último, y al acabar dice qué salió y qué no. Si a esa
+hora el PC estaba apagado o dormido, no se hace tarde: se quita y te avisa. «Ya no hace falta lo de las siete»
+quita uno. «¿Qué tienes pendiente?» responde todo junto: temporizadores, órdenes programadas y lo que vigila para
+avisarte («avísame cuando…»). Un aviso sencillo para otro día («recuérdame mañana a las 7…») es un temporizador.</li>
+<li><strong>Mirar la pantalla</strong> lee el texto con el reconocimiento de texto de Windows (también «copia el texto de esta ventana»);
+para entender una imagen hace falta un modelo con visión.</li>
+<li><strong>Traducir y corregir textos</strong> trabaja con lo que tienes seleccionado o copiado (traducir, corregir, resumir, más formal,
+en lista, más corto…) y lo vuelve a pegar en la misma ventana o lo deja copiado. Tu portapapeles queda como estaba.</li>
+<li><strong>Leer lo copiado</strong> lee lo que tienes en el portapapeles: el texto; si has copiado archivos, cuáles son (y puede leerlos);
+si es una imagen, la mira como <strong>Leer un archivo</strong> (con un modelo que ve, o su texto con el reconocimiento de Windows).
+<strong>Buscar en lo copiado antes</strong> mira los textos del <a href="../k-desktop/clipboard.html">historial del portapapeles</a> (nunca imágenes
+ni archivos), y con <strong>Copiar un texto</strong> puede dejarte otra vez uno de ellos. Se apaga en <em>Opciones → Portapapeles → Los
+asistentes pueden leerlo</em>.
+<strong>Copiar un texto</strong> deja uno listo para pegar (deshacerlo devuelve lo que había, mientras no se cierre K-Desktop: lo copiado no se guarda en ningún archivo). Como lo copiado puede
+ser una contraseña, otro programa nunca lo lee (ni el historial) con «Compartir las herramientas» en «Solo lo que consulta», y con «Todo,
+preguntándote antes» te pregunta.</li>
+<li><strong>Consultar internet</strong> busca en la web y lee el primer resultado útil; <strong>Buscar en el navegador</strong> solo abre la búsqueda
+en tu navegador.</li>
+<li><strong>Cambiar el volumen</strong>, <strong>Cambiar el dispositivo de audio</strong>, <strong>Pantalla</strong> (brillo, proyectar como Win+P, apagar las
+pantallas), <strong>Modo claro u oscuro</strong>, <strong>Wi-Fi y Bluetooth</strong>, <strong>Bloquear el PC</strong>, <strong>Apagar o reiniciar</strong> (también suspender,
+hibernar y cerrar la sesión), <strong>Hacer una captura</strong>, <strong>Plan de energía</strong> y <strong>Mantener despierto</strong> hacen las mismas
+<a href="../k-desktop/actions.html">acciones</a> que tus comandos, sin que tengas que crear uno. Preguntan como esas acciones y según
+<em>Preguntar antes de hacer algo</em>: apagar, reiniciar, suspender o cerrar la sesión siempre; apagar la pantalla, el Wi-Fi o el
+Bluetooth, la primera vez; bloquear, nunca (no se pierde nada). Apagar y reiniciar esperan 10 segundos que puedes cancelar.</li>
+<li><strong>Colocar varias ventanas</strong> pone juntas de dos a seis ventanas abiertas en un monitor (en el de la primera, o en el que digas):
+una al lado de otra, una encima de otra, en cuadrícula, o una grande a la izquierda y las demás a la derecha. Un asistente
+en el escritorio las lleva una a una, como cuando mueve una ventana. <strong>Ver las ventanas abiertas</strong> dice cuáles tienes,
+dónde están y cuáles están minimizadas.</li>
+<li><strong>Comprobar la red</strong> dice si hay internet y, si no, dónde falla (sin red, el router, las DNS, una página para entrar como
+la de un hotel); si responde un equipo o una web (por su nombre, su dirección o «el router», también un puerto:
+«servidor:22»); tu IP local y la pública; y la wifi a la que estás conectado, con su señal (Windows solo da la señal si
+las aplicaciones de escritorio pueden usar tu ubicación).</li>
+<li><strong>El tiempo</strong> usa Open-Meteo y las <strong>monedas</strong>, los tipos del Banco Central Europeo (sin cuenta). Sin ciudad, usa
+<em>Opciones → Asistente → General → Dónde estás</em>, o la ubicación de Windows si la permites.</li>
+<li><strong>Pasar un audio a texto</strong> («resúmeme la última grabación», o un audio que le sueltes) pasa a texto lo que se dice con el
+modelo de voz de K-Desktop (sin IA) y el asistente lo resume o te contesta sobre él. Sin decirle cuál, usa la grabación más
+nueva de la carpeta de <a href="../k-desktop/actions.html">Grabar audio</a>. Deja el texto en un <code>.txt</code> junto al audio; si ya lo había
+(por ejemplo, con <em>Al terminar, transcribir</em>), lo lee sin volver a transcribir.</li>
+<li><strong>Borrar un archivo</strong> lo manda a la papelera; esta y <strong>Mover un archivo</strong> preguntan siempre antes (mover se puede deshacer).</li>
+<li><strong>Escribir un documento</strong> crea un texto (.txt si no dices otro tipo; también .md, .csv, .json, .html…; nunca .bat, .ps1 ni
+programas) en el escritorio o donde digas. Si ya hay uno con ese nombre no lo toca: pregunta si lo reemplaza, y reemplazar
+pide siempre permiso en el PC. <strong>Copiar un archivo</strong>, <strong>Crear una carpeta</strong>, <strong>Comprimir en ZIP</strong> y <strong>Descomprimir un ZIP</strong>
+nunca pisan nada (la copia o el zip se llaman «nombre (2)», y se descomprime siempre en una carpeta nueva). Todo se puede
+deshacer: lo creado va a la papelera y un documento reemplazado vuelve a como estaba.</li>
+<li><strong>Revisar un comando o evento</strong> dice por qué no funciona o no saltó sin ejecutar nada: si está desactivado, si falta el
+programa o la carpeta que abre, si llama a un comando que ya no existe, si su «Solo si» se cumple ahora, sus últimas
+ejecuciones y las veces que no saltó (K-Desktop apunta el motivo: «Solo si» que no se cumplía, en pausa, hora pasada con
+el PC dormido…). <strong>Mirar el registro</strong> contesta «¿qué falló ayer?» o «¿se ejecutó el evento de las ocho?», y <strong>Ver tus
+estadísticas</strong>, «¿qué comando uso más?».</li>
+</ul>
+<h2 id="tus-herramientas-json">Tus herramientas (JSON)</h2>
+<p>Una herramienta JSON le da a los asistentes algo nuevo que hacer sin compilar nada: encender una luz de Home Assistant,
+mandarte un Telegram, ejecutar uno de tus comandos con frases propias, encadenar varios pasos o lanzar un script.</p>
+<ul>
+<li>Están en <code>%APPDATA%\K-Desktop 5\Assistant\Tools\</code>, un <code>.json</code> por herramienta (<em>Herramientas → Personalizadas → Abrir
+carpeta</em>, o <strong>Nueva</strong> a partir de una plantilla). Se recargan un momento después de guardar, añadir o quitar una.</li>
+<li>Esquema: <a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/tool.schema.json"><code>tool.schema.json</code></a>.
+Con <code>&quot;$schema&quot;</code> apuntando a él, tu editor te enseña los errores mientras escribes. Un archivo con errores no se carga y
+K-Desktop te dice por qué.</li>
+<li><a href="https://github.com/Kobayashi82/K-Desktop/tree/main/samples/Tools">Ejemplos</a> de cada tipo.</li>
+</ul>
+<pre><code class="lang-jsonc">{
+  &quot;name&quot;: &quot;luz_salon&quot;,                       // minúsculas, números y _ (mcp_ está reservado)
+  &quot;type&quot;: &quot;http&quot;,                            // http · kdesktop · routine · script
+  &quot;description&quot;: &quot;Turns the living room light on or off.&quot;,   // para el modelo
+  &quot;examples&quot;: [&quot;enciende la luz del salón&quot;, &quot;apaga el salón&quot;],
+  &quot;parameters&quot;: {
+    &quot;estado&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;on&quot;, &quot;off&quot;], &quot;description&quot;: &quot;on or off&quot; }
+  },
+  &quot;intent&quot;: &quot;poner la luz del salón en {{estado}}&quot;,          // lo que verás en la actividad y al preguntar
+  &quot;say&quot;: { &quot;ok&quot;: &quot;Luz del salón: {{estado}}.&quot;, &quot;error&quot;: &quot;La base no responde.&quot; },
+  &quot;risk&quot;: &quot;safe&quot;,                            // safe · askOnce · askAlways
+  &quot;readsOnly&quot;: false,
+  &quot;gesture&quot;: &quot;waitForWindow&quot;,                // opcional: waitForWindow · tray · clock · typing
+  &quot;timeout&quot;: 15,
+  &quot;request&quot;: {
+    &quot;method&quot;: &quot;POST&quot;,
+    &quot;url&quot;: &quot;http://homeassistant.local:8123/api/services/light/turn_{{estado}}&quot;,
+    &quot;headers&quot;: { &quot;Authorization&quot;: &quot;Bearer {{secret:ha_token}}&quot; },
+    &quot;body&quot;: { &quot;entity_id&quot;: &quot;light.salon&quot; }
+  }
+}
+</code></pre>
+<ul>
+<li><strong><code>description</code></strong> es para el modelo: qué hace y cuándo usarla. En inglés los modelos la siguen mejor, pero vale cualquier
+idioma.</li>
+<li><strong><code>examples</code></strong>: frases que la piden. Con ellas se elige qué herramientas le llegan al modelo en cada orden. Si dices
+<strong>exactamente</strong> una y la herramienta no necesita nada del modelo, se hace al momento sin IA («buenas noches» → una rutina).</li>
+<li><strong><code>parameters</code></strong>: lo que el modelo tiene que darle (<code>string</code>, <code>number</code>, <code>integer</code>, <code>boolean</code>, con <code>enum</code>, <code>default</code>,
+<code>minimum</code>, <code>maximum</code>). Los que no tienen <code>default</code> son obligatorios, salvo que <code>required</code> diga otra cosa. Si el modelo da
+un valor que no vale, se le explica y puede corregirlo.</li>
+<li><strong><code>say</code></strong>: lo que dice el asistente al acabar. Sin él, lo dice el modelo con sus palabras.</li>
+<li><strong><code>readsOnly</code></strong>: solo consulta algo (una temperatura, un estado); el modelo contesta con lo que devuelve.</li>
+<li><strong><code>risk</code></strong>: <code>safe</code> no pregunta nunca; <code>askOnce</code> pregunta hasta que dices «Sí, y no vuelvas a preguntar»; <code>askAlways</code>
+pregunta siempre.</li>
+<li><strong><code>gesture</code></strong> (opcional): lo que hace el personaje mientras tanto —esperar la ventana que abre, ir a la bandeja, dejar una
+marca junto al reloj, teclear en la ventana de delante—. Solo es adorno: la herramienta no lo espera.</li>
+</ul>
+<h3 id="huecos">Huecos</h3>
+<table>
+<thead>
+<tr>
+<th>Hueco</th>
+<th>Qué es</th>
+<th>Dónde</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{{parámetro}}</code></td>
+<td>El valor que dio el modelo</td>
+<td>En todas partes</td>
+</tr>
+<tr>
+<td><code>{{secret:nombre}}</code></td>
+<td>Un secreto (ver abajo)</td>
+<td>URL, cabeceras, cuerpo, argumentos y entorno de un script</td>
+</tr>
+<tr>
+<td><code>{{result}}</code></td>
+<td>La respuesta (o la parte elegida con <code>pick</code>)</td>
+<td><code>say</code></td>
+</tr>
+<tr>
+<td><code>{{result.campo}}</code></td>
+<td>Un campo de la respuesta JSON (<code>attributes.temperature</code>, <code>items.0.name</code>)</td>
+<td><code>say</code></td>
+</tr>
+<tr>
+<td><code>{{status}}</code></td>
+<td>El código HTTP o el de salida del script</td>
+<td><code>say</code></td>
+</tr>
+</tbody>
+</table>
+<p>En un <code>body</code> JSON, un texto que es <strong>solo</strong> <code>&quot;{{parámetro}}&quot;</code> conserva su tipo: un número sigue siendo número.</p>
+<h3 id="tipos">Tipos</h3>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>http</code></strong></td>
+<td>Cualquier API web: <code>request</code> con <code>method</code> (GET por defecto), <code>url</code>, <code>headers</code>, <code>query</code>, <code>body</code> (o <code>bodyText</code> con <code>contentType</code>) y <code>pick</code> (la parte de la respuesta que se le da al modelo). Un código de error (4xx, 5xx) es un fallo</td>
+</tr>
+<tr>
+<td><strong><code>kdesktop</code></strong></td>
+<td>Uno de tus comandos con frases propias: <code>&quot;command&quot;: &quot;Modo cine&quot;</code>, por su nombre exacto (nunca uno parecido). Los comandos arriesgados preguntan como siempre</td>
+</tr>
+<tr>
+<td><strong><code>routine</code></strong></td>
+<td>Varios <code>steps</code>: otra herramienta (incluida o JSON, nunca otra rutina) con sus <code>arguments</code>, uno de tus comandos (<code>&quot;command&quot;</code>) o una espera (<code>&quot;wait&quot;: 1</code>, hasta 30 s). Un paso que falla para la rutina, salvo con <code>continueOnError</code></td>
+</tr>
+<tr>
+<td><strong><code>script</code></strong></td>
+<td>Uno de tus scripts: <code>&quot;script&quot;: { &quot;file&quot;: &quot;comprobar.ps1&quot;, &quot;args&quot;: [&quot;{{host}}&quot;], &quot;env&quot;: { &quot;API_KEY&quot;: &quot;{{secret:mi_clave}}&quot; } }</code>. <code>.ps1</code> (Windows PowerShell), <code>.bat</code>/<code>.cmd</code>, <code>.py</code> (con <code>uv run --script</code> si tienes uv; si no, <code>py</code> o <code>python</code>), <code>.js</code> (Node.js) o <code>.exe</code>. Van como tu usuario normal (nunca como administrador), sin ventana, 30 s como mucho; lo que escriben es la respuesta y un código de salida distinto de 0 es un fallo</td>
+</tr>
+</tbody>
+</table>
+<div class="IMPORTANT">
+<h5>Important</h5>
+<p>Un script <strong>siempre pregunta antes de su primera ejecución</strong>, aunque tengas <em>Preguntar antes de hacer algo</em> en <em>Nunca</em>.
+Con «Sí, y no vuelvas a preguntar» queda aprobado; si cambia el script o su <code>.json</code>, vuelve a preguntar. Un script que
+aparezca en la carpeta sin que lo sepas nunca se ejecuta sin que lo veas.</p>
+</div>
+<h2 id="secretos">Secretos</h2>
+<p>Contraseñas, tokens y claves que usan tus herramientas y servidores: <em>Herramientas → Secretos</em>, o en
+<code>%APPDATA%\K-Desktop 5\Assistant\secrets.json</code>. Si los escribes ahí en claro, cada valor se cifra con tu usuario de Windows
+la primera vez que se lee. <strong>El modelo nunca ve un secreto</strong>: solo se pone al mandar la petición, y si una respuesta lo
+contiene se tapa con <code>•••</code>. Una copia de seguridad restaurada en otro PC no puede leerlos: hay que volver a escribirlos.</p>
+<h2 id="servidores-mcp">Servidores MCP</h2>
+<p>Un servidor MCP es un programa (o una dirección) que da varias herramientas de golpe: los mismos que usan Claude Desktop,
+VS Code u Open WebUI con mcpo. <em>Herramientas → Servidores MCP</em>:</p>
+<p><img src="../../images/es/tools-mcp-server.png" alt="Un servidor MCP"></p>
+<ul>
+<li><strong>Importar…</strong> lee el archivo de otro programa (el <code>config.json</code> de mcpo, el de Claude Desktop) y te deja elegir. <strong>Pegar</strong>
+coge el bloque JSON que has copiado de las instrucciones de un servidor. Las variables que parecen secretas (<code>*_TOKEN</code>,
+<code>*_KEY</code>, <code>*_SECRET</code>, <code>*PASSWORD*</code>, <code>CHAT_ID</code>…) pasan a secretos cifrados. Los servidores de cosas que los asistentes ya
+hacen (archivos, pantalla, portapapeles, memoria, hora, internet) salen desmarcados, con el motivo.</li>
+<li><strong>Añadir servidor</strong>: un programa (<code>node</code>, <code>npx</code>, <code>uvx</code>, un <code>.exe</code>…, sus argumentos y su carpeta) o una dirección HTTP;
+sus variables o cabeceras, cada una normal o secreta; cuánto puede tardar una llamada y tras cuánto tiempo sin usarse se
+para.</li>
+<li>Cada servidor tiene su página con su estado, <strong>Arrancar y probar</strong>, y sus herramientas para encender o apagar (los
+asistentes eligen mejor entre menos).</li>
+</ul>
+<p>Los arranca el proceso de los asistentes, <strong>como tu usuario normal</strong>, solo cuando hace falta una de sus herramientas, y se
+paran solos tras unos minutos sin usarse; <em>Herramientas → En marcha ahora</em> enseña cuáles están en marcha. Sus herramientas
+se recuerdan, así que elegir entre ellas nunca arranca un servidor. Por defecto preguntan la primera vez, salvo las que el
+servidor dice que solo leen. Lo que un servidor escribe en stderr va a <code>Logs\mcp-&lt;servidor&gt;.log</code>.</p>
+<h2 id="desde-un-comando">Desde un comando</h2>
+<p>Con la acción <a href="../k-desktop/actions.html#asistente">Asistente: usar una herramienta</a> un comando usa cualquiera de estas
+herramientas sin la IA: con un atajo, desde un QuickMenu o en un evento (por ejemplo, pausar las descargas al abrir un
+juego). Lo que devuelve queda en <code>{resultado}</code> para las acciones siguientes. Como el comando es tuyo, no pregunta antes,
+salvo un script nuevo o cambiado o una herramienta que tengas en <em>Siempre</em>; si el comando salta solo, esas no se hacen.
+Necesita el módulo Asistente encendido.</p>
+<h2 id="compartir-con-otros-programas">Compartir con otros programas</h2>
+<p>Al revés: <em>Herramientas → Compartir</em> hace de los asistentes un servidor MCP para Claude Desktop, VS Code, Open WebUI o
+cualquier programa con MCP. Enciende <strong>Compartir las herramientas</strong> y <strong>Copiar la configuración</strong>, y pégala en los ajustes
+MCP del programa (<code>claude_desktop_config.json</code>, el <code>mcp.json</code> de VS Code, el <code>config.json</code> de mcpo):</p>
+<pre><code class="lang-json">{
+  &quot;mcpServers&quot;: {
+    &quot;k-desktop&quot;: {
+      &quot;command&quot;: &quot;C:\\…\\KDesktop.exe&quot;,
+      &quot;args&quot;: [&quot;--mcp&quot;],
+      &quot;env&quot;: { &quot;KDESKTOP_MCP_KEY&quot;: &quot;…&quot; }
+    }
+  }
+}
+</code></pre>
+<ul>
+<li><strong>Qué pueden usar</strong>: <em>Solo lo que consulta</em> (la hora, cuentas, el tiempo, buscar archivos o en internet, leer la
+pantalla… nada que cambie nada), <em>Todo, preguntándote antes</em>: lo que cambia algo pregunta <strong>en este PC</strong> con la ventanita
+de siempre, aunque hayas puesto que los asistentes no pregunten, o <em>Todo, sin preguntar</em>: solo pregunta lo que tengas en
+<em>Siempre</em> (y un script nuevo, la primera vez).</li>
+<li>Con <strong>Pedir la clave</strong> (de serie) solo entran los programas con la clave; <strong>Cambiar la clave</strong> deja fuera a los que
+tenían la anterior. Apagado, entra cualquier programa tuyo en este PC (nunca desde otro PC ni de otro usuario) y la
+configuración copiada no lleva clave.</li>
+<li>K-Desktop tiene que estar abierto con el módulo Asistente encendido. Cada llamada sale en la actividad con el nombre del
+programa, y la página enseña quién está conectado. Las herramientas que has apagado y las de tus propios servidores MCP no
+se comparten.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

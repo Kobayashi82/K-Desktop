@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Historial del portapapeles | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Historial del portapapeles | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/clipboard.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="historial-del-portapapeles">Historial del portapapeles</h1>
+
+<p>K-Desktop guarda lo que copias (textos, imágenes y archivos) para que puedas volver a pegarlo, y puede usarse en lugar
+del historial de Windows.</p>
+<h2 id="abrirlo">Abrirlo</h2>
+<ul>
+<li>Con su atajo, en <em>Opciones → Portapapeles</em>. Si le pones <strong>Win + V</strong>, se abre este historial en vez del de
+Windows.</li>
+<li>Desde la bandeja: <strong>Historial del portapapeles</strong>.</li>
+<li>Desde un comando o un QuickMenu: acción <strong>Portapapeles</strong> con <strong>Mostrar el historial</strong>.</li>
+<li>Desde el <a href="quickmenu-launcher.html">lanzador</a>: lo copiado sale entre los resultados (Intro lo pega).</li>
+</ul>
+<p>En cualquier texto de una acción o de <a href="texts.html">Textos</a>, <code>{portapapeles:2}</code> es lo copiado antes de lo último (<code>:3</code>, <code>:4</code>…
+más atrás).</p>
+<p>Sale junto al ratón. Escribe para buscar y elige con ↑ ↓:</p>
+<table>
+<thead>
+<tr>
+<th>Tecla</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Intro (o clic)</td>
+<td>Lo pega en la ventana donde estabas</td>
+</tr>
+<tr>
+<td>Mayús + Intro</td>
+<td>Lo pega sin formato</td>
+</tr>
+<tr>
+<td>Ctrl + 1…9</td>
+<td>Pega esa fila</td>
+</tr>
+<tr>
+<td>Ctrl + P (o la chincheta de la fila)</td>
+<td>Lo fija (o lo quita de fijados)</td>
+</tr>
+<tr>
+<td>Supr</td>
+<td>Lo borra del historial</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td>Cambia de filtro: Todo, Texto, Imágenes, Archivos, Fijados</td>
+</tr>
+<tr>
+<td>Esc</td>
+<td>Lo cierra</td>
+</tr>
+</tbody>
+</table>
+<p>Con clic derecho: pegar, pegar sin formato, <strong>pegar con un cambio</strong> (mayúsculas, minúsculas, cada palabra en mayúscula,
+quitar espacios sobrantes, limpiar enlaces), copiar sin pegar, abrir la imagen o la carpeta de los archivos, fijar y
+borrar.</p>
+<h2 id="opciones">Opciones</h2>
+<p>En <em>Opciones → Portapapeles</em>:</p>
+<ul>
+<li><strong>Guardar lo que copias</strong>: apagado, no se guarda nada nuevo. Desde la bandeja, <strong>Pausar el historial</strong> lo para un
+rato.</li>
+<li><strong>Imágenes</strong>: también las imágenes copiadas (hasta 20 MB cada una).</li>
+<li><strong>Los asistentes pueden leerlo</strong>: para preguntarles «¿qué copié antes?»; solo ven los textos.</li>
+<li><strong>Cuántos guardar</strong> (200 de serie) y <strong>Borrar a los días</strong> (0: nunca). Los fijados se quedan siempre.</li>
+<li><strong>No guardar lo copiado en</strong>: programas cuyo contenido nunca se guarda; de serie, los gestores de contraseñas.</li>
+<li><strong>Borrar el historial</strong>: lo borra todo menos los fijados.</li>
+</ul>
+<h2 id="privacidad">Privacidad</h2>
+<ul>
+<li>Se guarda cifrado para tu usuario de Windows y solo en este PC (no va en las copias de seguridad).</li>
+<li>Nunca guarda lo que un programa marca como privado (los gestores de contraseñas lo hacen) ni lo que pega K-Desktop de
+paso, como los textos largos de <a href="texts.html">Textos</a>.</li>
+<li>Con K-Desktop en pausa tampoco guarda nada.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

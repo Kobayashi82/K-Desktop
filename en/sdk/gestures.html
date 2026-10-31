@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Gestures | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Gestures | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/sdk/gestures.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="gestures">Gestures</h1>
+
+<p>The module asks the assistant for <strong>gestures</strong>: what it wants to achieve, never how. Each assistant decides how to perform
+them —the Lander shoots the minimise button, Kobii throws a ball at it, Kumo pokes it—. An assistant that only knows
+<code>Communicate</code> and <code>React</code> already works: for the rest the module shows the bubble and does the action itself.</p>
+<pre><code class="lang-csharp">public bool CanPerform(Gesture gesture) =&gt; gesture.Kind is GestureKind.Communicate or GestureKind.React;
+
+public async Task&lt;GestureOutcome&gt; PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct) { … }
+</code></pre>
+<p>List the ones it knows in <code>traits.gestures</code> of its manifest. <code>CanPerform</code> says whether it can do one <em>now</em> (yes by
+default); <code>GestureOutcome.NotPerformed</code> says no just as well. Never throw.</p>
+<h2 id="the-gestures">The gestures</h2>
+<table>
+<thead>
+<tr>
+<th>Gesture</th>
+<th>What it asks for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PointAt(Place)</code></td>
+<td>Point at a window, a point, an area, the tray or the clock (a spotlight, an arm…)</td>
+</tr>
+<tr>
+<td><code>GoTo(Place)</code></td>
+<td>Go somewhere (fly, walk, teleport)</td>
+</tr>
+<tr>
+<td><code>PressButton(Window, Button, ButtonBounds)</code></td>
+<td>Press a caption button (minimise, maximise/restore, close)</td>
+</tr>
+<tr>
+<td><code>MoveWindow(Window, Destination)</code></td>
+<td>Move a window there (a maximised one arrives already restored by a <code>PressButton(Restore)</code> before)</td>
+</tr>
+<tr>
+<td><code>ActivateWindow(Window)</code></td>
+<td>Bring a window to the front (perch on it, knock on the door…)</td>
+</tr>
+<tr>
+<td><code>WaitForWindow(Process, Title)</code></td>
+<td>Something was just opened: wait for its window. <code>ctx.Appeared</code> gives it (or null)</td>
+</tr>
+<tr>
+<td><code>Mark(Place, Duration, Text)</code></td>
+<td>Leave a mark somewhere for a while (a beacon, a flag, an alarm clock), with an optional label</td>
+</tr>
+<tr>
+<td><code>Scan(Area)</code></td>
+<td>Sweep an area (a screenshot, reading the screen)</td>
+</tr>
+<tr>
+<td><code>Typing(Window)</code></td>
+<td>Pretend to type into a window (keys or text are being sent to it)</td>
+</tr>
+<tr>
+<td><code>Communicate(Text, Icon)</code></td>
+<td>Stay visible while the host shows the text in the bubble. <code>Icon</code> says what it is about when known (<code>clock</code>, <code>folder</code>, <code>web</code>, <code>volume</code>, <code>power</code>…; show the ones you do not know without a picture)</td>
+</tr>
+<tr>
+<td><code>React(Reaction)</code></td>
+<td>A short reaction: <code>Success</code>, <code>Warning</code>, <code>Failure</code>, <code>Celebration</code>, with its <a href="#reactions">context</a></td>
+</tr>
+<tr>
+<td><code>Announce(Reason, Cursor, UserAway)</code></td>
+<td><a href="#catching-the-eye">Catch the user's eye</a> before saying something on its own</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-commands-of-the-user">The commands of the user</h2>
+<p>When the user asks an assistant to run a K-Desktop command, each action arrives as one or several gestures: minimise →
+<code>PressButton(Minimize)</code>, place a window → <code>MoveWindow</code> with the exact target, a maximised one first <code>PressButton(Restore)</code>…</p>
+<ul>
+<li>Call <strong><code>ctx.Commit()</code> at the instant of the effect</strong> (when the shot hits): the action happens right then, and
+<code>ctx.Committed</code> tells you whether it went well.</li>
+<li>Or do it yourself (<code>Windows.TryMove</code> frame by frame) and return <strong><code>PerformedSelf</code></strong>: K-Desktop then sets it to the pixel.</li>
+<li>What you cannot do (<code>CanPerform</code> false) the host shows with the bubble while K-Desktop does it.</li>
+<li>You have <strong><code>ctx.TimeLeft</code></strong>: if you run over, fail or do not answer, K-Desktop does it anyway and asks you for a
+<code>React(Warning)</code>. An order is never left half done; the token fires when the time is up or the user says «stop».</li>
+<li><strong><code>ctx.Speed</code></strong> is the speed the user chose (<code>Showy</code>, <code>Normal</code>, <code>Fast</code>): in <code>Fast</code>, <code>Commit</code> within half a second.</li>
+<li><code>ctx.Step</code> and <code>ctx.StepCount</code> say which step of the order it is.</li>
+</ul>
+<pre><code class="lang-csharp">if (gesture is Gesture.PressButton press)
+{
+    // FlyNextToAsync and ShootAsync are the assistant's own animations.
+    await FlyNextToAsync(press.ButtonBounds, ctx.TimeLeft, ct);
+    await ShootAsync(press.ButtonBounds, ct);
+    ctx.Commit();                       // the window minimises now, on impact
+    return await ctx.Committed ? GestureOutcome.Committed : GestureOutcome.NotPerformed;
+}
+</code></pre>
+<p>With <em>Also show the commands you launch</em> on, commands run by other means (a hotkey, a QuickMenu, the phone) reach you as
+gestures too, always in <code>Fast</code>: they are only decoration, nothing waits for them and their <code>Commit</code> does nothing.</p>
+<h2 id="the-tools-of-the-ai">The tools of the AI</h2>
+<p>What the AI's tools do reaches you as gestures too, with <code>ctx.Step</code> 0:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Gesture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A timer</td>
+<td><code>Mark</code> by the clock (<code>Place.Clock</code>) with the time it rings; removing it → <code>PointAt(Place.Clock)</code></td>
+</tr>
+<tr>
+<td>Opening a website, a search, a program or a file</td>
+<td><code>WaitForWindow</code>, right before opening it</td>
+</tr>
+<tr>
+<td>What's playing, controlling the music</td>
+<td><code>GoTo(Place.Tray)</code></td>
+</tr>
+<tr>
+<td>«Tell me when … closes»</td>
+<td><code>Mark</code> on that window</td>
+</tr>
+<tr>
+<td>Rewriting a text and pasting it</td>
+<td><code>Typing</code> in that window</td>
+</tr>
+<tr>
+<td>Reading the screen</td>
+<td><code>Scan</code> of what was read</td>
+</tr>
+</tbody>
+</table>
+<p>JSON tools can ask for one with <code>&quot;gesture&quot;</code>. They are only decoration: the tool never waits for you, <code>Commit</code> does
+nothing, a step of an order takes their place and a new one replaces the one before. What you cannot do is not shown.</p>
+<h2 id="catching-the-eye">Catching the eye</h2>
+<p>Before saying something on its own (a timer ringing, a «tell me when» coming true, <em>Assistant: say</em> with «Go towards the
+mouse» ticked) the host asks for
+<code>Announce</code>: walk up to the mouse, wave, blink… <code>Reason</code> says why (<code>Timer</code>, <code>Watch</code>, <code>Message</code>), <code>Cursor</code> where the mouse
+was (or null) and <code>UserAway</code> how many seconds without keyboard or mouse (the longer, the bigger it may be: maybe they are
+not looking). The host waits for you, <code>ctx.TimeLeft</code> at most (about 2 s, 3 in <code>Showy</code> and half a second in <code>Fast</code>), and
+then talks with <code>Communicate</code>: finish as soon as you have caught the eye. There is nothing to commit.</p>
+<h2 id="reactions">Reactions</h2>
+<p><code>Gesture.React</code> carries <code>Context</code> (<code>ReactionContext</code>), filled in by the host:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Source</code></td>
+<td><code>Order</code> (a command or a K-Desktop action), <code>Tool</code> (a timer, a note, the web…), <code>Notice</code> (something it says on its own), <code>User</code> (what the user says about it: «thanks», «well done» → <code>Celebration</code>; «that's wrong» → <code>Failure</code>), or <code>Unknown</code></td>
+</tr>
+<tr>
+<td><code>Streak</code></td>
+<td>How many in a row of the same kind (1 the first; back to 1 with another kind or after half an hour)</td>
+</tr>
+<tr>
+<td><code>FirstToday</code></td>
+<td>The first one today</td>
+</tr>
+<tr>
+<td><code>What</code></td>
+<td>What it was when known (<code>set_timer</code>, <code>run_command</code>, <code>timer</code>, <code>praise</code>…)</td>
+</tr>
+</tbody>
+</table>
+<p>The host reacts once per order, when the answer is ready: something done and nothing failed → <code>Success</code>; done but
+something failed → <code>Warning</code>; nothing done and something failed → <code>Failure</code>. Only looking something up (the time, the
+weather) does not react. Use it with <code>Variety&lt;T&gt;</code> not to react the same way every time: something bigger the first time
+today or on a long streak, more downcast at the third failure in a row.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Disposiciones | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Disposiciones | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/arrangements.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="disposiciones">Disposiciones</h1>
+
+<p>Una disposición parte tus monitores en <strong>zonas</strong> y dice qué programas van en cada una. Luego los pone así cuando quieras:
+con un atajo, desde un QuickMenu o sola, con un evento. Una disposición abarca todos los monitores; uno sin zonas en ella
+no se toca.</p>
+<ol>
+<li>Coloca tus programas como te gustan (el navegador a la izquierda, el editor a la derecha, la música en el otro monitor…).</li>
+<li><em>Disposiciones → Nueva disposición</em>: ya trae las ventanas abiertas ahora, cada una como una zona con su programa. Ponle
+nombre («Trabajo»).</li>
+<li><strong>Probar</strong> la pone ahora. <strong>Crear un comando que la ponga</strong> te deja un comando listo para darle un atajo.</li>
+</ol>
+<p><strong>Guardar ventanas</strong> cambia las zonas de todos los monitores por las ventanas abiertas en ese momento: cada monitor
+se recorta según sus ventanas y cada zona se queda con los programas de las suyas (una maximizada, toda la pantalla; las
+minimizadas no cuentan). Las zonas nunca se pisan: las ventanas que están una encima de otra comparten zona, y un hueco
+libre grande queda como zona vacía. Además, cada programa recuerda el sitio y el tamaño exactos de su ventana, así que al
+ponerla todo vuelve tal cual estaba.</p>
+<h2 id="zonas">Zonas</h2>
+<p>Arriba de <strong>Zonas</strong> hay una píldora por monitor: los conectados y, atenuados, los que han estado conectados alguna vez
+(K-Desktop los recuerda), para preparar la disposición de la tele aunque no esté puesta. Un punto en la píldora indica que
+ese monitor tiene zonas en esta disposición. Debajo está el dibujo del monitor elegido:</p>
+<ul>
+<li><strong>Clic</strong> en una zona la marca (un clic fuera de las zonas la desmarca); <strong>otro clic</strong> en la marcada la parte en dos por donde marca la línea de puntos (en
+vertical; con <strong>Mayús</strong>, en horizontal).</li>
+<li><strong>Arrastra</strong> las líneas entre zonas para cambiar su tamaño (se quedan a la mitad, un tercio o un cuarto si pasas cerca).</li>
+<li>La <strong>✕</strong> de una línea junta sus dos zonas, con sus programas.</li>
+<li><strong>Plantillas</strong>: toda la pantalla, 2 o 3 columnas, cuadrícula, una grande y dos pequeñas o 2 filas. Los programas que
+tenía cada zona pasan a la zona nueva donde caía su centro. <strong>Quitar zonas</strong> deja el monitor sin zonas.</li>
+</ul>
+<p>Debajo del dibujo están los <strong>programas de la zona marcada</strong>, como en <em>Solo en estas aplicaciones</em> de K-Board: escribe el
+programa o elígelo de la lista y pulsa <strong>Añadir</strong>, o pulsa el botón del cursor y haz clic en su ventana. Una zona sin
+programas solo sirve para encajar ventanas.</p>
+<p>Los programas guardados con <strong>Guardar ventanas</strong> llevan una chincheta: van al sitio exacto donde estaba su ventana,
+que se ve con línea discontinua en la zona marcada. Con <strong>clic derecho → Llenar la zona</strong> olvida ese sitio y el programa se
+estira a su zona, como los que añades a mano.</p>
+<h2 id="al-ponerla">Al ponerla</h2>
+<ul>
+<li><strong>Si el programa está abierto</strong>, su ventana va a su zona (o a su sitio guardado, si lleva chincheta); no abre otra. Una zona de toda la pantalla la deja maximizada.
+Con varias ventanas del mismo programa (dos de Chrome), las reconoce por su título y, si no, por orden.</li>
+<li><strong>Si no está abierto</strong>, se salta, salvo con <em>Opciones → Abrir los programas que no estén abiertos</em>: entonces lo abre y lo
+coloca en cuanto sale su ventana. Las aplicaciones de la Tienda de Windows no se pueden abrir así. El aviso dice cuáles no
+estaban abiertos.</li>
+<li><strong>Los monitores</strong> se reconocen por su nombre, aunque Windows les cambie el número. Si el de una zona no está conectado,
+sus programas van al principal, en el mismo sitio.</li>
+</ul>
+<h2 id="usarla">Usarla</h2>
+<ul>
+<li>La acción <strong>Disposición de ventanas</strong> pone una disposición desde cualquier comando.</li>
+<li>Con un <a href="events.html">evento</a> <strong>Pantalla conectada o desconectada</strong> se pone sola: por ejemplo, una disposición «Película»
+al conectar la tele y otra «Trabajo» al desconectarla.</li>
+</ul>
+<h2 id="encajar-ventanas-en-las-zonas">Encajar ventanas en las zonas</h2>
+<p>Cada monitor usa las zonas de la <strong>última disposición puesta en él</strong> (se recuerda al reiniciar). En un monitor donde nunca
+se ha puesto ninguna, no se encaja nada.</p>
+<ul>
+<li><strong>Mayús + arrastrar</strong>: mientras arrastras una ventana por su barra de título, mantén <strong>Mayús</strong> y salen encima las zonas
+de cada monitor; la que tiene el ratón se marca y, al soltar, la ventana se ajusta a ella (una zona de toda la pantalla
+la maximiza). Si sueltas Mayús, las zonas se van y la ventana queda donde la dejes; <strong>Esc</strong> cancela. Se apaga en
+<em>Opciones → Encajar con Mayús al arrastrar</em> (vale para todas las disposiciones).</li>
+<li><strong>Zona siguiente o anterior</strong>: la acción <strong>Ventana</strong> tiene <em>A la zona siguiente</em> y <em>A la zona anterior</em>. Siguen el orden
+de los números de las zonas y, tras la última de un monitor, pasan al siguiente. <em>Opciones → Crear los atajos de zonas</em>
+te deja los dos comandos hechos con <strong>Win + Alt + →</strong> y <strong>Win + Alt + ←</strong>.</li>
+<li>Encajar siempre llena la zona, aunque el programa tenga un sitio guardado.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

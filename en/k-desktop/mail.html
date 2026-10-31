@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Mail | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Mail | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/mail.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="mail">Mail</h1>
+
+<p>K-Desktop watches your mail accounts and tells you what matters, fires <a href="events.html">events</a> when a mail arrives, sends
+mails from your commands, and lets the assistants search, sum up and draft. It is not a mail client: you keep reading
+your mail where you always do.</p>
+<h2 id="accounts">Accounts</h2>
+<p><em>Settings → Mail → Add account</em>: the address, a name for the account (<em>Personal</em>, <em>Work</em>… — how the assistant knows it)
+and how it signs in:</p>
+<ul>
+<li><strong>With a password (app password)</strong>. Gmail, iCloud and Yahoo need an <em>app password</em> (<em>How to get an app password</em> explains
+where); other providers, your password. <strong>Detect the servers</strong> finds IMAP and SMTP by itself; if not, type them.</li>
+<li><strong>With the connected account</strong>: Gmail without an app password, after connecting the account in <em>Settings → Accounts →
+Google</em> with <em>Gmail</em> ticked.</li>
+</ul>
+<p>Outlook and Hotmail cannot be connected: Microsoft no longer lets programs sign in with a password. <strong>Test</strong> checks that it
+can sign in to IMAP and SMTP and, if not, says why. The password is kept encrypted, only for your user on this PC.</p>
+<p>Each account also has:</p>
+<ul>
+<li><strong>What for</strong>: <em>Everything</em> (notices, events, assistant and sending) or <em>Send only</em>, an account just for K-Desktop's
+reports and notices, which only reaches the <strong>Allowed addresses</strong> (empty: its own address).</li>
+<li><strong>Notify about</strong>: <em>Only important ones</em>, <em>Every new mail</em> or <em>Nothing</em> (only events and the assistant).</li>
+<li><strong>Mark the mails the assistant reads as read</strong>.</li>
+</ul>
+<h2 id="important-mail-and-notices">Important mail and notices</h2>
+<p><strong>Important mail</strong> says which mails matter: <strong>Senders</strong> (addresses, domains like <code>@bank.com</code>, or names) and <strong>Words in the
+subject</strong> (<em>invoice, urgent</em>). They are the ones told with <em>Only important ones</em> and the ones the assistant highlights.</p>
+<p><strong>Notices</strong> chooses how a new mail is told: a <strong>notification</strong> (a click opens the mail on the web: Gmail, iCloud, Yahoo…),
+an <strong>on-screen message (OSD)</strong> or <strong>an assistant says it</strong> (if it is on the desktop; otherwise an OSD). <strong>Try a reminder</strong>
+shows one. A mail with a calendar invitation always comes as a notification: clicking it adds the event to the
+<a href="calendar.html">calendar</a>. The important ones can also reach you on <a href="telegram.html">Telegram</a>.</p>
+<h2 id="actions-and-events">Actions and events</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Send mail</strong> (action)</td>
+<td>From one of your accounts, with text with variables and attached files (a screenshot, a report…), or <strong>Leave it as a draft</strong></td>
+</tr>
+<tr>
+<td><strong>Mail arrives</strong> (event)</td>
+<td>When a mail arrives at an account: from someone, with words in the subject, only with attachments or only the important ones. It can <strong>save its attachments</strong> in a folder (only some kinds: <code>*.pdf</code>). The commands get <code>{mail_subject}</code>, <code>{mail_from}</code>, <code>{mail_snippet}</code>, <code>{mail_attachments}</code>, <code>{mail_paths}</code> (the saved files) and <code>{mail_account}</code></td>
+</tr>
+</tbody>
+</table>
+<p><em>When the electricity bill arrives, save its PDF in the Bills folder and let me know.</em></p>
+<h2 id="the-assistants">The assistants</h2>
+<p>With the <a href="../assistant/index.html">Assistant module</a>: <strong>Check mail</strong> and <strong>Read a mail</strong> («anything from the bank?», «sum up
+Ana's last mail»), <strong>Leave a draft</strong>, <strong>Send a mail</strong>, <strong>Tidy up a mail</strong> (mark it as read or unread, archive it or move it to the trash, never deleted for good) and <strong>Add an
+invitation to the calendar</strong>. Reading never asks; sending always asks; the rest asks until you say «don't ask again» and
+can be undone. A mail never gives orders: after reading one, the assistant asks before doing anything.</p>
+<p>In <em>The assistant and mail</em>: <strong>Assistants can send</strong> (off, they only leave drafts) and <strong>Days of mail kept</strong> (only the
+headers and a snippet, to search without asking the server).</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

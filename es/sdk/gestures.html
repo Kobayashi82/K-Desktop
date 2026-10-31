@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Gestos | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Gestos | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/sdk/gestures.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="gestos">Gestos</h1>
+
+<p>El módulo le pide <strong>gestos</strong> al asistente: lo que quiere conseguir, nunca cómo. Cada asistente decide cómo los hace —el
+Lander dispara al botón de minimizar, Kobii le tira una pelota, Kumo lo toca con el dedo—. Un asistente que solo sabe
+<code>Communicate</code> y <code>React</code> ya funciona: para lo demás, el módulo enseña el bocadillo y hace él la acción.</p>
+<pre><code class="lang-csharp">public bool CanPerform(Gesture gesture) =&gt; gesture.Kind is GestureKind.Communicate or GestureKind.React;
+
+public async Task&lt;GestureOutcome&gt; PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct) { … }
+</code></pre>
+<p>Pon los que sabe en <code>traits.gestures</code> de su manifiesto. <code>CanPerform</code> dice si puede hacer uno <em>ahora</em> (sí por defecto);
+<code>GestureOutcome.NotPerformed</code> dice que no igual de bien. Nunca lances una excepción.</p>
+<h2 id="los-gestos">Los gestos</h2>
+<table>
+<thead>
+<tr>
+<th>Gesto</th>
+<th>Qué pide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PointAt(Place)</code></td>
+<td>Señalar una ventana, un punto, una zona, la bandeja o el reloj (un foco, un brazo…)</td>
+</tr>
+<tr>
+<td><code>GoTo(Place)</code></td>
+<td>Ir a algún sitio (volando, andando, teletransportándose)</td>
+</tr>
+<tr>
+<td><code>PressButton(Window, Button, ButtonBounds)</code></td>
+<td>Pulsar un botón de la barra de título (minimizar, maximizar/restaurar, cerrar)</td>
+</tr>
+<tr>
+<td><code>MoveWindow(Window, Destination)</code></td>
+<td>Llevar una ventana allí (una maximizada llega ya restaurada por un <code>PressButton(Restore)</code> anterior)</td>
+</tr>
+<tr>
+<td><code>ActivateWindow(Window)</code></td>
+<td>Traer una ventana delante (posarse en ella, llamar a la puerta…)</td>
+</tr>
+<tr>
+<td><code>WaitForWindow(Process, Title)</code></td>
+<td>Se acaba de abrir algo: esperar su ventana. <code>ctx.Appeared</code> la da (o null)</td>
+</tr>
+<tr>
+<td><code>Mark(Place, Duration, Text)</code></td>
+<td>Dejar una marca en algún sitio un rato (una baliza, una banderita, un despertador), con una etiqueta opcional</td>
+</tr>
+<tr>
+<td><code>Scan(Area)</code></td>
+<td>Barrer una zona (una captura, leer la pantalla)</td>
+</tr>
+<tr>
+<td><code>Typing(Window)</code></td>
+<td>Hacer como que teclea en una ventana (se le están mandando teclas o texto)</td>
+</tr>
+<tr>
+<td><code>Communicate(Text, Icon)</code></td>
+<td>Quedarse a la vista mientras el host enseña el texto en el bocadillo. <code>Icon</code> dice de qué va cuando se sabe (<code>clock</code>, <code>folder</code>, <code>web</code>, <code>volume</code>, <code>power</code>…; enseña sin imagen los que no conozcas)</td>
+</tr>
+<tr>
+<td><code>React(Reaction)</code></td>
+<td>Una reacción corta: <code>Success</code>, <code>Warning</code>, <code>Failure</code>, <code>Celebration</code>, con su <a href="#reacciones">contexto</a></td>
+</tr>
+<tr>
+<td><code>Announce(Reason, Cursor, UserAway)</code></td>
+<td><a href="#llamar-la-atenci%C3%B3n">Llamar la atención</a> antes de decir algo por su cuenta</td>
+</tr>
+</tbody>
+</table>
+<h2 id="los-comandos-del-usuario">Los comandos del usuario</h2>
+<p>Cuando el usuario le pide a un asistente que ejecute un comando de K-Desktop, cada acción llega como uno o varios gestos:
+minimizar → <code>PressButton(Minimize)</code>, colocar una ventana → <code>MoveWindow</code> con el destino exacto, una maximizada primero
+<code>PressButton(Restore)</code>…</p>
+<ul>
+<li>Llama a <strong><code>ctx.Commit()</code> en el instante del efecto</strong> (cuando el disparo da en el blanco): la acción pasa justo entonces, y
+<code>ctx.Committed</code> te dice si fue bien.</li>
+<li>O hazlo tú (<code>Windows.TryMove</code> fotograma a fotograma) y devuelve <strong><code>PerformedSelf</code></strong>: K-Desktop la deja luego al píxel.</li>
+<li>Lo que no sabes hacer (<code>CanPerform</code> false) lo enseña el host con el bocadillo mientras lo hace K-Desktop.</li>
+<li>Tienes <strong><code>ctx.TimeLeft</code></strong>: si te pasas, fallas o no contestas, K-Desktop lo hace igual y te pide un <code>React(Warning)</code>. Una
+orden nunca se queda a medias; el token salta cuando se acaba el tiempo o el usuario dice «para».</li>
+<li><strong><code>ctx.Speed</code></strong> es la rapidez que eligió el usuario (<code>Showy</code>, <code>Normal</code>, <code>Fast</code>): en <code>Fast</code>, <code>Commit</code> antes de medio segundo.</li>
+<li><code>ctx.Step</code> y <code>ctx.StepCount</code> dicen qué paso de la orden es.</li>
+</ul>
+<pre><code class="lang-csharp">if (gesture is Gesture.PressButton press)
+{
+    // FlyNextToAsync y ShootAsync son animaciones propias del asistente.
+    await FlyNextToAsync(press.ButtonBounds, ctx.TimeLeft, ct);
+    await ShootAsync(press.ButtonBounds, ct);
+    ctx.Commit();                       // la ventana se minimiza ahora, en el impacto
+    return await ctx.Committed ? GestureOutcome.Committed : GestureOutcome.NotPerformed;
+}
+</code></pre>
+<p>Con <em>Enseñar también los comandos que lanzas tú</em> encendido, los comandos lanzados de otras formas (un atajo, un QuickMenu,
+el móvil) también te llegan como gestos, siempre en <code>Fast</code>: son solo adorno, nada los espera y su <code>Commit</code> no hace nada.</p>
+<h2 id="las-herramientas-de-la-ia">Las herramientas de la IA</h2>
+<p>Lo que hacen las herramientas de la IA también te llega como gestos, con <code>ctx.Step</code> 0:</p>
+<table>
+<thead>
+<tr>
+<th>Herramienta</th>
+<th>Gesto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Un temporizador</td>
+<td><code>Mark</code> junto al reloj (<code>Place.Clock</code>) con la hora a la que suena; quitarlo → <code>PointAt(Place.Clock)</code></td>
+</tr>
+<tr>
+<td>Abrir una web, una búsqueda, un programa o un archivo</td>
+<td><code>WaitForWindow</code>, justo antes de abrirlo</td>
+</tr>
+<tr>
+<td>Qué suena, controlar la música</td>
+<td><code>GoTo(Place.Tray)</code></td>
+</tr>
+<tr>
+<td>«Avísame cuando se cierre …»</td>
+<td><code>Mark</code> sobre esa ventana</td>
+</tr>
+<tr>
+<td>Reescribir un texto y pegarlo</td>
+<td><code>Typing</code> en esa ventana</td>
+</tr>
+<tr>
+<td>Leer la pantalla</td>
+<td><code>Scan</code> de lo leído</td>
+</tr>
+</tbody>
+</table>
+<p>Las herramientas JSON pueden pedir uno con <code>&quot;gesture&quot;</code>. Son solo adorno: la herramienta nunca te espera, <code>Commit</code> no hace
+nada, un paso de una orden ocupa su lugar y uno nuevo sustituye al anterior. Lo que no sabes hacer no se enseña.</p>
+<h2 id="llamar-la-atención">Llamar la atención</h2>
+<p>Antes de decir algo por su cuenta (un temporizador que suena, un «avísame cuando» que se cumple, <em>Asistente: decir</em>) el host
+pide <code>Announce</code>: acercarse al ratón, saludar, parpadear… <code>Reason</code> dice por qué (<code>Timer</code>, <code>Watch</code>, <code>Message</code>), <code>Cursor</code> dónde
+estaba el ratón (o null) y <code>UserAway</code> cuántos segundos lleva sin teclado ni ratón (cuantos más, más grande puede ser: a lo
+mejor no está mirando). El host te espera, <code>ctx.TimeLeft</code> como mucho (unos 2 s, 3 en <code>Showy</code> y medio segundo en <code>Fast</code>), y
+luego habla con <code>Communicate</code>: acaba en cuanto hayas llamado la atención. No hay nada que confirmar.</p>
+<h2 id="reacciones">Reacciones</h2>
+<p><code>Gesture.React</code> lleva <code>Context</code> (<code>ReactionContext</code>), que rellena el host:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Source</code></td>
+<td><code>Order</code> (un comando o una acción de K-Desktop), <code>Tool</code> (un temporizador, una nota, internet…), <code>Notice</code> (algo que dice por su cuenta), <code>User</code> (lo que el usuario dice de él: «gracias», «bien hecho» → <code>Celebration</code>; «está mal» → <code>Failure</code>), o <code>Unknown</code></td>
+</tr>
+<tr>
+<td><code>Streak</code></td>
+<td>Cuántas seguidas del mismo tipo (1 la primera; vuelve a 1 con otro tipo o tras media hora)</td>
+</tr>
+<tr>
+<td><code>FirstToday</code></td>
+<td>La primera de hoy</td>
+</tr>
+<tr>
+<td><code>What</code></td>
+<td>Qué era, cuando se sabe (<code>set_timer</code>, <code>run_command</code>, <code>timer</code>, <code>praise</code>…)</td>
+</tr>
+</tbody>
+</table>
+<p>El host reacciona una vez por orden, cuando la respuesta está lista: algo hecho y nada fallido → <code>Success</code>; hecho pero algo
+falló → <code>Warning</code>; nada hecho y algo falló → <code>Failure</code>. Solo consultar algo (la hora, el tiempo) no reacciona. Úsalo con
+<code>Variety&lt;T&gt;</code> para no reaccionar siempre igual: algo más grande la primera vez del día o en una racha larga, más alicaído al
+tercer fallo seguido.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

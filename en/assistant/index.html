@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Assistants | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Assistants | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/assistant/index.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="assistants">Assistants</h1>
+
+<p>An assistant is a character that lives on top of your windows. It walks or flies around, reacts to what happens on the PC,
+and you can talk to it: «Lander, minimise Chrome», «Kobii, what's the weather tomorrow?». When it runs one of your commands
+every step can be seen: the Lander flies over and shoots the minimise button, and the window minimises right on impact.</p>
+<p><img src="../../images/en/desktop-assistants.png" alt="Assistants on the desktop"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The assistant module is optional. While it is off, K-Desktop loads nothing of it and behaves exactly as without it.</p>
+</div>
+<h2 id="the-assistants">The assistants</h2>
+<table>
+<thead>
+<tr>
+<th>Assistant</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Lander</strong></td>
+<td>A small lunar module that flies between your windows, lands on them, tows them with a grappling hook, and has its own game (manual mode, missions, races)</td>
+</tr>
+<tr>
+<td><strong>Kobii</strong></td>
+<td>A little creature that walks, climbs your windows, plays, eats, sleeps and lets you pet, brush or high-five it</td>
+</tr>
+<tr>
+<td><strong>Kumo</strong></td>
+<td>A soft cloud that floats about, wraps windows to carry them, rains, makes rainbows and dances to your music</td>
+</tr>
+<tr>
+<td><strong>K-Desktop</strong></td>
+<td>The built-in assistant without a character, for when you want answers without anyone on the desktop</td>
+</tr>
+</tbody>
+</table>
+<p>Several can be on the desktop at the same time; each one has its own wake word, key to talk, language, personality, voice
+and even its own AI model.</p>
+<h2 id="turning-it-on-and-installing-one">Turning it on and installing one</h2>
+<ol>
+<li><p><em>Settings → Assistant → General →</em> <strong>Turn on the assistant module</strong>.</p>
+</li>
+<li><p><em>Settings → Assistant → Catalog</em>: each assistant with its clips, what it can do and <strong>Install…</strong>. You can also
+open a <code>.kai</code> package with a double click, or use <em>Assistants → Add assistant</em>.</p>
+</li>
+<li><p>The <strong>install card</strong> shows what it is, what it can do and who signed it, and offers to record its name as a wake word,
+to create commands for its shortcuts and to download the AI model it suggests.</p>
+<p><img src="../../images/en/assistant-install.png" alt="The install card"></p>
+</li>
+<li><p>Press <strong>Install</strong>.</p>
+</li>
+</ol>
+<p>A new version installs over the old one and is swapped in live, keeping the assistant's data
+(<code>%APPDATA%\K-Desktop 5\Assistants\Data\&lt;id&gt;</code>, included in backups). Installed assistants tell you when there is a new
+version (<em>Settings → Updates</em>): it is always offered, never installed without asking.</p>
+<h3 id="signed-packages">Signed packages</h3>
+<p>The card says who signed a package:</p>
+<table>
+<thead>
+<tr>
+<th>It shows</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Verified · name</strong></td>
+<td>Signed with a key K-Desktop knows (K-Desktop's own assistants)</td>
+</tr>
+<tr>
+<td><strong>Signed by «name»</strong></td>
+<td>Signed with another key: the name is only what the package says, but updates must come with the same key</td>
+</tr>
+<tr>
+<td><strong>Not signed</strong></td>
+<td>No signature: it installs, with the usual warning</td>
+</tr>
+<tr>
+<td><em>(not installed)</em></td>
+<td>The signature does not match: something in the package changed after it was signed</td>
+</tr>
+</tbody>
+</table>
+<p>If an update is signed by someone else than the version you have, the card warns in red.</p>
+<h2 id="its-card">Its card</h2>
+<p>In <em>Settings → Assistant → Assistants</em>, each assistant has its page:</p>
+<p><img src="../../images/en/assistant-settings.png" alt="An assistant's settings"></p>
+<ul>
+<li><p><strong>Put on the desktop / Hide</strong> (Activate / Deactivate for K-Desktop).</p>
+</li>
+<li><p><strong>Basics</strong>: its wake word, its key to talk, the model it thinks with (and the one to think harder), and the settings
+every assistant shares —<strong>size</strong>, <strong>volume</strong>, <strong>liveliness</strong> (how much it moves on its own), and whether it can be
+<strong>picked up</strong> with the mouse— plus «Always use K-Desktop's bubble».</p>
+</li>
+<li><p><strong>Personality</strong>: another language and personality for this assistant.</p>
+</li>
+<li><p><strong>Voice</strong>: who speaks (Kokoro, Piper, Windows…) with only that engine's settings, its profile, and its own speed and
+volume.</p>
+</li>
+<li><p><strong>Try</strong>: the assistant on a small pretend desktop of its own, doing each thing it can show (its animations, entrances
+and exits, states, reactions, gestures, what it does to a window). Nothing of it touches your desktop.</p>
+<p><img src="../../images/en/lander-try.png" alt="Try"></p>
+</li>
+<li><p>Below, in another row, its own pages (from its package): the Lander's game options, Kobii's colour…</p>
+</li>
+</ul>
+<p>What is not changed stays <strong>Global</strong>: what is in <em>Settings → Assistant</em> for all of them.</p>
+<p><em>Panel → Assistant</em> shows each assistant with what it is doing and its model in one line, and two tabs: <strong>Conversation</strong>
+(the chat, its <strong>Activity</strong> —what it did, with undo; <em>Everyone</em> shows everyone's— and the technical details) and <strong>…'s
+panel</strong> (scores, achievements, buttons), which shows also when it is not on the desktop.</p>
+<p><img src="../../images/en/assistant-panel.png" alt="The assistant panel"></p>
+<h2 id="talking-to-it">Talking to it</h2>
+<table>
+<thead>
+<tr>
+<th>How</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Its wake word</strong></td>
+<td>«Lander, …». Recorded in its card; each assistant has its own</td>
+</tr>
+<tr>
+<td><strong>Its key to talk</strong></td>
+<td>Hold it and speak (each assistant can have one)</td>
+</tr>
+<tr>
+<td><strong>Long click</strong></td>
+<td>Hold the left button on it for half a second and speak</td>
+</tr>
+<tr>
+<td><strong>Writing</strong></td>
+<td>Middle click on it, or <em>Write to …</em> in its right-click menu, opens a box; or the chat in <em>Panel → Assistant</em></td>
+</tr>
+<tr>
+<td><strong>Phone</strong></td>
+<td>The <em>Assistant</em> tab of the web app, written or spoken</td>
+</tr>
+<tr>
+<td><strong>Commands</strong></td>
+<td><em>Assistant: ask</em> sends it a text (or opens the box to write); the answer can be said, pasted over the selection, copied, shown on a sheet or kept in <code>{result}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Its <strong>right-click menu</strong> has <em>Write to …</em>, its own actions (extras), its panel, its settings and <em>Hide</em>.</p>
+<p><strong>Dropping files</strong> on it (from the Explorer) opens a small window: «What do I do with &quot;file&quot;?», with suggestions by type
+(summarise or read a document, describe an image or read its text, summarize an audio or turn it into text, see what is in a folder, open it…) or your own words.</p>
+<h2 id="what-happens-when-you-ask">What happens when you ask</h2>
+<ol>
+<li><strong>Fixed phrases</strong> go first, without AI: «what time is it?», «set a timer for 10 minutes», «remember that…», «open
+youtube.com», «what's playing?», «weather tomorrow», «free the brain»… They answer in a moment.</li>
+<li><strong>Your commands</strong>: if what you said names one of your commands clearly, it runs (with its gestures).</li>
+<li>Otherwise <strong>the AI</strong> answers, choosing among its <a href="tools.html">tools</a> the ones that fit.</li>
+</ol>
+<p>Risky things (closing programs, deleting files, shutting down) ask first with a small window, by voice too («yes» / «no» /
+«yes, and don't ask again»). <em>Settings → Assistant → General → Ask before doing something</em> sets it: never, only
+risky things, or the first time.</p>
+<h2 id="gestures-and-speed">Gestures and speed</h2>
+<p><em>Settings → Assistant → General</em>:</p>
+<ul>
+<li><strong>Manoeuvres</strong>: <em>Showy</em>, <em>Normal</em> or <em>Fast</em> (under half a second).</li>
+<li><strong>Animate up to N actions</strong> of a command (the rest run without gestures, except window ones).</li>
+<li><strong>Also show the commands you run yourself</strong>: commands launched by hotkey, menu or voice are also shown as gestures, as
+decoration.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

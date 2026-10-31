@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Escaparate | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Escaparate | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/sdk/showcase.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="escaparate">Escaparate</h1>
+
+<p>En la ficha de cada asistente instalado, la pestaña <strong>Probar</strong> lo enseña en un <strong>escenario</strong>: un pequeño escritorio de
+mentira para él solo (720×405 al 125 %, con barra de tareas, bandeja, reloj y tres ventanas de mentira: Notas, Fotos y una
+Calculadora que se abre cuando toca), dibujado fuera de la pantalla por otra copia de tu asistente
+(<code>KDesktop.exe --assistant-showcase</code>) y enseñado en vivo en la pestaña. El usuario puede acariciarlo o cogerlo con el ratón
+sobre la imagen, y elegir cada cosa que sabe enseñar (una a la vez: otra, o <em>Parar</em>, corta la anterior).</p>
+<p><img src="../../images/es/lander-try.png" alt="Probar"></p>
+<p>Tu asistente no sabe que está en un escenario: recibe el monitor, la barra de tareas y las ventanas del escenario en su
+<code>World</code>, las mueve y las pulsa con <code>IWindowServices</code> como siempre, y nada de él se pone nunca encima de la pantalla del
+usuario. Ahí tiene una carpeta de datos propia, vacía, y sus ajustes por defecto más lo que cambió el usuario.</p>
+<h2 id="lo-que-enseña-el-host-solo">Lo que enseña el host solo</h2>
+<p>Sin que hagas nada:</p>
+<ul>
+<li>las <strong>entradas y salidas</strong> por motivo (se va y se vuelve a cargar; una entrada se da por acabada cuando ha entrado y su
+cuerpo ha dejado de moverse, 7 s como mucho; tras una salida vuelve con <code>Reloaded</code>, sin espectáculo);</li>
+<li>los <strong>estados</strong> durante unos segundos (hablando, con un nivel de voz de mentira);</li>
+<li>las cuatro <strong>reacciones</strong>;</li>
+<li>los <strong>gestos</strong> que no necesitan ventana: <code>Announce</code>, <code>Communicate</code>, <code>Mark</code> junto al reloj, <code>PointAt</code> a la bandeja, <code>GoTo</code>
+al ratón, <code>Scan</code> de la ventana de notas, <code>Typing</code> en ella;</li>
+<li>lo que hace <strong>con una ventana</strong>, como un paso de una orden: <code>PressButton</code> para minimizar, maximizar y cerrar la ventana de
+notas, <code>MoveWindow</code> al otro lado, <code>ActivateWindow</code> de las fotos, y <code>WaitForWindow</code> mientras se abre la calculadora. Tu
+gesto llama a <code>Commit</code> en el momento justo y la ventana cambia entonces. Lo que no sabes hacer lo hace igual el escenario
+y lo dice el bocadillo, como en el uso normal.</li>
+</ul>
+<h2 id="sus-propias-animaciones">Sus propias animaciones</h2>
+<p>Un baile, un truco, cómo juega con la pelota… Ponlas en <code>Showcase</code> (id, nombre por idioma y grupo: <code>Idle</code>, <code>Moving</code>,
+<code>Playing</code>, <code>Feelings</code>, <code>Tricks</code> u <code>Other</code>) y hazlas en <code>PlayShowcaseAsync</code>: empieza al momento, haga lo que haga, acaba
+cuando termine (K-Desktop espera hasta 30 s) y para enseguida si se cancela el token; devuelve <code>false</code> si no conoces el id o
+ahora no puedes.</p>
+<pre><code class="lang-csharp">public IReadOnlyList&lt;ShowcaseItem&gt; Showcase { get; } =
+    [new(&quot;dance&quot;, new Dictionary&lt;string, string&gt; { [&quot;en&quot;] = &quot;Dance&quot;, [&quot;es&quot;] = &quot;Bailar&quot; }, ShowcaseGroup.Tricks)];
+
+public async Task&lt;bool&gt; PlayShowcaseAsync(string id, CancellationToken ct)
+{
+    if (id != &quot;dance&quot;) return false;
+    StartDance();
+    try { await Task.Delay(2500, ct); }
+    finally { StopDance(); }
+    return true;
+}
+</code></pre>
+<p>Los asistentes sin código enseñan como propias las animaciones de su <code>character.json</code> que no enseña nada más (<code>walk</code>,
+<code>sleep</code>, <code>surprised</code>, <code>click</code>, <code>catch</code>).</p>
+<h2 id="vídeos-para-el-catálogo">Vídeos para el catálogo</h2>
+<p>En el manifiesto, <code>&quot;showcase&quot;</code> lista vídeos cortos de lo que enseña (un WebP animado, un GIF o un PNG del paquete, 8 MB
+como mucho cada uno), para que el catálogo los enseñe sin cargar tu código ni descargar el paquete entero. <code>item</code> es el id
+de lo que enseña: uno de K-Desktop (<code>enter.summoned</code>, <code>state.thinking</code>, <code>react.celebration</code>, <code>gesture.announce</code>,
+<code>window.minimize</code>…) o uno tuyo, que entonces lleva <code>name</code> (por idioma) y <code>group</code>.</p>
+<pre><code class="lang-json">&quot;showcase&quot;: [
+  { &quot;item&quot;: &quot;enter.summoned&quot;, &quot;clip&quot;: &quot;showcase/enter.webp&quot; },
+  { &quot;item&quot;: &quot;dance&quot;, &quot;clip&quot;: &quot;showcase/dance.webp&quot;, &quot;name&quot;: { &quot;en&quot;: &quot;Dance&quot;, &quot;es&quot;: &quot;Bailar&quot; }, &quot;group&quot;: &quot;tricks&quot; }
+]
+</code></pre>
+<p>Al instalar, K-Desktop comprueba que cada vídeo está y es una imagen, y que ningún elemento tiene dos. El catálogo los
+enseña en la ventana de detalle de cada asistente, donde el usuario elige cuál ver: solo se descargan los vídeos que se
+abren (por rangos HTTP), nunca el paquete entero. Los asistentes instalados no se quedan con los vídeos: solo los usa el
+catálogo.</p>
+<h2 id="grabarlos">Grabarlos</h2>
+<p>No hace falta hacerlos a mano. Compila con el escaparate encendido y los objetivos de compilación del SDK ponen el paquete
+compilado en el escenario de un K-Desktop que indiques, fuera de la pantalla, le hacen hacer cada cosa que sabe enseñar,
+graban un vídeo de cada una que hace (WebP animado sin pérdida, 25 fotogramas por segundo, 10 s como mucho) en
+<code>Package\showcase\</code>, y reescriben el <code>&quot;showcase&quot;</code> de <code>Package\assistant.json</code> (solo esa parte del archivo) antes de
+empaquetar:</p>
+<pre><code class="lang-powershell">dotnet build -c Release -p:AssistantShowcase=true -p:KDesktopExe=&quot;C:\Ruta\A\KDesktop.exe&quot;
+</code></pre>
+<p>Tarda unos minutos. Los vídeos se graban en inglés (el texto del bocadillo, las ventanas del escenario);
+<code>-p:AssistantShowcaseLanguage=es</code> (o <code>fr</code>, <code>de</code>, <code>it</code>, <code>pt</code>) los graba en otro. Se quedan en tus fuentes, así que las
+compilaciones siguientes solo los empaquetan; vuelve a grabar cuando cambie lo que enseña. Lo que no sabe hacer no se graba.</p>
+<p>Sin código, lanza tú el escenario sobre la carpeta de tu paquete:</p>
+<pre><code class="lang-powershell">KDesktop.exe --assistant-showcase &lt;carpeta&gt; --record &lt;carpeta&gt;\showcase --manifest &lt;carpeta&gt;\assistant.json
+</code></pre>
+<p>Las animaciones largas y movidas dan vídeos grandes (una criatura que nunca está quieta: cerca de 1 MB por segundo), y todos
+viajan en el paquete: haz cortas las tuyas.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

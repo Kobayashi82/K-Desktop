@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Crear asistentes | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Crear asistentes | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/sdk/index.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="crear-asistentes">Crear asistentes</h1>
+
+<p>Un asistente es un paquete <code>.kai</code>: un <code>.zip</code> con su manifiesto (<code>assistant.json</code>), sus imágenes y ajustes y —si tiene
+código— sus ensamblados en <code>lib/</code>. Hay dos tipos:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Qué es</th>
+<th>Para</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="no-code.html">Sin código</a></strong></td>
+<td>Imágenes (fotogramas PNG) y un <code>character.json</code>. Lo mueve K-Desktop: anda por la barra de tareas y por encima de las ventanas, se cae, duerme y hace una animación para cada cosa</td>
+<td>Artistas: un personaje en una tarde, sin programar</td>
+</tr>
+<tr>
+<td><strong><a href="getting-started.html">Con código</a></strong></td>
+<td>Una biblioteca de clases en C# contra el <strong>SDK</strong> (<code>KDesktop.Assistant.Sdk</code>), dibujada con la API de dibujo de WPF</td>
+<td>Cualquier cosa: volar, física, juegos, maniobras sobre las ventanas, ajustes y panel propios</td>
+</tr>
+</tbody>
+</table>
+<p>En los dos casos el asistente habla, piensa y usa herramientas como cualquier otro: la IA, las herramientas, la voz y el
+reconocimiento de voz son de K-Desktop. Un asistente <strong>nunca ve la IA, las herramientas ni K-Desktop</strong>: recibe el mundo
+(ventanas, monitores, barra de tareas, los demás asistentes), sus servicios y <strong>gestos</strong> que hacer (pulsa el botón de
+minimizar de esta ventana, lleva aquella ventana allí, di esto, reacciona a cómo ha ido). Cada asistente decide cómo los
+hace.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>El SDK va por la versión <strong>1.0</strong>: a partir de aquí solo crece sin romper nada. Un paquete hecho con el SDK 1.x funciona
+en cualquier K-Desktop con el SDK 1.y, y ≥ x. Está en NuGet:
+<a href="https://www.nuget.org/packages/KDesktop.Assistant.Sdk">KDesktop.Assistant.Sdk</a>, y su plantilla,
+<a href="https://www.nuget.org/packages/KDesktop.Assistant.Templates">KDesktop.Assistant.Templates</a>.</p>
+</div>
+<h2 id="ejemplos">Ejemplos</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/Kobayashi82/K-Desktop/tree/main/templates/kdassistant"><code>templates/kdassistant</code></a></td>
+<td>La plantilla de <code>dotnet new</code>: el asistente con código más pequeño y completo. Se dibuja, tiene zona de clic, habla, reacciona, cambia de color con cada estado y enseña un arcoíris en su escaparate</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Kobayashi82/K-Desktop/tree/main/samples/CharacterAssistant"><code>samples/CharacterAssistant</code></a></td>
+<td><strong>Pip</strong>, un asistente sin código: imágenes y JSON</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Kobayashi82/K-Desktop-Assistants">K-Desktop-Assistants</a></td>
+<td>El Lander, Kobii y Kumo: asistentes completos con código</td>
+</tr>
+</tbody>
+</table>
+<h2 id="el-paquete">El paquete</h2>
+<pre><code>miasistente-1.0.0.kai
+  assistant.json        el manifiesto
+  icon.png
+  lib\MiAsistente.dll   su código (o character.json en uno sin código)
+  settings.json         su página de ajustes (opcional)
+  panel.json            su panel (opcional)
+  persona\es.json …     su personalidad y sus frases (opcional)
+  voice\miasistente.json  su perfil de voz (opcional)
+  assets\ …             todo lo demás
+  signature.json        si va firmado
+</code></pre>
+<h2 id="el-manifiesto">El manifiesto</h2>
+<p><code>assistant.json</code> (<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/assistant.schema.json">esquema</a>):</p>
+<pre><code class="lang-json">{
+  &quot;$schema&quot;: &quot;https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/src/KDesktop.Core/Assistant/Packages/Schemas/assistant.schema.json&quot;,
+  &quot;id&quot;: &quot;miasistente&quot;,
+  &quot;name&quot;: &quot;MiAsistente&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;author&quot;: &quot;Yo&quot;,
+  &quot;description&quot;: { &quot;es&quot;: &quot;Un asistente nuevo para K-Desktop.&quot;, &quot;en&quot;: &quot;A new assistant for K-Desktop.&quot; },
+  &quot;sdk&quot;: &quot;1.0&quot;,
+  &quot;entry&quot;: &quot;lib/MiAsistente.dll!MiAsistente.MiAsistente&quot;,
+  &quot;icon&quot;: &quot;icon.png&quot;,
+  &quot;wakeWord&quot;: &quot;MiAsistente&quot;,
+  &quot;common&quot;: [&quot;size&quot;, &quot;volume&quot;, &quot;liveliness&quot;, &quot;dragging&quot;],
+  &quot;traits&quot;: {
+    &quot;travel&quot;: &quot;fly&quot;,
+    &quot;canMoveWindows&quot;: true,
+    &quot;gestures&quot;: [&quot;pressButton&quot;, &quot;moveWindow&quot;, &quot;communicate&quot;, &quot;react&quot;, &quot;announce&quot;]
+  }
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code>, <code>name</code>, <code>version</code>, <code>author</code>, <code>description</code>, <code>homepage</code>, <code>license</code></td>
+<td>Quién es. <code>description</code> puede ser un texto o uno por idioma (<code>{ &quot;es&quot;: &quot;…&quot;, &quot;en&quot;: &quot;…&quot; }</code>). Instalar uno con el mismo <code>id</code> y una <code>version</code> mayor lo actualiza. Ids reservados: <code>data</code>, <code>settings</code>, <code>dev</code>, <code>kdesktop</code></td>
+</tr>
+<tr>
+<td><code>sdk</code></td>
+<td>El SDK con el que se compiló (<code>&quot;1.0&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>entry</code></td>
+<td><code>lib/Archivo.dll!Espacio.De.Nombres.Tipo</code> (la clase que implementa <code>IAssistant</code>), o <code>character.json</code> en uno sin código</td>
+</tr>
+<tr>
+<td><code>icon</code>, <code>preview</code></td>
+<td>Su icono y una imagen para su ficha</td>
+</tr>
+<tr>
+<td><code>wakeWord</code></td>
+<td>Nombre sugerido para llamarlo: al instalarlo, K-Desktop ofrece grabarlo con la voz del usuario</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>Modelos de IA sugeridos (ver <a href="getting-started.html#su-modelo">Su modelo</a>)</td>
+</tr>
+<tr>
+<td><code>voice</code>, <code>persona</code></td>
+<td>Su perfil de voz y su personalidad (ver <a href="getting-started.html#voz-y-personalidad">Voz y personalidad</a>)</td>
+</tr>
+<tr>
+<td><code>settings</code>, <code>panel</code></td>
+<td>Su página de ajustes y su panel (<code>settings.json</code> y <code>panel.json</code> por defecto)</td>
+</tr>
+<tr>
+<td><code>traits</code></td>
+<td>Cómo viaja (<code>fly</code>, <code>walk</code>, <code>teleport</code>), si puede mover ventanas y qué <a href="gestures.html">gestos</a> sabe hacer (<code>communicate</code> y <code>react</code> se dan siempre por sabidos)</td>
+</tr>
+<tr>
+<td><code>common</code></td>
+<td>Los <a href="getting-started.html#ajustes-comunes">ajustes comunes</a> que usa</td>
+</tr>
+<tr>
+<td><code>speech</code></td>
+<td><code>&quot;own&quot;</code> para dibujar él mismo lo que dice (ver <a href="host.html#su-propio-texto">Su propio texto</a>)</td>
+</tr>
+<tr>
+<td><code>extras</code></td>
+<td>Sus acciones propias (ver <a href="getting-started.html#extras">Extras</a>)</td>
+</tr>
+<tr>
+<td><code>updates</code>, <code>changes</code></td>
+<td>Dónde está su última versión y qué trae esta (ver <a href="publishing.html#versiones-nuevas">Publicar</a>)</td>
+</tr>
+<tr>
+<td><code>showcase</code></td>
+<td>Vídeos de lo que sabe enseñar, para el catálogo (ver <a href="showcase.html#v%C3%ADdeos-para-el-cat%C3%A1logo">Escaparate</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>Los demás archivos también tienen su esquema:
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/settings.schema.json">settings</a>,
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/panel.schema.json">panel</a>,
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/persona.schema.json">persona</a>,
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/voice.schema.json">voice</a>,
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/character.schema.json">character</a> y
+<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/catalog.schema.json">catalog</a>.</p>
+<h2 id="instalarlo">Instalarlo</h2>
+<p>Con el módulo Asistente encendido, un doble clic en el <code>.kai</code> (o <code>KDesktop.exe --install-assistant &quot;archivo&quot;</code>) abre su
+ficha en K-Desktop. Antes de enseñarla, K-Desktop comprueba el paquete <strong>sin cargar su código</strong>: rutas y tamaños seguros; el
+manifiesto, los ajustes, el panel, la personalidad y la voz contra sus esquemas; que estén la entrada, las imágenes y los
+vídeos del escaparate; la versión del SDK; la <a href="publishing.html#firmar-el-paquete">firma</a>; y que el id no esté reservado. Si
+algo está mal, la ficha dice qué.</p>
+<p>Se instala en <code>Assistants\&lt;id&gt;\&lt;versión&gt;\</code> de la carpeta de datos de K-Desktop (<code>%APPDATA%\K-Desktop 5</code>). Una versión nueva
+sustituye a la anterior —en caliente, si está en el escritorio— y conserva sus datos (<code>Assistants\Data\&lt;id&gt;\</code>) y sus ajustes.
+Las copias de seguridad de K-Desktop guardan esos datos y la lista de asistentes instalados, no los paquetes.</p>
+<h2 id="cómo-se-ejecuta">Cómo se ejecuta</h2>
+<ul>
+<li>Los asistentes van en <strong>su propio proceso</strong> (<code>KDesktop.exe --assistant</code>, como usuario normal, nunca como administrador),
+cada uno en su propio <code>AssemblyLoadContext</code>. K-Desktop solo lee el manifiesto.</li>
+<li>Puede haber varios asistentes a la vez en el escritorio, en el mismo proceso y en la misma capa de dibujo.</li>
+<li>Un asistente que falla cinco veces seguidas se descarga (solo él; los demás siguen); uno que tira el proceso tres veces
+seguidas se quita del escritorio. Al descargarlo, el host quita todo lo que dejó (superficies, zonas de clic,
+suscripciones).</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

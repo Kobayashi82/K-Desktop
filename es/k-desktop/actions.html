@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Acciones | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Acciones | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/actions.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="acciones">Acciones</h1>
+
+<p>Todas las acciones que puede ejecutar un comando. Se añaden con <em>Añadir acción</em> en el editor del comando y se ejecutan en
+orden.</p>
+<h2 id="abrir-y-ejecutar">Abrir y ejecutar</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ejecutar aplicación</strong></td>
+<td>Abre un programa, archivo, acceso directo o script, como usuario normal o como administrador.</td>
+</tr>
+<tr>
+<td><strong>Abrir carpeta</strong></td>
+<td>Abre una carpeta o una ubicación especial de Windows.</td>
+</tr>
+<tr>
+<td><strong>Abrir página web</strong></td>
+<td>Abre una dirección en el navegador que elijas.</td>
+</tr>
+<tr>
+<td><strong>Controlar aplicación</strong></td>
+<td>Activa, cierra, pone siempre visible o espera a una aplicación por el nombre de su proceso.</td>
+</tr>
+<tr>
+<td><strong>Ejecutar script</strong></td>
+<td>Ejecuta un script de CMD (BAT), PowerShell o VBScript escrito ahí mismo.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ventanas">Ventanas</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ventana</strong></td>
+<td>Maximiza, minimiza, coloca (mitades, cuartos, tercios), centra, pasa a otro monitor o a la zona siguiente o anterior (<a href="arrangements.html">disposiciones</a>) o hace transparente una ventana.</td>
+</tr>
+<tr>
+<td><strong>Disposición de ventanas</strong></td>
+<td>Pone cada programa en su zona de una de tus <a href="arrangements.html">disposiciones</a>.</td>
+</tr>
+<tr>
+<td><strong>Siempre visible (on/off)</strong></td>
+<td>Deja la ventana activa por encima de las demás, o la suelta.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="teclado-y-ratón">Teclado y ratón</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enviar pulsación / texto</strong></td>
+<td>Envía una combinación de teclas, escribe un texto o mueve el ratón.</td>
+</tr>
+<tr>
+<td><strong>Portapapeles</strong></td>
+<td>Copia un texto (con fecha, hora…) o cambia el que hay: texto plano, mayúsculas, minúsculas, enlaces limpios… y lo pega. O abre el <a href="clipboard.html">historial del portapapeles</a>.</td>
+</tr>
+<tr>
+<td><strong>Reproducir macro</strong></td>
+<td>Reproduce una macro grabada (teclado y ratón con sus tiempos), una vez o varias.</td>
+</tr>
+<tr>
+<td><strong>K-Board</strong></td>
+<td>Activa, desactiva o alterna un perfil de K-Board (teclas y botones cambiados).</td>
+</tr>
+<tr>
+<td><strong>Dictar</strong></td>
+<td>Escribe lo que dices donde está el cursor, sin IA. Acaba tras unos segundos de silencio, con Esc o diciendo «deja de dictar».</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sonido">Sonido</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Volumen</strong></td>
+<td>Fija, sube, baja o silencia el volumen: de los altavoces o el micrófono (los predeterminados o uno que elijas), de un programa o del que está delante.</td>
+</tr>
+<tr>
+<td><strong>Salida de audio</strong></td>
+<td>Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente.</td>
+</tr>
+<tr>
+<td><strong>Entrada de audio</strong></td>
+<td>Cambia el micrófono predeterminado. Con varios elegidos, cada vez pasa al siguiente.</td>
+</tr>
+<tr>
+<td><strong>Reproducir sonido</strong></td>
+<td>Reproduce un sonido elegido en un panel por tipos (avisos, alarmas, llamadas, sistema y los tuyos) con los de K-Desktop y los de Windows, que suenan al pulsarlos, u otro archivo (.wav, .mp3, .wma, .m4a, .aac, .flac). Los que pongas en la carpeta de tus sonidos salen en «Tuyos».</td>
+</tr>
+<tr>
+<td><strong>Multimedia</strong></td>
+<td>Reproduce, pausa, pasa a la siguiente o a la anterior, o para, con los controles multimedia de Windows (Spotify, navegadores, Reproductor multimedia…): en lo que está sonando o en un programa que eliges entre los que tienen algo ahora. Si un reproductor no sale, se usan las teclas multimedia. El OSD enseña la canción que suena.</td>
+</tr>
+<tr>
+<td><strong>Grabar audio</strong></td>
+<td>Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (<em>Opciones → Grabación de audio</em>). Con <em>Al terminar, transcribir</em>, pasa a texto lo que se dice (sin IA, con el modelo de voz) y lo guarda en un <code>.txt</code> junto al audio; el comando espera (Esc lo para) y deja el texto en <code>{resultado}</code>, para que un <em>Asistente: preguntar</em> lo resuma.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pantalla">Pantalla</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Grabar vídeo</strong></td>
+<td>Graba en MP4 una zona que eliges con el ratón, la ventana activa o el monitor del ratón, con lo que suena en el PC, el micrófono, los dos o sin sonido. Arriba sale una pastilla con el tiempo, <strong>Pausar</strong> y <strong>Detener</strong>, que no aparece en el vídeo; también se para con el mismo atajo (<em>Empezar / parar</em>) o desde la bandeja. En <strong>Formato</strong> puede ser también un <strong>GIF</strong> o un <strong>WebP animado</strong> (pesa bastante menos): sin sonido y de 30 segundos como mucho (se para solo; la pastilla dice cuánto queda). Al parar deja el archivo en <code>{resultado}</code>. Fotogramas, calidad, puntero, clics y carpeta en <em>Opciones → Grabación de pantalla</em>.</td>
+</tr>
+<tr>
+<td><strong>Captura de pantalla</strong></td>
+<td>Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia y la guarda. Con <em>Anotar antes</em> sale primero un editor: flecha, recuadro, texto, resaltador, difuminar (lo tapado no se puede leer), recortar y <strong>copiar texto</strong> (arrastra sobre un texto, o un clic para toda la imagen: lo lee el OCR de Windows y lo copia sin cerrar el editor), con siete colores, el grosor a elegir y Deshacer / Rehacer (Ctrl+Z / Ctrl+Y; las teclas 1–7 eligen la herramienta). Desde ahí <strong>Copiar</strong> o <strong>Guardar</strong> (lo que pulses vale esa vez). Esc cancela y el comando no sigue.</td>
+</tr>
+<tr>
+<td><strong>Copiar texto de la pantalla</strong></td>
+<td>Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). Si cancelas la zona (Esc) o no encuentra texto, el resto del comando no se ejecuta.</td>
+</tr>
+<tr>
+<td><strong>Cuentagotas</strong></td>
+<td>Congela la pantalla con una lupa junto al ratón; un clic copia el color del píxel como <code>#1E90FF</code>, <code>rgb(30, 144, 255)</code> o <code>hsl(210, 100%, 56%)</code> (a elegir). Las flechas mueven el ratón un píxel y la rueda cambia el zoom; Esc cancela y el resto del comando no se ejecuta.</td>
+</tr>
+<tr>
+<td><strong>Regla</strong></td>
+<td>Congela la pantalla y mide en píxeles: al mover el ratón, la distancia entre los bordes que tiene alrededor (hasta donde cambia el color); arrastrando, una caja. Un clic copia «ancho × alto»; Esc cancela.</td>
+</tr>
+<tr>
+<td><strong>Lupa</strong></td>
+<td>Una lente (rectangular o redonda) que sigue al ratón y amplía lo que tiene alrededor, o toda la pantalla en la que está.</td>
+</tr>
+<tr>
+<td><strong>Pantalla</strong></td>
+<td>Apaga las pantallas (todas o las que elijas), cambia la proyección (Win + P), el brillo, o la resolución y la frecuencia de un monitor.</td>
+</tr>
+<tr>
+<td><strong>Panel</strong></td>
+<td>Muestra, oculta, bloquea o desbloquea uno de tus <a href="panels.html">paneles</a>, o todos.</td>
+</tr>
+<tr>
+<td><strong>Tema de Windows</strong></td>
+<td>Pasa Windows y las aplicaciones a modo claro u oscuro, o alterna entre los dos.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="red-e-internet">Red e internet</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Petición web</strong></td>
+<td>Envía una petición HTTP (GET, POST…) sin abrir el navegador: Home Assistant, APIs, avisos al móvil…</td>
+</tr>
+<tr>
+<td><strong>Despertar equipo</strong></td>
+<td>Enciende otro PC o un servidor por la red (Wake-on-LAN) y, si quieres, espera a que responda.</td>
+</tr>
+<tr>
+<td><strong>Wi-Fi y Bluetooth</strong></td>
+<td>Enciende, apaga o alterna el Wi-Fi o el Bluetooth.</td>
+</tr>
+<tr>
+<td><strong>Enviar correo</strong></td>
+<td>Manda un correo desde una de tus cuentas, con texto con variables y archivos adjuntos, o lo deja como borrador. Ver <a href="mail.html">Correo</a>.</td>
+</tr>
+<tr>
+<td><strong>Enviar por Telegram</strong></td>
+<td>Te manda (o a un contacto), por el bot o la cuenta, un texto con variables, un archivo, una captura o lo que hay en el portapapeles. Ver <a href="telegram.html">Telegram</a>.</td>
+</tr>
+<tr>
+<td><strong>Crear cita</strong></td>
+<td>Apunta una cita en un calendario, a una hora o dentro de un rato. Ver <a href="calendar.html">Calendario</a>.</td>
+</tr>
+<tr>
+<td><strong>Abrir la reunión</strong></td>
+<td>Abre el enlace de Teams, Meet o Zoom de la cita de ahora o de la siguiente.</td>
+</tr>
+<tr>
+<td><strong>Enviar al móvil</strong></td>
+<td>Un texto, un enlace o un archivo pequeño a tus móviles o navegadores emparejados (todos, o el que elijas), como notificación. Admite variables. Ver <a href="remote.html#lo-que-manda-el-pc">Lo que manda el PC</a>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sistema">Sistema</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Archivos y carpetas</strong></td>
+<td>Copiar, mover, renombrar, borrar (a la papelera o del todo), crear una carpeta, comprimir en ZIP, descomprimir o hacer una <strong>copia de seguridad</strong>: sincronizar (solo lo nuevo o cambiado, y si quieres quitar del destino lo que ya no está) o una copia con fecha cada vez guardando las últimas. El origen es una lista de archivos, carpetas o patrones (<code>C:\Música\*.mp3</code>) escritos a mano o añadidos con los botones. El destino puede estar dentro del origen: nunca se copia a sí mismo. Enseña el progreso en el OSD (Esc lo detiene) y la siguiente acción puede esperar a que termine.</td>
+</tr>
+<tr>
+<td><strong>Archivos ocultos (on/off)</strong></td>
+<td>Enseña o esconde los archivos ocultos en el Explorador.</td>
+</tr>
+<tr>
+<td><strong>Plan de energía</strong></td>
+<td>Cambia el plan de energía de Windows (Alto rendimiento, Equilibrado…) o pasa al siguiente.</td>
+</tr>
+<tr>
+<td><strong>Mantener despierto</strong></td>
+<td>El PC no se suspende (y, si quieres, la pantalla no se apaga) durante unos minutos, mientras un programa esté abierto o hasta que lo apagues. Mientras dura sale una taza en la bandeja, con «30 minutos más» y «Dejar que se suspenda». Al cerrar K-Desktop, el PC vuelve a suspenderse como siempre.</td>
+</tr>
+<tr>
+<td><strong>Energía</strong></td>
+<td>Apaga, reinicia, suspende, bloquea o cierra la sesión, con una cuenta atrás que se puede cancelar.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="flujo">Flujo</h2>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Si…</strong></td>
+<td>Comprueba algo (un programa abierto, la hora, un dispositivo, la red, el uso del procesador, una variable…) y, si no se cumple, para el comando, se salta las acciones siguientes o ejecuta otro comando en su lugar. Ver <a href="commands.html#si-condiciones">condiciones</a>.</td>
+</tr>
+<tr>
+<td><strong>Esperar</strong></td>
+<td>Hace una pausa antes de la acción siguiente.</td>
+</tr>
+<tr>
+<td><strong>Comandos</strong></td>
+<td>Ejecuta, habilita o deshabilita otro comando.</td>
+</tr>
+<tr>
+<td><strong>Abrir QuickMenu</strong></td>
+<td>Enseña un QuickMenu donde está el ratón.</td>
+</tr>
+<tr>
+<td><strong>Mostrar mensaje</strong></td>
+<td>Enseña un mensaje en pantalla durante un rato.</td>
+</tr>
+<tr>
+<td><strong>Mostrar notificación</strong></td>
+<td>Una tarjeta en una esquina con tu título, texto, imagen, color y sonido, el tiempo que digas. Al pulsarla puede abrir algo (un archivo, una carpeta, una web) o ejecutar otro comando, y la siguiente acción puede esperar a que se cierre. Su sonido puede ser <em>Global</em> (el de <em>Opciones › Mensajes y notificaciones</em>). Con algo a pantalla completa hace lo que digan esas opciones.</td>
+</tr>
+<tr>
+<td><strong>Desactivar en la app actual (on/off)</strong></td>
+<td>Desactiva o vuelve a activar los atajos de K-Desktop en la aplicación activa (útil en juegos).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="asistente">Asistente</h2>
+<p>Solo con el <a href="../assistant/index.html">módulo Asistente</a> encendido.</p>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Asistente: preguntar</strong></td>
+<td>Le dice algo a un asistente, como si se lo dijeras en voz alta. Sin texto, abre la caja para escribirle. <strong>Con la respuesta</strong>: <em>Decirla</em> (en su bocadillo y con su voz), <em>Pegarla en lugar de la selección</em>, <em>Copiarla</em>, <em>Mostrarla en una hoja</em> o <em>Solo guardarla en {resultado}</em>. Salvo <em>Decirla</em>, el comando espera la respuesta (Esc lo para), el asistente no habla ni sale en su bocadillo y la respuesta queda en <code>{resultado}</code>. Con <em>Si no está en el escritorio, sale para hacerla</em>, sale si está escondido. Ejemplo: «Traduce al inglés: {seleccion}» y <em>Pegarla en lugar de la selección</em>.</td>
+</tr>
+<tr>
+<td><strong>Asistente: decir</strong></td>
+<td>El asistente dice algo en su bocadillo, sin la IA. Útil en eventos: «Ha terminado la copia». Con <code>{seleccion}</code> lee lo que tengas seleccionado con su voz (un texto largo, entero). Con <em>Si no está en el escritorio, sale para hacerla</em>, sale si está escondido.</td>
+</tr>
+<tr>
+<td><strong>Asistente: chat</strong></td>
+<td>Abre, cierra o alterna una <strong>ventana de chat</strong> aparte, con la misma conversación que <em>Panel → Asistente</em>. Empieza con el último asistente con el que hablaste en ella o con uno fijo. Su icono, arriba, cambia de asistente (los que no están en el escritorio salen al elegirlos); la chincheta la deja siempre encima y Esc la cierra. Recuerda dónde estaba, su tamaño, la chincheta y el asistente.</td>
+</tr>
+<tr>
+<td><strong>Asistente: cerebro</strong></td>
+<td>Saca el modelo de IA de la gráfica (antes de un juego o un render) o lo carga ya para que la primera respuesta no espere.</td>
+</tr>
+<tr>
+<td><strong>Asistente: usar una herramienta</strong></td>
+<td>Usa una <a href="../assistant/tools.html">herramienta de los asistentes</a> sin la IA: una incluida (el tiempo, convertir, leer una web, el estado del PC…), una tuya en JSON o la de un <a href="../assistant/tools.html#servidores-mcp">servidor MCP</a> (mandar un mensaje a Telegram, apuntar algo en tu calendario, pausar las descargas…). Se elige en una lista, donde no salen las que ya son una acción de K-Desktop, y sus datos se rellenan en un formulario o, con <em>Ver como JSON</em>, a mano; en los textos valen las variables (<code>{seleccion}</code>, <code>{resultado}</code>…). Lo que devuelve queda en <code>{resultado}</code>. No pregunta antes, salvo un script tuyo nuevo o cambiado o una herramienta que tengas en <em>Siempre</em> en <em>Opciones › Herramientas</em>; si el comando salta solo (un evento, al arrancar…), esa no se hace. Si falla, el resto del comando no sigue. Ejemplo: <code>{seleccion}</code> en el texto de la herramienta de Telegram para mandar lo seleccionado.</td>
+</tr>
+<tr>
+<td><strong>Asistente: acción</strong></td>
+<td>Pone un asistente en el escritorio, lo esconde o lanza una acción propia suya, como el modo manual del Lander (si no está en el escritorio, sale para hacerla o no se hace nada, a elegir).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="variables-pasar-datos-de-una-acción-a-otra">Variables: pasar datos de una acción a otra</h2>
+<p>En los textos de las acciones (un mensaje, una dirección, un texto que se escribe, un script…) puedes poner variables.
+Escribe <code>{</code> en el campo y salen las que hay; con las flechas eliges una y con Enter la pones.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Qué vale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{resultado}</code></td>
+<td>Lo que dio la acción anterior que da algo (ver abajo).</td>
+</tr>
+<tr>
+<td><code>{seleccion}</code></td>
+<td>Lo seleccionado en la ventana donde ejecutaste el comando. Se copia una vez y el portapapeles queda como estaba.</td>
+</tr>
+<tr>
+<td><code>{portapapeles}</code></td>
+<td>El texto copiado.</td>
+</tr>
+<tr>
+<td><code>{portapapeles:2}</code></td>
+<td>Lo copiado antes de lo último, del <a href="clipboard.html">historial del portapapeles</a> (<code>:3</code>, <code>:4</code>… más atrás).</td>
+</tr>
+<tr>
+<td><code>{fecha}</code> y <code>{hora}</code></td>
+<td>La fecha de hoy (2026-10-28) y la hora (09:30:05).</td>
+</tr>
+<tr>
+<td><code>{nombre}</code></td>
+<td>Lo que guardó una acción anterior con <strong>Guardar en variable</strong> y ese nombre.</td>
+</tr>
+</tbody>
+</table>
+<p>Dan algo: <strong>Copiar texto de la pantalla</strong> (el texto leído), <strong>Cuentagotas</strong> (el color), <strong>Regla</strong> (la medida), <strong>Petición web</strong> (la respuesta), <strong>Asistente: preguntar</strong> (la
+respuesta, salvo con <em>Decirla</em>), <strong>Asistente: usar una herramienta</strong> (lo que devuelve), <strong>Grabar audio</strong> (lo que se dice, con <em>Al terminar, transcribir</em>), <strong>Portapapeles</strong> (el texto que
+deja copiado), <strong>Captura de pantalla</strong> (el archivo guardado), <strong>Grabar vídeo</strong> (el vídeo, al parar) y <strong>Ejecutar script</strong> (lo que escribe, si se marca <em>Esperar a
+que termine</em> y la ventana es <em>Oculta</em>; no en VBScript). Estas acciones tienen el campo <strong>Guardar en variable</strong>: con un
+nombre (letras, números y <code>_</code>), lo que dan sigue disponible hasta que acaba el comando, aunque después otra acción cambie
+<code>{resultado}</code>.</p>
+<p>Las variables duran lo que dura una ejecución del comando. Los comandos que ejecuta con <em>Comandos</em> y los comandos de un
+mismo evento las comparten. También valen los nombres en inglés (<code>{result}</code>, <code>{selection}</code>, <code>{clipboard}</code>, <code>{date}</code>,
+<code>{time}</code>). Lo que va entre llaves y no es una variable se deja como está.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Class Rope | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Rope | K-Desktop ">
+      
+      <meta name="description" content="A rope (cable, hook line, leash) simulated with Verlet integration, in screen pixels like everything else. The start is always held (by the assistant); the end hangs free or is held too (stuck in a window, on a projectile). It only resists stretching, so it sags and goes slack, and it never gets longer than  while its end is free. It steps itself at a fixed 120 Hz whatever the frame rate, so it behaves the same on any screen.">
+      <link rel="icon" href="../images/favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/new/main/apiSpec/new?filename=KDesktop_Assistant_Sdk_Rope.md&amp;value=---%0Auid%3A%20KDesktop.Assistant.Sdk.Rope%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="KDesktop.Assistant.Sdk.Rope">
+
+
+
+  <h1 id="KDesktop_Assistant_Sdk_Rope" data-uid="KDesktop.Assistant.Sdk.Rope" class="text-break">
+Class Rope  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L22"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><span class="xref">KDesktop</span>.<span class="xref">Assistant</span>.<a class="xref" href="KDesktop.Assistant.Sdk.html">Sdk</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>KDesktop.Assistant.Sdk.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>A rope (cable, hook line, leash) simulated with Verlet integration, in screen pixels like everything else.
+The start is always held (by the assistant); the end hangs free or is held too (stuck in a window, on a projectile).
+It only resists stretching, so it sags and goes slack, and it never gets longer than <a class="xref" href="KDesktop.Assistant.Sdk.Rope.html#KDesktop_Assistant_Sdk_Rope_MaxLength">MaxLength</a> while
+its end is free. It steps itself at a fixed 120 Hz whatever the frame rate, so it behaves the same on any screen.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class Rope</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Rope</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+  <h2 id="KDesktop_Assistant_Sdk_Rope_examples">Examples</h2>
+  <pre><code class="lang-csharp">var rope = new Rope(nose, hook, length: 300) { MaxLength = 420 };
+// every tick:
+rope.Start = nose; rope.PinEnd(hook);   // or rope.ReleaseEnd() to let it fall
+rope.Step(tick.Elapsed);
+rope.Draw(dc, pen);                      // inside a surface's Present
+if (rope.IsTaut) PullWindow(rope.Pull); // what towing does with it</code></pre>
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope__ctor_" data-uid="KDesktop.Assistant.Sdk.Rope.#ctor*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope__ctor_System_Windows_Point_System_Windows_Point_System_Double_System_Int32_" data-uid="KDesktop.Assistant.Sdk.Rope.#ctor(System.Windows.Point,System.Windows.Point,System.Double,System.Int32)">
+  Rope(Point, Point, double, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L41"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Rope(Point start, Point end, double length, int segments = 20)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>start</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd><p>Where it starts (held).</p>
+</dd>
+    <dt><code>end</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd><p>Where its end is now; the rope is laid straight between both.</p>
+</dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd><p>Its length when relaxed, in pixels.</p>
+</dd>
+    <dt><code>segments</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>How many pieces it is made of (more: rounder, a little more work). 4–64.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_TimeStep" data-uid="KDesktop.Assistant.Sdk.Rope.TimeStep">
+  TimeStep
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L25"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The fixed step of the simulation (s).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const double TimeStep = 0.008333333333333333</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Damping_" data-uid="KDesktop.Assistant.Sdk.Rope.Damping*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Damping" data-uid="KDesktop.Assistant.Sdk.Rope.Damping">
+  Damping
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L94"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>How fast it loses its movement: the fraction of speed left after one second is e^(−Damping). 0: none.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double Damping { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_End_" data-uid="KDesktop.Assistant.Sdk.Rope.End*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_End" data-uid="KDesktop.Assistant.Sdk.Rope.End">
+  End
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Where its end is.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Point End { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_EndPinned_" data-uid="KDesktop.Assistant.Sdk.Rope.EndPinned*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_EndPinned" data-uid="KDesktop.Assistant.Sdk.Rope.EndPinned">
+  EndPinned
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L70"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Its end is held (<a class="xref" href="KDesktop.Assistant.Sdk.Rope.html#KDesktop_Assistant_Sdk_Rope_PinEnd_System_Windows_Point_">PinEnd(Point)</a>) rather than hanging.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool EndPinned { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Gravity_" data-uid="KDesktop.Assistant.Sdk.Rope.Gravity*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Gravity" data-uid="KDesktop.Assistant.Sdk.Rope.Gravity">
+  Gravity
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gravity, in pixels per second squared (down is +Y). About 1000 looks like a light cable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector Gravity { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.vector">Vector</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_IsTaut_" data-uid="KDesktop.Assistant.Sdk.Rope.IsTaut*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_IsTaut" data-uid="KDesktop.Assistant.Sdk.Rope.IsTaut">
+  IsTaut
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>It is straight and pulling (its ends at least 98 % of its length apart).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsTaut { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Iterations_" data-uid="KDesktop.Assistant.Sdk.Rope.Iterations*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Iterations" data-uid="KDesktop.Assistant.Sdk.Rope.Iterations">
+  Iterations
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L97"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>How many times per step the pieces are pulled back to their length: more, stiffer. 4–64.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Iterations { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Length_" data-uid="KDesktop.Assistant.Sdk.Rope.Length*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Length" data-uid="KDesktop.Assistant.Sdk.Rope.Length">
+  Length
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L73"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Its length when relaxed (reeling it in or out changes it), never over <a class="xref" href="KDesktop.Assistant.Sdk.Rope.html#KDesktop_Assistant_Sdk_Rope_MaxLength">MaxLength</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double Length { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_MaxLength_" data-uid="KDesktop.Assistant.Sdk.Rope.MaxLength*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_MaxLength" data-uid="KDesktop.Assistant.Sdk.Rope.MaxLength">
+  MaxLength
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L80"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The longest it can ever be (its end free). Infinite by default.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double MaxLength { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Overstretch_" data-uid="KDesktop.Assistant.Sdk.Rope.Overstretch*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Overstretch" data-uid="KDesktop.Assistant.Sdk.Rope.Overstretch">
+  Overstretch
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L103"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>How much further apart its ends are than its length (both held and pulled apart): 0 when it is not.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double Overstretch { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Points_" data-uid="KDesktop.Assistant.Sdk.Rope.Points*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Points" data-uid="KDesktop.Assistant.Sdk.Rope.Points">
+  Points
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L57"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The points along it, from the start to the end.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyList&lt;Point&gt; Points { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Pull_" data-uid="KDesktop.Assistant.Sdk.Rope.Pull*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Pull" data-uid="KDesktop.Assistant.Sdk.Rope.Pull">
+  Pull
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L112"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>What it pulls the end with, towards the start: the direction from the end to the start times
+<a class="xref" href="KDesktop.Assistant.Sdk.Rope.html#KDesktop_Assistant_Sdk_Rope_Overstretch">Overstretch</a>. Zero while it is slack. A window being towed follows this with a spring.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector Pull { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.vector">Vector</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Segments_" data-uid="KDesktop.Assistant.Sdk.Rope.Segments*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Segments" data-uid="KDesktop.Assistant.Sdk.Rope.Segments">
+  Segments
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L54"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Segments { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Span_" data-uid="KDesktop.Assistant.Sdk.Rope.Span*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Span" data-uid="KDesktop.Assistant.Sdk.Rope.Span">
+  Span
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L100"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The straight distance between its start and its end.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double Span { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Start_" data-uid="KDesktop.Assistant.Sdk.Rope.Start*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Start" data-uid="KDesktop.Assistant.Sdk.Rope.Start">
+  Start
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L60"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Where it starts: held there (the assistant moves it every tick).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Point Start { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Bounds_" data-uid="KDesktop.Assistant.Sdk.Rope.Bounds*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Bounds_System_Double_" data-uid="KDesktop.Assistant.Sdk.Rope.Bounds(System.Double)">
+  Bounds(double)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L235"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The smallest rectangle around it (to size a surface), grown by <code class="paramref">margin</code> pixels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Rect Bounds(double margin = 0)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>margin</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.rect">Rect</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Draw_" data-uid="KDesktop.Assistant.Sdk.Rope.Draw*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Draw_System_Windows_Media_DrawingContext_System_Windows_Media_Pen_" data-uid="KDesktop.Assistant.Sdk.Rope.Draw(System.Windows.Media.DrawingContext,System.Windows.Media.Pen)">
+  Draw(DrawingContext, Pen)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L270"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws it with <code class="paramref">pen</code> (in a surface's <a class="xref" href="KDesktop.Assistant.Sdk.ISurface.html#KDesktop_Assistant_Sdk_ISurface_Present_KDesktop_Assistant_Sdk_PixelRect_System_Action_System_Windows_Media_DrawingContext__">Present(PixelRect, Action&lt;DrawingContext&gt;)</a>, which uses screen pixels).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Draw(DrawingContext dc, Pen pen)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dc</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.media.drawingcontext">DrawingContext</a></dt>
+    <dd></dd>
+    <dt><code>pen</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.media.pen">Pen</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_PinEnd_" data-uid="KDesktop.Assistant.Sdk.Rope.PinEnd*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_PinEnd_System_Windows_Point_" data-uid="KDesktop.Assistant.Sdk.Rope.PinEnd(System.Windows.Point)">
+  PinEnd(Point)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L123"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Holds its end at <code class="paramref">point</code> (a hook stuck in a window, a projectile carrying it).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void PinEnd(Point point)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>point</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_ReleaseEnd_" data-uid="KDesktop.Assistant.Sdk.Rope.ReleaseEnd*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_ReleaseEnd_System_Windows_Vector_" data-uid="KDesktop.Assistant.Sdk.Rope.ReleaseEnd(System.Windows.Vector)">
+  ReleaseEnd(Vector)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L130"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lets its end hang, moving at <code class="paramref">velocity</code> (pixels per second) as it is let go.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReleaseEnd(Vector velocity = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>velocity</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.vector">Vector</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Reset_" data-uid="KDesktop.Assistant.Sdk.Rope.Reset*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Reset_System_Windows_Point_System_Windows_Point_" data-uid="KDesktop.Assistant.Sdk.Rope.Reset(System.Windows.Point,System.Windows.Point)">
+  Reset(Point, Point)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L137"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Moves it all to a new place at once, laid straight (after a jump: a new monitor, a respawn).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Reset(Point start, Point end)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>start</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd></dd>
+    <dt><code>end</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.point">Point</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_Step_" data-uid="KDesktop.Assistant.Sdk.Rope.Step*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_Step_System_Double_" data-uid="KDesktop.Assistant.Sdk.Rope.Step(System.Double)">
+  Step(double)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L147"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Advances it <code class="paramref">seconds</code> (the tick's elapsed time), in fixed steps.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Step(double seconds)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>seconds</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="KDesktop_Assistant_Sdk_Rope_ToGeometry_" data-uid="KDesktop.Assistant.Sdk.Rope.ToGeometry*"></a>
+
+  <h3 id="KDesktop_Assistant_Sdk_Rope_ToGeometry" data-uid="KDesktop.Assistant.Sdk.Rope.ToGeometry">
+  ToGeometry()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Assistant.Sdk/Rope.cs/#L250"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Its shape as a smooth curve through the middle of its pieces (frozen: ready to draw).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public StreamGeometry ToGeometry()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.windows.media.streamgeometry">StreamGeometry</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

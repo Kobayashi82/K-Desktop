@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Brain (the AI) | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Brain (the AI) | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/assistant/brain.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="brain-the-ai">Brain (the AI)</h1>
+
+<p>The assistants understand you with an AI model. It runs <strong>on your PC</strong> with <code>llama-server</code> (from llama.cpp), or on
+another server you already have, such as Ollama, llama-swap or LM Studio. <em>Settings → Assistant → Brain</em>.</p>
+<p><img src="../../images/en/brain.png" alt="Settings → Brain"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Without any model the assistants still work: fixed phrases (the time, timers, notes, «remember that…»), your commands
+and the rules for windows and programs need no AI. Choose <strong>No AI (only rules and your commands)</strong> to keep it that way.</p>
+</div>
+<h2 id="where-the-answer-is-worked-out">Where the answer is worked out</h2>
+<p>The page tells you where what you say goes:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>On this PC</strong></td>
+<td>What you say never leaves the computer</td>
+</tr>
+<tr>
+<td><strong>On another computer of your network</strong></td>
+<td>What you say stays at home</td>
+</tr>
+<tr>
+<td><strong>On the internet</strong></td>
+<td>What you say leaves your network</td>
+</tr>
+</tbody>
+</table>
+<h2 id="models-on-this-pc">Models on this PC</h2>
+<ol>
+<li><strong>Where the models of this PC are → llama-server → Add llama-server…</strong>: the <code>llama-server.exe</code> that opens the models.
+If it has a <code>models</code> folder next to it, it is looked in too. With several, each model opens with the one in its folder
+or closest to it; otherwise with the usual one (<em>Make it the usual one</em>).</li>
+<li><strong>Folders with models</strong>: the <code>.gguf</code> files inside them are listed. One of them is <em>where the ones you download go</em>
+(<em>Open</em>, or move it elsewhere).</li>
+<li><strong>Add model</strong>: paste the link of a Hugging Face model or type its name (<code>unsloth/Qwen3.5-9B-GGUF</code>, or
+<code>unsloth/Qwen3.5-9B-GGUF:Q4_K_M</code> for one quantization). Each file says whether it <strong>fits</strong> your graphics card, is
+<strong>tight</strong> or <strong>doesn't fit (it will be slow)</strong>; the biggest one that fits is already chosen. Models that can see images
+offer their vision part too.</li>
+</ol>
+<p>The <strong>Models</strong> list shows those of this PC and of the other servers, the one in memory in green, with <em>Load</em>, <em>Free</em>,
+<em>Delete</em> and <strong>llama-server options</strong> for that model only (for example <code>-c 32768</code> for more context).</p>
+<h2 id="other-servers">Other servers</h2>
+<p><em>Other servers → Add</em>: Ollama, or any server compatible with OpenAI (llama-swap, LM Studio…), on this PC or another, with
+its address and, only if it asks for one, an API key (stored encrypted for your user). <em>Test</em> says how many models it has.
+Their models show up in the same list.</p>
+<h2 id="choosing-the-model">Choosing the model</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model</strong></td>
+<td><em>Automatic</em>: the biggest one that fits in your graphics card. Or a specific one, or <em>No AI</em></td>
+</tr>
+<tr>
+<td><strong>To think harder</strong></td>
+<td>Used when you say «think it over», when the model sees it is not enough, or when you tell it it got it wrong. <em>The same model</em> (reasoning before it answers), another model, or <em>Never</em>. With another model, <strong>Reason before answering</strong> decides whether it reasons first or answers as it is (quicker)</td>
+</tr>
+<tr>
+<td></td>
+<td>Both have <strong>Browse…</strong> (a <code>.gguf</code> from any folder) and <strong>Load</strong> when the chosen one is not in memory</td>
+</tr>
+<tr>
+<td><strong>How long it reasons when thinking harder</strong></td>
+<td>A little, normal, a lot (only when it reasons). More helps with hard things, but takes longer</td>
+</tr>
+<tr>
+<td><strong>Unload it after</strong></td>
+<td>Unused for this long, it leaves memory (or <em>Never</em>: only when you ask). Loading it again takes a few seconds</td>
+</tr>
+<tr>
+<td><strong>One model at a time</strong></td>
+<td>Loading one unloads the others. When off, several stay while they fit</td>
+</tr>
+<tr>
+<td><strong>Vision</strong></td>
+<td>Models that can see images load with their vision part (it takes a little more)</td>
+</tr>
+<tr>
+<td><strong>Free the graphics card for games</strong></td>
+<td>With a game on the whole screen, the model leaves the graphics card. A film does not count. It loads again when you talk to it</td>
+</tr>
+</tbody>
+</table>
+<p>Each assistant can think with <strong>its own model</strong> (<em>its card → Basics → Thinks with</em>, and its own one to think harder: <em>Global</em>, <em>The same model</em> or one of the list, with
+its box to reason or not, and how long it reasons).
+An assistant's package may suggest a model: the install card and its <em>Basics</em> tab offer to download it (never ticked by
+default), only if it fits and you do not have it.</p>
+<h2 id="freeing-the-graphics-card">Freeing the graphics card</h2>
+<p>The model is loaded by itself when you talk to an assistant, and while you are still saying the order. To take it out of
+memory:</p>
+<ul>
+<li><strong>Free</strong> next to it, at the top of the page;</li>
+<li>say or write «free the brain» / «unload the model» (and «load the brain» to have it ready);</li>
+<li>the <strong>Assistant: brain</strong> action in a command or an event (before a game, a render…).</li>
+</ul>
+<h2 id="thinking-harder">Thinking harder</h2>
+<p>Small models answer in a moment but can get a sum or a riddle wrong. Ask «think it over», «think it through» or «think
+carefully» (before or after the question), or tell it «that's wrong»: it thinks it over and checks. A big model may also
+decide to think harder on its own. It takes longer: up to half a minute.</p>
+<h2 id="test-the-model">Test the model</h2>
+<p>At the end of the page, <strong>Test the model</strong> gives the model a list of test orders and tells you how many it gets right and
+how long it takes on average. Nothing is really run. <strong>Open the bench</strong> opens <code>Assistant\bench.json</code>, to write your own
+orders.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

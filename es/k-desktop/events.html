@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Eventos | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Eventos | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/events.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="eventos">Eventos</h1>
+
+<p>Un evento es «cuando pase esto, ejecuta estos comandos». Cada evento tiene un disparador, condiciones si quieres y los
+comandos que ejecuta; muchos disparadores tienen además una parte <strong>«Al terminar»</strong> (el programa se cierra, vuelves al PC,
+se quita el dispositivo…) con sus propios comandos.</p>
+<p><img src="../../images/es/events.png" alt="Eventos"></p>
+<h2 id="disparadores">Disparadores</h2>
+<table>
+<thead>
+<tr>
+<th>Disparador</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Al iniciar K-Desktop / Al salir de K-Desktop</td>
+<td>Lo que antes era «Ejecutar al iniciar / al salir» en cada comando</td>
+</tr>
+<tr>
+<td>A una hora</td>
+<td>Todos los días o algunos días de la semana, a la hora que digas; o un solo día, si le pones <em>Día</em></td>
+</tr>
+<tr>
+<td>Cada cierto tiempo</td>
+<td>Cada N minutos mientras K-Desktop está abierto</td>
+</tr>
+<tr>
+<td>Al abrir un programa</td>
+<td>Cuando se abre; «Al terminar», cuando se cierra. <em>Al abrir Steam, el sonido a los auriculares</em></td>
+</tr>
+<tr>
+<td>Programa en primer plano</td>
+<td>Cuando su ventana pasa a primer plano, y cuando deja de estarlo</td>
+</tr>
+<tr>
+<td>Sin usar el PC</td>
+<td>Tras unos minutos sin teclado ni ratón; «Al terminar», cuando vuelves</td>
+</tr>
+<tr>
+<td>Bloquear, suspender…</td>
+<td>Cuando la sesión se bloquea o desbloquea, o el PC se suspende o se despierta</td>
+</tr>
+<tr>
+<td>Batería o corriente</td>
+<td>Cuando un portátil pasa a batería o vuelve a la corriente</td>
+</tr>
+<tr>
+<td>Nivel de batería</td>
+<td>Cuando la batería baja de un % (o sube de él); «Al terminar», cuando vuelve al otro lado</td>
+</tr>
+<tr>
+<td>Amanecer o atardecer</td>
+<td>Al amanecer o al atardecer donde estás, o unos minutos antes o después (la hora se calcula en el PC; <em>Ver hoy</em> enseña la de hoy). Sin lugar: «Dónde estás» de las opciones del asistente o la ubicación de Windows</td>
+</tr>
+<tr>
+<td>Archivo en una carpeta</td>
+<td>Cuando un archivo aparece (en cuanto deja de crecer), cambia, se borra o se renombra. Los comandos reciben su ruta en <code>{archivo}</code></td>
+</tr>
+<tr>
+<td>Pantalla conectada o desconectada</td>
+<td>Cuando enchufas o quitas un monitor o la tele (también una tele enchufada que aún no se usa); los comandos reciben su nombre en <code>{pantalla}</code></td>
+</tr>
+<tr>
+<td>Llamada desde fuera</td>
+<td>Cuando otro equipo, Home Assistant o un script lo pide por su nombre, por UDP o por la web</td>
+</tr>
+<tr>
+<td>Unidad conectada</td>
+<td>Cuando se conecta un USB, un disco o una tarjeta (y cuando se retira)</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>Al conectarse a una red (o a cualquiera), o al quedarse sin red</td>
+</tr>
+<tr>
+<td>Dispositivo conectado</td>
+<td>Cuando se conecta un mando, teclado, auriculares o un aparato USB (y cuando se desconecta)</td>
+</tr>
+<tr>
+<td>Uso del equipo</td>
+<td>Cuando el procesador, la gráfica, la memoria o la memoria de la gráfica (VRAM) pasan (o bajan) de un % durante un rato</td>
+</tr>
+<tr>
+<td>Dispositivo de audio</td>
+<td>Cuando se conectan unos auriculares, un altavoz o un micrófono, o uno pasa a ser la salida o la entrada predeterminada</td>
+</tr>
+<tr>
+<td>Cita del calendario</td>
+<td>Unos minutos antes de una cita, al empezar o al acabar. Ver <a href="calendar.html">Calendario</a></td>
+</tr>
+<tr>
+<td>Llega un correo</td>
+<td>Cuando llega un correo a una de tus cuentas, y puede guardar sus adjuntos. Ver <a href="mail.html">Correo</a></td>
+</tr>
+<tr>
+<td>Llega un mensaje de Telegram</td>
+<td>Cuando llega uno tuyo o de un contacto al bot o a la cuenta. Ver <a href="telegram.html">Telegram</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="opciones">Opciones</h2>
+<ul>
+<li><strong>Comandos</strong>: <em>Añadir comando</em> elige comandos que ya tienes; <em>Nuevo comando</em> crea uno oculto con el nombre del evento,
+lo añade y lo abre para que le pongas las acciones.</li>
+<li><strong>Pedir a un asistente</strong>: después de los comandos, le pide algo a un asistente como si se lo dijeras tú (<em>Mira el
+tiempo y mándamelo por Telegram</em>). Si no está en el escritorio, no se hace.</li>
+<li><strong>Solo una vez</strong>: el evento se borra después de ejecutarse (si tiene comandos en <em>Al terminar</em>, después de esos).
+Con <em>A una hora</em> y un <em>Día</em>, sirve para «el viernes a las 9, una sola vez».</li>
+<li><strong>Programados por un asistente</strong>: lo que le pides para más tarde («a las 7 vacía la papelera», ver
+<a href="../assistant/tools.html">Herramientas</a>) sale aquí como un evento más, con quién lo programó y lo que aprobaste al
+pedírselo. Puedes cambiarlo o borrarlo como cualquier otro.</li>
+<li><strong>Condiciones</strong> (<em>Solo si</em>): una lista con las mismas condiciones que la <a href="commands.html#si-condiciones">acción Si…</a>
+(horario, un programa abierto, la red, la batería, el uso del equipo…), cada una con <em>Al revés</em>. Con varias eliges si
+tienen que cumplirse <strong>todas</strong> o basta con <strong>alguna</strong>. Cada una se puede apagar sin borrarla y probar (▶) para ver si se
+cumple ahora. Sin ninguna, el evento salta siempre.</li>
+<li><strong>No repetir antes de</strong>: si vuelve a dispararse antes (en segundos), no hace nada.</li>
+<li><strong>Protección contra bucles</strong>: un evento que se dispara más de 10 veces en un minuto se detiene 10 minutos, y K-Desktop te
+avisa.</li>
+<li>Cada evento se puede apagar, y ejecutar a mano para probarlo (<em>Probar</em>, o <code>KDesktop.exe --event &quot;Nombre&quot;</code>). El botón del
+rayo crea un comando que lo ejecuta (para darle un atajo o una frase de voz).</li>
+<li><em>Cuándo</em>, <em>Solo si</em> y <em>Opciones</em> se pliegan; <em>Solo si</em> sale abierto cuando tiene algo. Las horas y las fechas se ponen con las flechas,
+la rueda o escribiéndolas (la fecha también con su calendario).</li>
+</ul>
+<h2 id="lanzar-un-evento-desde-fuera">Lanzar un evento desde fuera</h2>
+<p>El disparador <em>Llamada desde fuera</em> salta cuando llega una llamada con su nombre. No importan las mayúsculas ni los
+acentos.</p>
+<pre><code>UDP:   event puerta                    (puerto 2501, «Control remoto» encendido)
+HTTP:  POST http://&lt;PC&gt;:2502/api/event
+       X-KD: 1
+       Authorization: Bearer &lt;token&gt;
+       {&quot;name&quot;: &quot;puerta&quot;}
+</code></pre>
+<p>Por UDP necesita <em>Opciones → Control remoto</em> encendido con <em>Eventos</em> permitido (y la clave, si tiene, desde otro
+equipo); por la web, el dispositivo tiene que estar emparejado (ver <a href="remote.html">Móvil y control remoto</a>).</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

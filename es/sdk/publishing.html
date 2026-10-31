@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Firmar y publicar | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Firmar y publicar | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/sdk/publishing.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="firmar-y-publicar">Firmar y publicar</h1>
+
+<h2 id="firmar-el-paquete">Firmar el paquete</h2>
+<p>Un paquete firmado lleva <code>signature.json</code> con el SHA-256 de <strong>todos</strong> sus archivos, quién lo publica, su clave pública
+(ECDSA P-256) y la firma. No hay que pagar a nadie: la clave es tuya. K-Desktop la comprueba al abrir la ficha de
+instalación:</p>
+<table>
+<thead>
+<tr>
+<th>Lo que encuentra</th>
+<th>Lo que enseña</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Una firma buena de una clave de su lista de editores de confianza</td>
+<td><strong>Verificado · nombre</strong>, también en <em>Opciones → Asistentes</em></td>
+</tr>
+<tr>
+<td>Una firma buena de otra clave</td>
+<td>«Firmado por «nombre»», y el aviso de siempre: ese nombre es solo lo que dice el paquete</td>
+</tr>
+<tr>
+<td>Ninguna firma</td>
+<td>«Sin firma» y el aviso de siempre</td>
+</tr>
+<tr>
+<td>Una firma que no cuadra (un archivo cambiado, añadido o quitado después de firmar)</td>
+<td><strong>No se instala</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Si la versión instalada estaba firmada y la nueva no la firma la misma clave, la ficha avisa en rojo.</p>
+<p>Haz tu clave una vez con <strong>kaisign</strong>, que viene dentro del paquete del SDK
+(<code>%USERPROFILE%\.nuget\packages\kdesktop.assistant.sdk\&lt;versión&gt;\tools\kaisign\kaisign.exe</code>, o <code>tools/KaiSign</code> en el
+repositorio de K-Desktop); desde entonces <strong>cada compilación firma el <code>.kai</code></strong> sola, justo después de empaquetarlo:</p>
+<pre><code class="lang-powershell">kaisign keygen &quot;Tu nombre&quot;      # una vez: la clave se queda en tu usuario de Windows (DPAPI)
+kaisign export copia.pem        # una copia de la clave con contraseña, para guardarla aparte
+kaisign verify miasistente.kai  # lo que diría K-Desktop
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Propiedad de compilación</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(nada)</td>
+<td>Se firma si tu usuario de Windows tiene clave; si no, un mensaje dice que va sin firmar</td>
+</tr>
+<tr>
+<td><code>-p:AssistantSign=false</code></td>
+<td>Nunca se firma</td>
+</tr>
+<tr>
+<td><code>-p:AssistantSign=true</code></td>
+<td>Error si no se puede firmar (para las compilaciones que publicas)</td>
+</tr>
+<tr>
+<td><code>KaiSignProject</code> / <code>KaiSignExe</code></td>
+<td>Dónde está kaisign: su <code>.csproj</code> (se compila desde las fuentes) o un <code>kaisign.exe</code> ya compilado</td>
+</tr>
+</tbody>
+</table>
+<p>Un paquete firmado a mano (<code>kaisign sign miasistente.kai</code>) vale igual. Firma <strong>lo último</strong>: cualquier cambio en el paquete
+después rompe la firma. Para que tus paquetes salgan como <em>Verificado</em>, tu clave pública (<code>kaisign public</code>) tiene que estar
+en la lista de K-Desktop.</p>
+<h2 id="versiones-nuevas">Versiones nuevas</h2>
+<p>Si el manifiesto dice dónde está siempre el último paquete, K-Desktop busca versiones nuevas junto con las suyas (al
+arrancar, cada 6 horas y con <em>Buscar ahora</em> en <em>Opciones → Actualizaciones</em>) y las <strong>ofrece</strong>: un aviso, una barra en la
+ventana, la fila del asistente en <em>Opciones → Asistentes</em> y <em>Opciones → Actualizaciones</em>, con <em>Actualizar…</em> (lo descarga y
+abre su ficha) y <em>Omitir esta versión</em>. Nunca actualiza un asistente sin preguntar.</p>
+<pre><code class="lang-json">&quot;updates&quot;: &quot;https://github.com/yo/mis-asistentes/releases/latest/download/miasistente.kai&quot;,
+&quot;changes&quot;: { &quot;es&quot;: &quot;Salta más alto y habla más rápido.&quot;, &quot;en&quot;: &quot;Jumps higher and talks faster.&quot; }
+</code></pre>
+<ul>
+<li><code>updates</code> es una dirección fija que da siempre el último <code>.kai</code> (en GitHub, la de <code>releases/latest/download/…</code>). https;
+<code>http://localhost</code> y <code>http://127.0.0.1</code> valen para probar con tu propio servidor.</li>
+<li>Para comprobarla, K-Desktop <strong>solo lee el <code>assistant.json</code></strong> del paquete publicado, con peticiones por rangos (unos KB); un
+servidor que no las admite manda el paquete entero cada vez.</li>
+<li>Se ofrece si la versión es mayor y el id es el mismo. Si necesita un SDK más nuevo que el de ese K-Desktop, al usuario se
+le dice que actualice antes K-Desktop.</li>
+<li><code>changes</code> (opcional, en uno o varios idiomas) es lo que trae esa versión: sale en el aviso y en la ficha.</li>
+</ul>
+<h2 id="ponerlo-en-un-catálogo">Ponerlo en un catálogo</h2>
+<p><em>Opciones → Asistente → Catálogo</em> enseña los asistentes de los catálogos que lee (el de K-Desktop y los que añada el
+usuario) con <em>Instalar…</em> y <em>Actualizar…</em>. Un catálogo es un JSON publicado en una dirección fija
+(<a href="https://github.com/Kobayashi82/K-Desktop/blob/main/src/KDesktop.Core/Assistant/Packages/Schemas/catalog.schema.json">esquema</a>) que solo dice
+dónde está cada paquete:</p>
+<pre><code class="lang-json">{
+  &quot;catalog&quot;: 1,
+  &quot;assistants&quot;: [
+    { &quot;id&quot;: &quot;miasistente&quot;, &quot;package&quot;: &quot;https://github.com/yo/mis-asistentes/releases/latest/download/miasistente.kai&quot; }
+  ]
+}
+</code></pre>
+<ul>
+<li><code>package</code> es la misma dirección que <code>updates</code>: la que da siempre el último <code>.kai</code>.</li>
+<li>De cada paquete K-Desktop solo lee <code>assistant.json</code>, el icono y los vídeos que abra el usuario, por rangos: el nombre, la
+descripción, la versión, el autor y si funciona con ese K-Desktop salen del propio paquete. Si el <code>id</code> no coincide con el
+del paquete, no se ofrece.</li>
+<li>Estar en un catálogo no hace que un paquete sea de fiar: la ficha dice si está <strong>verificado</strong> y qué sabe hacer antes de
+instalarlo.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

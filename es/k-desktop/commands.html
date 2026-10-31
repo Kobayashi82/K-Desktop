@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>Comandos | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Comandos | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/commands.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="comandos">Comandos</h1>
+
+<p>Un <strong>comando</strong> es una lista de acciones con un nombre. Se lanza con un atajo, desde un QuickMenu, el lanzador, la voz, el
+móvil, la red, un evento, otro comando o un asistente.</p>
+<p><img src="../../images/es/action-window.png" alt="Editando un comando"></p>
+<h2 id="atajos">Atajos</h2>
+<p>Un atajo es cualquier combinación de teclas, botones del ratón y la rueda: <code>CTRL + ALT + O</code>, <code>F13</code>, <code>Mouse 5</code>,
+<code>Mouse 4 + Mouse 1</code>, <code>CTRL + Wheel Up</code>… Para grabarlo, haz clic en la casilla del atajo y púlsalo. Un comando puede tener
+varios.</p>
+<ul>
+<li><strong>Solo para un programa</strong>: limita el comando a algunos programas (por el nombre de su proceso). Si el mismo atajo existe
+en general y para un programa, dentro de ese programa gana el específico y en todos los demás el general.</li>
+<li><strong>Desactivar en</strong>: en <em>Opciones → Desactivar en</em> pones los programas (juegos, escritorios remotos…) donde los atajos de
+K-Desktop no hacen nada. La acción <em>Desactivar en la app actual</em> lo cambia para el programa que está delante.</li>
+<li>K-Desktop avisa cuando un atajo ya lo usa otro comando, el propio K-Desktop o un asistente.</li>
+</ul>
+<h3 id="esquinas-y-gestos-del-ratón">Esquinas y gestos del ratón</h3>
+<p>Junto a <strong>Añadir atajo</strong> hay dos botones más:</p>
+<ul>
+<li><strong>Esquina de la pantalla</strong>: eliges una de las cuatro (↖ ↗ ↙ ↘) y el comando se ejecuta al dejar el ratón en ella un
+momento. Vale cualquier esquina donde el cursor se queda parado, también la que deja suelta una pantalla más alta o
+desplazada; donde se tocan dos pantallas no hay esquina. Nunca salta con un botón pulsado ni a pantalla completa.</li>
+<li><strong>Gesto del ratón</strong>: un dibujo de un solo trazo (←, →, ↑, ↓, C, L, N, S, U, V, Λ, W, M, Z o un círculo) que haces
+manteniendo pulsado el botón derecho (o el central, Mouse 4 o Mouse 5). Si haces clic sin moverte, o lo mantienes quieto, el botón funciona
+como siempre; con Esc mientras dibujas no pasa nada. En la ventana del gesto hay un recuadro para probar los dibujos con
+el botón izquierdo, y <strong>Dibujar el tuyo</strong>: le das un nombre y lo dibujas tres veces.</li>
+</ul>
+<p>La espera en la esquina, el botón de los gestos, ver el trazo y los programas sin gestos están en <em>Opciones → Ratón</em>.</p>
+<h2 id="acciones">Acciones</h2>
+<p>Cada comando tiene una lista de acciones que se ejecutan en orden: abrir un programa, colocar una ventana, enviar teclas,
+cambiar el volumen, esperar, ejecutar otro comando… Ver la <a href="actions.html">lista completa de acciones</a>.</p>
+<p><img src="../../images/es/action-picker.png" alt="Elegir una acción"></p>
+<ul>
+<li>Cada acción se puede apagar sin borrarla, y su orden se cambia arrastrando.</li>
+<li><strong>Ejecutar</strong> en el editor prueba el comando al momento.</li>
+<li>Un comando que tarda (espera, macro, script que se espera…) lleva un ▶ en la lista mientras está en marcha, y junto al
+número de comandos sale cuántos hay en marcha: haz clic para verlos o <strong>detenerlos todos</strong>. <strong>Ejecutar</strong> pasa a
+<strong>Detener</strong> mientras ese comando sigue en marcha.</li>
+<li>No puede haber dos comandos con el mismo nombre (tampoco dos eventos, QuickMenus, macros o perfiles de K-Board): si
+escribes uno que ya existe, se queda el de antes.</li>
+<li>Una acción que abre algo elige si va <strong>como administrador o como usuario normal</strong>.</li>
+</ul>
+<h2 id="si-condiciones">Si… (condiciones)</h2>
+<p>La acción <strong>Si…</strong> comprueba algo y, si no se cumple, para el comando, se salta las acciones siguientes o <strong>ejecuta otro comando en su lugar</strong> (elegido en la lista; usa las mismas <a href="actions.html#variables-pasar-datos-de-una-acci%C3%B3n-a-otra">variables</a>). Puede mirar:</p>
+<table>
+<thead>
+<tr>
+<th>Condición</th>
+<th>Ejemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Un programa está abierto / está delante</td>
+<td>«Si Steam está abierto»</td>
+</tr>
+<tr>
+<td>Una hora y unos días</td>
+<td>«Si es de lunes a viernes de 9:00 a 18:00»</td>
+</tr>
+<tr>
+<td>Un dispositivo está conectado</td>
+<td>«Si el mando de Xbox está conectado»</td>
+</tr>
+<tr>
+<td>El sonido sale por un dispositivo / algo está sonando</td>
+<td>«Si el sonido sale por los auriculares»</td>
+</tr>
+<tr>
+<td>Una red</td>
+<td>«Si está conectado a WiFiCasa», «Si no hay red»</td>
+</tr>
+<tr>
+<td>Batería o corriente</td>
+<td>«Si funciona con batería»</td>
+</tr>
+<tr>
+<td>Un equipo responde</td>
+<td>«Si 192.168.1.10 responde»</td>
+</tr>
+<tr>
+<td>Un archivo existe</td>
+<td>«Si existe D:\copia.lock»</td>
+</tr>
+<tr>
+<td>El portapapeles</td>
+<td>«Si el portapapeles contiene «http»»</td>
+</tr>
+<tr>
+<td>Uso del procesador, la gráfica o la memoria</td>
+<td>«Si el procesador pasa del 80 %»</td>
+</tr>
+<tr>
+<td>Batería por debajo de un %</td>
+<td>«Si la batería está por debajo del 20 %»</td>
+</tr>
+<tr>
+<td>Pantallas conectadas</td>
+<td>«Si hay 2 pantallas o más»</td>
+</tr>
+<tr>
+<td>Es de día</td>
+<td>«Si es de día», «Si es de noche» (entre el amanecer y el atardecer donde estás)</td>
+</tr>
+<tr>
+<td>Un texto o variable: tiene algo, contiene, es igual a, es mayor o menor que</td>
+<td>«Si {resultado} contiene «error»», «Si {resultado} es mayor que 80»</td>
+</tr>
+</tbody>
+</table>
+<p>Todas las condiciones se pueden poner <strong>Al revés</strong> («no está», «no responde»…). Al comparar, los números se comparan como números
+(«7» es menor que «10»; «2,5» y «2.5» son lo mismo) y el texto sin mirar mayúsculas.</p>
+<h2 id="registro">Registro</h2>
+<p><em>Registro</em> enseña todo lo que se ha ejecutado: qué comando, cuándo, desde dónde (atajo, menú, lanzador, voz, móvil, red,
+evento, asistente, servidor MCP, línea de comandos…) y si fue bien.</p>
+<p><img src="../../images/es/history.png" alt="Registro"></p>
+<h2 id="organizar">Organizar</h2>
+<ul>
+<li><strong>Busca</strong> por nombre, atajo o acción, y <strong>filtra</strong> la lista: todos los comandos, los que están fuera de los QuickMenus o
+los de un QuickMenu.</li>
+<li><strong>Habilita o deshabilita</strong> un comando, <strong>ocúltalo</strong> en la lista (sigue funcionando), <strong>duplícalo</strong> o bórralo (sale
+también de los QuickMenus en los que estaba).</li>
+<li><strong>Disponible por control remoto</strong>: si el móvil y la red lo pueden ver y ejecutar.</li>
+<li><strong>Icono</strong>: automático (el de su primera acción), un icono vectorial incluido en cualquier color, una biblioteca de iconos
+de Windows, cualquier imagen o el favicon de una web.</li>
+<li>En el editor, <strong>Probar solo esta acción</strong> ejecuta una acción sola.</li>
+</ul>
+<h3 id="exportar-e-importar">Exportar e importar</h3>
+<p>Un comando, una macro, un perfil de K-Board, un evento, un QuickMenu, una disposición o un texto se pueden pasar sueltos a
+otro PC (o guardar aparte)
+con <strong>Exportar…</strong>, desde el clic derecho de la lista. Se guarda un
+archivo <code>.kdx</code> con todo lo que necesita: los comandos que ejecuta un evento, las macros, QuickMenus, perfiles de K-Board,
+disposiciones y eventos que usa un comando, los comandos de un menú o de un perfil… y tus propios iconos, sonidos y gestos.</p>
+<p>Para traerlo: <strong>Importar…</strong> en el clic derecho de cualquiera de esas listas (también en el hueco bajo las filas), o
+suelta el <code>.kdx</code> en la ventana de K-Desktop. Nunca pisa nada:</p>
+<ul>
+<li>Lo que ya tienes igual se usa tal cual.</li>
+<li>Si algo ya lo tienes pero con cambios, pregunta: <strong>Añadir como copia</strong> (entra aparte, y también lo que lo usa, para que
+funcione como se exportó) o <strong>Usar lo mío</strong>.</li>
+<li>Un nombre que ya existe recibe un número («Saludo 2») y un atajo que ya usas se queda fuera.</li>
+</ul>
+<p>Al acabar abre lo importado. Desde fuera: <code>KDesktop.exe --import &quot;archivo.kdx&quot;</code>.</p>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

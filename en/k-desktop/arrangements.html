@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>Layouts | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Layouts | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/en/k-desktop/arrangements.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="layouts">Layouts</h1>
+
+<p>A layout cuts your monitors into <strong>zones</strong> and says which programs go in each one. Then it puts them like that whenever you
+want: with a hotkey, from a QuickMenu or on its own, with an event. A layout covers every monitor; one without zones in it
+is not touched.</p>
+<ol>
+<li>Place your programs the way you like (the browser on the left, the editor on the right, music on the other monitor…).</li>
+<li><em>Layouts → New layout</em>: it already has the windows open now, each one as a zone with its program. Give it a name
+(«Work»).</li>
+<li><strong>Test</strong> puts it now. <strong>Create a command that applies it</strong> leaves you a command ready to give a hotkey.</li>
+</ol>
+<p><strong>Save windows</strong> replaces the zones of every monitor with the windows open at that moment: each monitor is cut by
+its windows, and each zone gets the programs of its windows (a maximized one, the whole screen; minimized ones do not
+count). Zones never overlap: windows one on top of another share a zone, and a wide free area becomes an empty zone.
+Each program also remembers the exact place and size of its window, so putting the layout leaves everything as it was.</p>
+<h2 id="zones">Zones</h2>
+<p>At the top of <strong>Zones</strong> there is a pill per monitor: the connected ones and, faded, the ones that were connected at some
+point (K-Desktop remembers them), so you can prepare the TV layout even when it is not plugged in. A dot on the pill means
+that monitor has zones in this layout. Below is the drawing of the chosen monitor:</p>
+<ul>
+<li><strong>Click</strong> a zone to mark it (a click outside the zones unmarks it); <strong>another click</strong> on the marked one cuts it in two where the dotted line shows (vertically;
+with <strong>Shift</strong>, horizontally).</li>
+<li><strong>Drag</strong> the lines between zones to change their size (they stay at a half, a third or a quarter when you pass close).</li>
+<li>The <strong>✕</strong> on a line joins its two zones, with their programs.</li>
+<li><strong>Templates</strong>: whole screen, 2 or 3 columns, grid, one big and two small, or 2 rows. The programs each zone had go to the
+new zone where its middle fell. <strong>Remove zones</strong> leaves the monitor without zones.</li>
+</ul>
+<p>Under the drawing are the <strong>programs of the marked zone</strong>, as in K-Board's <em>Only in these applications</em>: type the program
+or pick it from the list and press <strong>Add</strong>, or press the cursor button and click its window. A zone without programs is only
+there to snap windows into.</p>
+<p>Programs saved with <strong>Save windows</strong> have a pin: they go to the exact place their window had, shown dashed in the
+marked zone. <strong>Right-click → Fill the zone</strong> forgets that place, and the program stretches to its zone, like the ones you
+add by hand.</p>
+<h2 id="when-it-is-put">When it is put</h2>
+<ul>
+<li><strong>If the program is open</strong>, its window goes to its zone (or to its saved place, if it has a pin); it does not open another one. A whole-screen zone leaves it
+maximized. With several windows of the same program (two of Chrome), it tells them apart by their title, else by order.</li>
+<li><strong>If it is not open</strong>, it is skipped, unless <em>Options → Open the programs that are not open</em> is on: then it opens it and
+places it as soon as its window appears. Microsoft Store apps cannot be opened this way. The notice says which ones were
+not open.</li>
+<li><strong>Monitors</strong> are recognized by their name, even if Windows numbers them differently. If a zone's monitor is not
+connected, its programs go to the main one, in the same place.</li>
+</ul>
+<h2 id="using-it">Using it</h2>
+<ul>
+<li>The action <strong>Window layout</strong> puts a layout from any command.</li>
+<li>With a <strong>Screen plugged in or out</strong> <a href="events.html">event</a> it is applied on its own: for example, a «Movie» layout when
+the TV is plugged in and a «Work» one when it is unplugged.</li>
+</ul>
+<h2 id="snapping-windows-into-the-zones">Snapping windows into the zones</h2>
+<p>Each monitor uses the zones of the <strong>layout put on it last</strong> (remembered after a restart). A monitor where none was ever
+put does not snap.</p>
+<ul>
+<li><strong>Shift + drag</strong>: while you drag a window by its title bar, hold <strong>Shift</strong> and the zones of each monitor show on top;
+the one under the mouse is marked and, when you drop it, the window fits into it (a whole-screen zone maximizes it). If
+you let Shift go, the zones disappear and the window stays where you drop it; <strong>Esc</strong> cancels. It is turned off in
+<em>Options → Snap with Shift while dragging</em> (it applies to all layouts).</li>
+<li><strong>Next or previous zone</strong>: the <strong>Window</strong> action has <em>To the next zone</em> and <em>To the previous zone</em>. They follow the
+zones' numbers and, after the last one of a monitor, go to the next monitor. <em>Options → Create the zone hotkeys</em> leaves
+you both commands made with <strong>Win + Alt + →</strong> and <strong>Win + Alt + ←</strong>.</li>
+<li>Snapping always fills the zone, even if the program has a saved place.</li>
+</ul>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

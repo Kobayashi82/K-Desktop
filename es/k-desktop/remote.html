@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+      <title>M&#243;vil y control remoto | K-Desktop </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="M&#243;vil y control remoto | K-Desktop ">
+      
+      
+      <link rel="icon" href="../../images/favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Kobayashi82/K-Desktop/blob/main/site/es/k-desktop/remote.md/#L1">
+      <meta name="loc:inThisArticle" content="En esta página">
+      <meta name="loc:searchResultsCount" content="{count} resultados para &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="Nada para &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filtrar por título">
+      <meta name="loc:nextArticle" content="Siguiente">
+      <meta name="loc:prevArticle" content="Anterior">
+      <meta name="loc:themeLight" content="Claro">
+      <meta name="loc:themeDark" content="Oscuro">
+      <meta name="loc:themeAuto" content="Automático">
+      <meta name="loc:changeTheme" content="Cambiar el tema">
+      <meta name="loc:copy" content="Copiar">
+      <meta name="loc:downloadPdf" content="Descargar PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="K-Desktop">
+            K-Desktop
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Abrir o cerrar la navegación">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Buscar" autocomplete="off" aria-label="Buscar">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Enseñar el índice">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="móvil-y-control-remoto">Móvil y control remoto</h1>
+
+<h2 id="aplicación-web-móvil-tableta-cualquier-navegador">Aplicación web (móvil, tableta, cualquier navegador)</h2>
+<p><em>Opciones → Aplicación web</em> enciende un pequeño servidor web en tu PC (el puerto 2502 por defecto). Desde un móvil en la
+misma red tienes tus comandos y menús, el volumen y la salida de audio, un touchpad y un teclado, órdenes de voz y el chat
+de los asistentes. Se puede instalar en el móvil como aplicación (PWA).</p>
+<p><img src="../../images/es/pair-qr.png" alt="Emparejar un dispositivo"></p>
+<ol>
+<li>Enciende <strong>Servidor web</strong>.</li>
+<li><strong>Emparejar dispositivo</strong>: escanea el código QR con el móvil (o abre el enlace que enseña).</li>
+<li>Ya está: el dispositivo queda emparejado hasta que lo <strong>revoques</strong> en <em>Dispositivos emparejados</em>.</li>
+</ol>
+<p>Las pestañas de la aplicación (<em>Ajustes</em> se abre con el botón de arriba a la derecha):</p>
+<table>
+<thead>
+<tr>
+<th>Pestaña</th>
+<th>Qué tiene</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Comandos</strong></td>
+<td>Todos los comandos marcados como <em>Disponible por control remoto</em>, en filas con lo que hacen, su atajo y dónde valen. Búsqueda, filtros por QuickMenu, <strong>Favoritos</strong> y los más usados arriba, y <strong>Eventos</strong> (los que se lanzan por su nombre). El resultado sale en la propia fila (✓ o ✕)</td>
+</tr>
+<tr>
+<td><strong>Menús</strong></td>
+<td>Tus QuickMenus dibujados como en el PC: tocar ejecuta y vuelve al primer nivel, mantener ejecuta y deja el menú donde está</td>
+</tr>
+<tr>
+<td><strong>Touchpad</strong></td>
+<td>Mover el ratón, hacer clic, desplazar y escribir en el PC (solo con <em>Touchpad y teclado</em> encendido)</td>
+</tr>
+<tr>
+<td><strong>Multimedia</strong></td>
+<td>Lo que suena en el PC (carátula, título, progreso y sus botones), el volumen, el <strong>Volumen por aplicación</strong> y la salida de audio</td>
+</tr>
+<tr>
+<td><strong>Asistente</strong></td>
+<td>El chat con los asistentes, por escrito o hablando (solo con el módulo Asistente encendido)</td>
+</tr>
+</tbody>
+</table>
+<p>A tener en cuenta:</p>
+<ul>
+<li>Nada funciona hasta emparejar un dispositivo, <strong>también desde el mismo PC</strong>.</li>
+<li>Para escuchar en la red, K-Desktop tiene que ir como administrador (como va por defecto); si no, el servidor solo
+contesta a este PC.</li>
+<li><em>Dirección de internet</em> es opcional, solo si entras desde fuera a través de un proxy inverso.</li>
+<li><em>Aceptar órdenes de</em> dice desde dónde se puede entrar: <em>Solo este PC</em>, <em>Red local</em> o <em>Internet</em> (lo que llega por el
+proxy cuenta como internet). Emparejar hace falta siempre.</li>
+</ul>
+<p>Mantener pulsado un comando abre su hoja: qué hace, todos sus atajos y aplicaciones, <strong>Favorito</strong>, <strong>Pedir confirmación</strong>
+(pregunta antes de ejecutarlo desde este móvil) y <em>Ejecutar</em>. Los favoritos y <em>Pedir confirmación</em> se guardan por PC.</p>
+<h3 id="el-touchpad">El touchpad</h3>
+<p>Un dedo mueve, un toque hace clic, tocar y arrastrar (o mantener) arrastra, dos dedos desplazan, y un toque con dos o tres
+dedos es un clic derecho o central. Con <strong>Gestos con 3 y 4 dedos</strong>, como en un touchpad de Windows: tres dedos a los lados
+cambian de ventana, hacia arriba abren la vista de tareas y hacia abajo muestran el escritorio; cuatro dedos a los lados
+pasan al escritorio virtual de al lado. <strong>Pellizcar para ampliar</strong> amplía y reduce como Ctrl + rueda. Con el móvil tumbado
+el touchpad ocupa toda la pantalla. En <em>Ajustes</em> también se cambian la velocidad, la <strong>Aceleración</strong> y qué <strong>Teclas
+especiales</strong> salen y en qué orden. Estos ajustes se guardan por PC.</p>
+<h3 id="lo-que-suena-y-el-volumen">Lo que suena y el volumen</h3>
+<p><strong>Multimedia</strong> muestra lo que cada programa le dice a Windows que reproduce (Spotify, los navegadores, el Reproductor
+multimedia…) con su carátula, la barra de progreso (para ir a otro punto si el reproductor lo permite) y sus botones; con
+varios, unas pastillas para elegir. Debajo: el volumen del PC, el <strong>Volumen por aplicación</strong> (cada programa con sonido, como
+el mezclador de volumen de Windows) y la salida de audio. En la app de Android, <strong>Lo que suena, en las notificaciones</strong> lo
+muestra como una notificación multimedia (también en la pantalla de bloqueo) y las teclas de volumen del móvil cambian el
+volumen del PC mientras está.</p>
+<h3 id="los-asistentes-en-el-móvil">Los asistentes en el móvil</h3>
+<p>Una orden escrita o dicha en el móvil puede contestarse allí: en <em>Ajustes</em>, <strong>Las respuestas suenan</strong> <em>En este móvil</em>, <em>En
+el PC</em> o <em>En los dos</em>. El PC manda la voz frase a frase según está lista; con <em>En este móvil</em> el personaje del PC mueve la
+boca sin sonido. <strong>Seguir escuchando</strong> vuelve a abrir el micro al acabar de contestar. Bajo cada respuesta, lo que hizo sale
+en pastillas («✓ Abrió Spotify»).</p>
+<h3 id="el-pc-de-arriba">El PC de arriba</h3>
+<p>Arriba sale el PC y cómo va la conexión. Al tocarlo: volver a conectar, cambiar de PC (en la app de Android) y, con
+<strong>Encender y apagar el PC</strong> encendido en <em>Opciones → Aplicación web</em> (apagado de serie), <strong>Bloquear</strong>, <strong>Suspender</strong>,
+<strong>Hibernar</strong>, <strong>Reiniciar</strong> y <strong>Apagar</strong> (estos dos con 5 segundos para cancelar).</p>
+<h2 id="lo-que-manda-el-pc">Lo que manda el PC</h2>
+<p>La acción <a href="actions.html">Enviar al móvil</a> y los asistentes («mándame esta dirección al móvil», «avísame en el móvil cuando
+termine la descarga») mandan un texto, un enlace o un archivo pequeño (25 MB como mucho) a tus dispositivos emparejados:
+a todos, o al que nombres. Los navegadores del propio PC no cuentan. Llega al momento si tienes la aplicación abierta, y
+sale en <strong>Recibido del PC</strong> (el sobre de arriba), con botones para copiar, abrir el enlace o descargar el archivo. Si no está
+abierta, K-Desktop lo guarda hasta una semana y te llega en cuanto la abras. No pasa por ningún servidor de fuera: va directo
+de tu PC a tu móvil.</p>
+<h2 id="aplicación-de-android">Aplicación de Android</h2>
+<p>La aplicación de Android es la misma aplicación web con algunas cosas propias. <em>Opciones → Aplicación móvil → Guardar la
+APK…</em>, cópiala al móvil y ábrela (Android pide permitir instalar aplicaciones de ese origen). No necesita tienda: cuando se
+conecta un móvil con una versión más antigua, la aplicación ofrece actualizarse desde el PC.</p>
+<ul>
+<li><strong>Varios PCs.</strong> Guarda una lista de PCs, cada uno con sus direcciones (en casa y fuera). Abre el último por la dirección
+que conteste; si ninguna contesta, enseña <strong>Mis PCs</strong> con cómo está cada uno, para conectar, encender, cambiar el nombre u
+olvidarlos. <em>Añadir PC</em> escanea el QR de <em>Emparejar dispositivo</em> con la cámara del móvil, o toma la dirección escrita.</li>
+<li><strong>Encender</strong> (más abajo) y la energía del PC desde arriba.</li>
+<li><strong>Compartir → K-Desktop</strong> desde cualquier app: un texto queda en el portapapeles del PC, un enlace pregunta si abrirlo en
+el navegador del PC o copiarlo, y un archivo se guarda en Descargas del PC. El PC lo dice con un aviso.</li>
+<li><strong>Accesos directos</strong>: al mantener el icono de la app salen <em>Hablar</em>, <em>Touchpad</em> y <em>Encender el PC</em>.</li>
+<li><strong>Widget</strong> para la pantalla de inicio con tus comandos favoritos (se ejecutan sin abrir la app) y un botón para hablar, y
+<strong>botones de los ajustes rápidos</strong>: hablar, encender el PC y tu primer comando favorito.</li>
+<li>Las respuestas de los asistentes suenan en el móvil también en segundo plano o con la pantalla apagada.</li>
+</ul>
+<p>En sus <em>Ajustes</em>, <strong>Avisos con la app cerrada</strong> mantiene la conexión con el PC aunque cierres la app, y lo que manda el PC te
+llega como una notificación normal (con <em>Abrir</em> y <em>Copiar</em>); lo que suena en el PC también se mantiene al día en su
+notificación. Al encenderlo pide permiso para las notificaciones y que Android no la duerma para ahorrar batería; mientras
+está encendido, Android enseña una notificación fija «Conexión con K-Desktop». Funciona donde el móvil llegue al PC: en
+casa siempre, y fuera solo si tienes la dirección de internet (proxy).</p>
+<h2 id="encender-el-pc-desde-el-móvil">Encender el PC desde el móvil</h2>
+<p>Con <strong>Encender y apagar el PC</strong> encendido, la app de Android guarda lo que necesita para encender el PC mientras está
+apagado y ofrece <strong>Encender</strong> en la página de PCs. Hace dos cosas a la vez: el aviso de Wake-on-LAN por la red de casa y, si
+lo configuras, <strong>Encender mediante URL</strong> (para encenderlo fuera de casa). Después espera hasta 2 minutos y entra sola.</p>
+<p>Para Wake-on-LAN, en <em>Opciones → Aplicación web</em>, <strong>Comprobar</strong> (<em>Encendido por red</em>) dice si alguna tarjeta de red puede
+encender el PC. Suele hacer falta: Wake-on-LAN encendido en la BIOS, permitir que la tarjeta active el equipo
+(Administrador de dispositivos → la tarjeta → Administración de energía, y «Wake on Magic Packet» en Opciones avanzadas),
+cable mejor que Wi-Fi, y el inicio rápido de Windows apagado (después de «Suspender» suele funcionar igualmente).</p>
+<p><strong>Encender mediante URL</strong> es una dirección de tu red que manda el aviso por ti y a la que se llega desde fuera: <em>Método</em>,
+<em>Cuerpo de la petición</em> (<code>{mac}</code> se cambia por la MAC del PC) y una <em>Cabecera</em> opcional para su contraseña (se guarda
+cifrada). Por ejemplo, una Raspberry Pi unida a tu proxy por WireGuard, con un pequeño servicio que solo escucha en ese
+túnel:</p>
+<pre><code class="lang-python"># POST /wol {&quot;mac&quot;: &quot;AA:BB:CC:DD:EE:FF&quot;} con Authorization: Bearer &lt;TOKEN&gt;
+import json, os, socket, hmac
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+TOKEN = os.environ[&quot;WOL_TOKEN&quot;]
+ALLOWED = {m.upper() for m in os.environ[&quot;WOL_MACS&quot;].split(&quot;,&quot;)}   # solo tus PCs
+
+def magic(mac):
+    packet = b&quot;\xff&quot; * 6 + bytes.fromhex(mac.replace(&quot;:&quot;, &quot;&quot;)) * 16
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        for port in (9, 7):
+            s.sendto(packet, (os.environ.get(&quot;WOL_BROADCAST&quot;, &quot;192.168.1.255&quot;), port))
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != &quot;/wol&quot; or not hmac.compare_digest(self.headers.get(&quot;Authorization&quot;, &quot;&quot;), f&quot;Bearer {TOKEN}&quot;):
+            return self.send_response(401) or self.end_headers()
+        body = json.loads(self.rfile.read(int(self.headers.get(&quot;Content-Length&quot;, 0)) or 0) or b&quot;{}&quot;)
+        mac = str(body.get(&quot;mac&quot;, &quot;&quot;)).upper()
+        if mac not in ALLOWED:
+            return self.send_response(400) or self.end_headers()
+        magic(mac)
+        self.send_response(204)
+        self.end_headers()
+
+HTTPServer((os.environ.get(&quot;WOL_LISTEN&quot;, &quot;10.0.0.2&quot;), 8099), Handler).serve_forever()
+</code></pre>
+<p>En el proxy, una ruta <code>/wol</code> hacia esa dirección, fuera de cualquier página de inicio de sesión y con un límite de
+intentos. En K-Desktop: <em>Encender mediante URL</em> <code>https://tudominio.net/wol</code>, <em>Método</em> POST, <em>Cuerpo de la petición</em>
+<code>{&quot;mac&quot;: &quot;{mac}&quot;}</code> y <em>Cabecera</em> <code>Authorization: Bearer &lt;TOKEN&gt;</code>. Si otro de tus PCs está encendido, la app también le pide
+a él que encienda este.</p>
+<h2 id="udp">UDP</h2>
+<p><em>Opciones → Control remoto → Servidor UDP</em> (puerto 2501) acepta órdenes cortas, una por mensaje. Lo puede usar Home
+Assistant, un script, otro PC, netcat o una aplicación del móvil.</p>
+<table>
+<thead>
+<tr>
+<th>Orden</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list</code></td>
+<td>Contesta con tus comandos remotos, numerados</td>
+</tr>
+<tr>
+<td>Un número o un nombre (o <code>run &lt;nombre&gt;</code>)</td>
+<td>Ejecuta ese comando remoto (no importan las mayúsculas ni los acentos)</td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td>Contesta con las llamadas que esperan tus eventos de <em>Llamada desde fuera</em></td>
+</tr>
+<tr>
+<td><code>event &lt;nombre&gt;</code></td>
+<td>Lanza los eventos con <em>Llamada desde fuera</em> y ese nombre</td>
+</tr>
+<tr>
+<td><code>ask &lt;asistente&gt; &lt;texto&gt;</code></td>
+<td>Le hace una pregunta o le da una orden a un asistente activo</td>
+</tr>
+<tr>
+<td><code>assistants</code></td>
+<td>Contesta con los asistentes activos</td>
+</tr>
+<tr>
+<td><code>keys &lt;teclas&gt;</code></td>
+<td>Pulsa una combinación de teclas (<code>ctrl+c</code>, <code>alt+f4</code>, <code>enter</code>…)</td>
+</tr>
+<tr>
+<td><code>type &lt;texto&gt;</code></td>
+<td>Escribe un texto</td>
+</tr>
+<tr>
+<td><code>media play</code> / <code>next</code> / <code>previous</code> / <code>stop</code></td>
+<td>Teclas multimedia</td>
+</tr>
+<tr>
+<td><code>volume up</code> / <code>down</code> / <code>mute</code></td>
+<td>Volumen</td>
+</tr>
+<tr>
+<td><code>show</code></td>
+<td>Enseña la ventana de K-Desktop</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td>Contesta con esta lista</td>
+</tr>
+</tbody>
+</table>
+<p>La respuesta empieza por <code>OK</code> o <code>ERROR</code> y sigue en el idioma de K-Desktop.</p>
+<p>Las órdenes también valen en el idioma de K-Desktop (en español: <code>ayuda</code>, <code>lista</code>, <code>ejecutar</code>, <code>evento</code>, <code>preguntar</code>,
+<code>eventos</code>, <code>asistentes</code>, <code>teclas</code>, <code>escribir</code>, <code>multimedia siguiente</code>, <code>volumen subir</code>, <code>mostrar</code>…). Si un comando remoto se llama
+exactamente como lo que mandas, gana el comando. En los programas, mejor en inglés: vale siempre, cambies o no el idioma.</p>
+<p>Opciones:</p>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Puerto (UDP)</strong></td>
+<td>El puerto; si otro programa lo usa, lo dice debajo</td>
+</tr>
+<tr>
+<td><strong>Aceptar órdenes de</strong></td>
+<td><em>Solo este PC</em>, <em>Red local</em> (incluye las VPN) o <em>Internet</em> (solo con clave, y solo órdenes firmadas)</td>
+</tr>
+<tr>
+<td><strong>Clave</strong></td>
+<td>Opcional. Desde otro equipo se pone delante de cada orden (<code>miclave list</code>) o se firma con ella. Desde este PC no hace falta. <em>Generar</em> crea una y la copia</td>
+</tr>
+<tr>
+<td><strong>Teclas y texto</strong></td>
+<td>Permite <code>keys</code> y <code>type</code> (apagado por defecto)</td>
+</tr>
+<tr>
+<td><strong>Comandos ocultos</strong></td>
+<td>Los comandos remotos ocultos también salen en <code>list</code> y se pueden ejecutar</td>
+</tr>
+<tr>
+<td><strong>Eventos</strong></td>
+<td>Permite <code>events</code> y <code>event</code></td>
+</tr>
+<tr>
+<td><strong>Asistentes</strong></td>
+<td>Permite <code>ask</code> (apagado por defecto)</td>
+</tr>
+</tbody>
+</table>
+<p>Lo que no está permitido no recibe respuesta, y una dirección que falla la clave varias veces seguidas se ignora unos
+minutos.</p>
+<h3 id="órdenes-en-json-para-programas">Órdenes en JSON (para programas)</h3>
+<p>Un programa puede mandar la orden en JSON y recibe la respuesta en JSON:</p>
+<pre><code>{&quot;cmd&quot;: &quot;run&quot;, &quot;arg&quot;: &quot;Abrir Chrome&quot;}
+{&quot;ok&quot;: true, &quot;message&quot;: &quot;ejecutado: Abrir Chrome&quot;}
+
+{&quot;cmd&quot;: &quot;list&quot;}
+{&quot;ok&quot;: true, &quot;commands&quot;: [&quot;Abrir Chrome&quot;, &quot;Apagar&quot;]}
+
+{&quot;cmd&quot;: &quot;ask&quot;, &quot;assistant&quot;: &quot;lander&quot;, &quot;arg&quot;: &quot;¿qué tiempo hace?&quot;}
+{&quot;ok&quot;: false, &quot;error&quot;: &quot;off&quot;, &quot;message&quot;: &quot;desactivado en las opciones del control remoto&quot;}
+</code></pre>
+<p><code>cmd</code> es una de las órdenes de la tabla (<code>run</code>, <code>list</code>, <code>event</code>, <code>ask</code>, <code>keys</code>, <code>type</code>, <code>media</code>, <code>volume</code>…) y <code>arg</code>
+lo que va detrás. Los errores llevan un código fijo en <code>error</code> (<code>notFound</code>, <code>disabled</code>, <code>off</code>, <code>badRequest</code>,
+<code>noEvent</code>, <code>noAssistant</code>, <code>assistantsOff</code>, <code>notRunning</code>, <code>disabledHere</code>).</p>
+<p><strong>Con clave</strong>, el JSON va <strong>firmado</strong>: la clave nunca viaja y un mensaje capturado no se puede repetir. El mensaje es
+<code>&lt;firma&gt;.&lt;json&gt;</code>, donde la firma es el HMAC-SHA256 del JSON con la clave, en hexadecimal, y el JSON lleva <code>t</code> (la hora en
+segundos Unix; vale con un minuto de diferencia) y un <code>id</code> distinto en cada mensaje:</p>
+<pre><code class="lang-js">const json = JSON.stringify({ cmd: &quot;run&quot;, arg: &quot;Abrir Chrome&quot;, t: Math.floor(Date.now() / 1000), id: crypto.randomUUID() });
+const firma = crypto.createHmac(&quot;sha256&quot;, clave).update(json).digest(&quot;hex&quot;);
+socket.send(firma + &quot;.&quot; + json, 2501, &quot;192.168.1.150&quot;);
+</code></pre>
+<pre><code class="lang-python">payload = json.dumps({&quot;cmd&quot;: &quot;list&quot;, &quot;t&quot;: int(time.time()), &quot;id&quot;: uuid.uuid4().hex})
+firma = hmac.new(clave.encode(), payload.encode(), hashlib.sha256).hexdigest()
+sock.sendto(f&quot;{firma}.{payload}&quot;.encode(), (&quot;192.168.1.150&quot;, 2501))
+</code></pre>
+<p>Desde internet solo se aceptan órdenes firmadas. Para algo más completo y emparejado está la API web, abajo.</p>
+<h2 id="api-web">API web</h2>
+<p>Los dispositivos emparejados también pueden llamar directamente a la API, por ejemplo para lanzar un evento:</p>
+<pre><code>POST http://&lt;PC&gt;:2502/api/event
+X-KD: 1
+Authorization: Bearer &lt;token&gt;
+
+{&quot;name&quot;: &quot;puerta&quot;}
+</code></pre>
+
+</article>
+
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          K-Desktop · <a href="https://github.com/Kobayashi82/K-Desktop">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
