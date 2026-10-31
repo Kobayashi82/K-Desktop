@@ -36,7 +36,7 @@ export const useChapter = (): Chapter => {
  * Times of the chapter's beats, by id: start, end, the start and end of each sentence, and its cues: the moment the
  * word after a {name} marker of the script is said (estimated from where it sits in its sentence).
  */
-export type BeatTimes = { from: number; to: number; dur: number; seg: (i: number) => number; segEnd: (i: number) => number; cue: (name: string) => number };
+export type BeatTimes = { from: number; to: number; dur: number; seg: (i: number) => number; segEnd: (i: number) => number; cue: (name: string) => number; has: (name: string) => boolean };
 
 export const useBeats = (): ((id: string) => BeatTimes) => {
   const chapter = useChapter();
@@ -55,6 +55,7 @@ export const useBeats = (): ((id: string) => BeatTimes) => {
         if (at === undefined) throw new Error(`No cue {${name}} in beat "${id}" of "${chapter.id}"`);
         return at;
       },
+      has: name => beat.cues?.[name] !== undefined,
     };
   };
 };

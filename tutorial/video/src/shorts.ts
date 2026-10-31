@@ -1,4 +1,5 @@
 import React from 'react';
+import { INTRODUCTION } from '../shorts/00-introduction/scenes';
 import { GETTING_STARTED } from '../shorts/01-getting-started/scenes';
 import { COMMANDS } from '../shorts/02-commands/scenes';
 import { QUICKMENU_LAUNCHER } from '../shorts/03-quickmenu-launcher/scenes';
@@ -19,6 +20,7 @@ export type Short = { scenes: Record<string, React.FC>; moods?: Record<string, r
 
 /** The short videos, by the id of their folder in shorts/ (tools/tts.py --short <id>, node render.mjs --short <id>). */
 export const SHORTS: Record<string, Short> = {
+  '00-introduction': INTRODUCTION,
   '01-getting-started': GETTING_STARTED,
   '02-commands': COMMANDS,
   '03-quickmenu-launcher': QUICKMENU_LAUNCHER,

@@ -128,7 +128,7 @@ export const Intro: React.FC = () => {
     { cue: 'voice', label: t('Voice'), icon: 'mic_24_filled', color: 'teal' },
     { cue: 'phone', label: t('Remote'), icon: 'phone_24_filled', color: 'sky' },
     { cue: 'assistants', label: t('Assistants'), icon: 'bot_24_filled', color: 'pink' },
-  ];
+  ].filter(x => promise.has(x.cue)); // only what the script names (the short 00 leaves the phone out)
   const orbit = (f - promise.from) / 260;
 
   return (

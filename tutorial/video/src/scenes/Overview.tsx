@@ -48,10 +48,12 @@ export const Overview: React.FC = () => {
   const cardX = 960 + (1010 - 960) * toSide;
   const cardY = 540;
   const cardScale = 1.15 - 0.3 * toSide;
-  const fire = TRIGGERS.reduce((m, t) => Math.max(m, inOut(f, triggers.cue(t.cue) + 10, triggers.cue(t.cue) + 26, 6)), 0);
+  // Only the triggers the script names (the short 00 leaves the phone out), centred in the column.
+  const trigs = TRIGGERS.filter(x => triggers.has(x.cue));
+  const fire = trigs.reduce((m, t) => Math.max(m, inOut(f, triggers.cue(t.cue) + 10, triggers.cue(t.cue) + 26, 6)), 0);
 
   const trigX = 270;
-  const trigY = (i: number) => 120 + i * 105;
+  const trigY = (i: number) => 120 + (TRIGGERS.length - trigs.length) * 52 + i * 105;
   const helpX = 1640;
   const helpY = (i: number) => 360 + i * 170;
 
@@ -67,7 +69,7 @@ export const Overview: React.FC = () => {
   const badges = [
     { cue: 'portable', icon: 'window_apps_24_filled', text: t('KDesktop.exe · portable') },
     { cue: 'windows', icon: 'desktop_24_filled', text: t('Windows 10 · 11') },
-    { cue: 'languages', icon: 'translate_24_filled', text: t('ES · EN · FR · DE · IT · PT') },
+    { cue: 'languages', icon: 'translate_24_filled', text: t('ES · EN · FR · DE · IT') },
     { cue: 'local', icon: 'cloud_off_24_filled', text: t('Runs locally') },
     { cue: 'data', icon: 'folder_24_filled', text: t('%APPDATA%\\K-Desktop 5') },
   ];
@@ -78,7 +80,7 @@ export const Overview: React.FC = () => {
         <Kinetic text={t('One simple idea:')} at={idea.from + 2} x={960} y={175} size={60} out={idea.cue('command') + 30} color={C.dim} weight={700} />
 
         {/* Triggers and their wires */}
-        {TRIGGERS.map((t, i) => {
+        {trigs.map((t, i) => {
           const at = triggers.cue(t.cue);
           const show = pop(f, at - 6, { damping: 14, stiffness: 160 });
           const lit = inOut(f, at - 4, at + 30, 6);
@@ -137,7 +139,7 @@ export const Overview: React.FC = () => {
       <Sfx at={idea.cue('command') - 6} name="impact" volume={0.3} />
       {rowCues.map(at => <Sfx key={at} at={at - 4} name="pop" volume={0.25} />)}
       {[0, 1, 2, 3].map(i => <Sfx key={i} at={steps + i * 12} name="blip" volume={0.2} />)}
-      {TRIGGERS.map(t => <Sfx key={t.cue} at={triggers.cue(t.cue) - 4} name="pop-high" volume={0.16} />)}
+      {trigs.map(t => <Sfx key={t.cue} at={triggers.cue(t.cue) - 4} name="pop-high" volume={0.16} />)}
       {HELPERS.map(h => <Sfx key={h.cue} at={helpers.cue(h.cue) - 4} name="pop-low" volume={0.25} />)}
       <Sfx at={local.from - 4} name="whoosh" volume={0.3} />
       {badges.map(b => <Sfx key={b.cue} at={local.cue(b.cue) - 4} name="blip-low" volume={0.16} />)}

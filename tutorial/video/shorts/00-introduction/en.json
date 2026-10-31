@@ -1,0 +1,88 @@
+{
+  "lang": "en",
+  "number": 0,
+  "title": "Introduction",
+  "next": "Getting started",
+  "nextNumber": 1,
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42
+  },
+  "chapters": [
+    {
+      "id": "intro",
+      "title": "K-Desktop",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "hook1",
+          "text": "Every day, you repeat the same little moves on your PC."
+        },
+        {
+          "id": "hook2",
+          "text": "Opening the same programs. Arranging the same windows. Hunting for the volume. Clicking through the same menus."
+        },
+        {
+          "id": "hook3",
+          "text": "What if a {key}single key could do all of that? Or a {mouse}flick of the mouse? Or simply... {voice}your voice?",
+          "pause": 0.5
+        },
+        {
+          "id": "title",
+          "text": "This is K-Desktop.",
+          "pause": 0.9
+        },
+        {
+          "id": "promise",
+          "text": "In these short videos, one for each feature, we'll see everything it can do. {commands}Commands, {quickmenus}QuickMenus, {events}events, {macros}macros and {kboard}K-Board. {voice}Voice control. And the {assistants}assistants that live on top of your windows."
+        }
+      ]
+    },
+    {
+      "id": "overview",
+      "title": "The big picture",
+      "label": "Overview",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "K-Desktop is built around one simple idea: {command}the command."
+        },
+        {
+          "id": "command",
+          "text": "A command is a {named}named sequence of actions. {open}Open a program, {wait}wait a second, {snap}snap its window to the left, {volume}set the volume to twenty percent. {steps}Step by step, in order."
+        },
+        {
+          "id": "triggers",
+          "text": "And a command can be launched from almost anywhere. A {hotkey}hotkey or a {mouse}mouse button. A {quickmenu}QuickMenu, or the {launcher}launcher. Your {voice}voice, or the {network}network. {event}Something that happens on your PC. Or even an {assistant}assistant."
+        },
+        {
+          "id": "helpers",
+          "text": "Around commands live a few companions. {macros}Macros that replay what you do. {kboard}K-Board profiles that remap your keys. And a {history}history that remembers every run."
+        },
+        {
+          "id": "local",
+          "text": "It's a {portable}single portable program for {windows}Windows 10 and 11, in {languages}five languages. {local}Everything runs locally, and your {data}data stays in your own folder."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Let's start with the first one: {next}getting started."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
