@@ -38,7 +38,7 @@
         },
         {
           "id": "promise",
-          "text": "In these short videos, one for each feature, we'll see everything it can do. {commands}Commands, {quickmenus}QuickMenus, {events}events, {macros}macros and {kboard}K-Board. {voice}Voice control. And the {assistants}assistants that live on top of your windows."
+          "text": "In these short videos, one for each feature, we'll see everything it can do. {commands}Commands, {quickmenus}QuickMenus, {events}events, {macros}macros and {kboard}K-Board. {voice}Voice control, your {phone}phone as a remote, and the {assistants}assistants that live on top of your windows."
         }
       ]
     },
@@ -57,7 +57,7 @@
         },
         {
           "id": "triggers",
-          "text": "And a command can be launched from almost anywhere. A {hotkey}hotkey or a {mouse}mouse button. A {quickmenu}QuickMenu, or the {launcher}launcher. Your {voice}voice, or the {network}network. {event}Something that happens on your PC. Or even an {assistant}assistant."
+          "text": "And a command can be launched from almost anywhere. A {hotkey}hotkey or a {mouse}mouse button. A {quickmenu}QuickMenu, or the {launcher}launcher. Your {voice}voice, your {phone}phone, or the {network}network. {event}Something that happens on your PC. Or even an {assistant}assistant."
         },
         {
           "id": "helpers",
