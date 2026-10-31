@@ -1,0 +1,132 @@
+{
+  "lang": "en",
+  "number": 7,
+  "title": "Windows, clipboard and screen",
+  "next": "Calendar and mail",
+  "nextNumber": 10,
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Save windows",
+      "Window layout",
+      "Copy text from the screen",
+      "Win plus V",
+      "Shift plus Enter",
+      "Win, Alt and the arrows"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Windows, clipboard and screen",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Every morning, the same {mess}mess of windows. Let K-Desktop put them {place}back where they belong, in one go."
+        },
+        {
+          "id": "plan",
+          "text": "Today: {layouts}window layouts, the {clipboard}clipboard history, and {screen}copying text straight from the screen.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "layouts",
+      "title": "Window layouts",
+      "label": "Layouts",
+      "beats": [
+        {
+          "id": "what",
+          "text": "In {page}Layouts, you {cut}cut each monitor into zones, and {programs}choose which programs go in each one. Here, {code}Visual Studio Code on the left, {chrome}Chrome and the {terminal}terminal on the right."
+        },
+        {
+          "id": "make",
+          "text": "Start from a {templates}template, like two columns or a grid. {split}Click a zone again to split it, and drag the lines to resize. Or simply arrange your windows by hand, and press {save}Save windows."
+        },
+        {
+          "id": "put",
+          "text": "{test}Test puts every window in its zone, and can even {open}open the programs that aren't running. From a command, it's the {action}Window layout action. And an {event}event can do it for you, say, when a screen is plugged in."
+        },
+        {
+          "id": "snap",
+          "text": "Once it's in place, {shift}hold Shift while you drag a window to see the zones, and {drop}drop it into one. Or create the {keys}zone hotkeys: Win, Alt and the arrows move the active window to the next zone."
+        }
+      ]
+    },
+    {
+      "id": "clipboard",
+      "title": "Clipboard history",
+      "label": "Clipboard",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Windows pastes the last thing you copied. {history}K-Desktop keeps the last {many}two hundred: texts, pictures and files."
+        },
+        {
+          "id": "open",
+          "text": "Give it a hotkey, {winv}Win plus V for example, and it opens {mouse}next to the mouse. {type}Type to search, {filter}filter by text, pictures or files, and {enter}Enter pastes it where you were."
+        },
+        {
+          "id": "keys",
+          "text": "{plain}Shift plus Enter pastes without formatting. {number}Control and a number pastes one of the first nine. And {pin}pin what you always need: pinned ones are never deleted."
+        },
+        {
+          "id": "private",
+          "text": "It's {encrypted}kept encrypted, only on this PC. And it {skips}never keeps what you copy in password managers, or what a program marks as private."
+        }
+      ]
+    },
+    {
+      "id": "screen",
+      "title": "Text from the screen",
+      "label": "Screen",
+      "beats": [
+        {
+          "id": "what",
+          "text": "Some text can't be selected: in a {picture}picture, a video, or an {error}error message. The {action}Copy text from the screen action reads it for you."
+        },
+        {
+          "id": "how",
+          "text": "{region}Drag a box around it, or read the {window}active window, or a whole {monitor}monitor. The text goes {copied}straight to the clipboard."
+        },
+        {
+          "id": "local",
+          "text": "No AI, and nothing leaves your PC: it uses {windows}Windows' own text recognition, in the {language}language you choose, or automatic."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: the {action}Clipboard action changes what you copied. {upper}Upper case, {plainText}remove formatting, or {clean}clean the tracking out of links. Tick {first}copy the selection first and {after}paste afterwards, and it changes the selected text right in place."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}your calendar and your mail."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
