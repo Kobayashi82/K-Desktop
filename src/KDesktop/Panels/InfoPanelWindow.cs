@@ -59,7 +59,10 @@ internal sealed class InfoPanelWindow : Window
         // The background is a layer of its own, so its opacity doesn't fade the text.
         _back = new Border { CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1) };
         _back.SetResourceReference(Border.BorderBrushProperty, "Kd.MenuBorder");
-        Content = new Grid { Children = { _back, new Border { Padding = new Thickness(12, 7, 12, 7), Child = _grid } } };
+        // Almost invisible but there, so the whole panel takes the mouse to drag it (also with no background, 0 %).
+        var grab = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+        grab.Freeze();
+        Content = new Grid { Background = grab, Children = { _back, new Border { Padding = new Thickness(12, 7, 12, 7), Child = _grid } } };
 
         MouseLeftButtonDown += OnDrag;
         MouseRightButtonUp += OnMenu;
@@ -84,12 +87,13 @@ internal sealed class InfoPanelWindow : Window
     {
         switch (msg)
         {
-            // Under the other windows: whatever puts it above them, it goes to the bottom (save over the desktop, see Over).
+            // Under the other windows: whatever puts it above them, it goes to its place (save over the desktop, see Over).
             case WM_WINDOWPOSCHANGING when !Panel.Topmost && !_over:
                 var pos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
                 if ((pos.flags & SWP_NOZORDER) == 0)
                 {
-                    pos.hwndInsertAfter = HWND_BOTTOM;
+                    if (Anchor() is { } after) pos.hwndInsertAfter = after;
+                    else pos.flags |= SWP_NOZORDER;
                     Marshal.StructureToPtr(pos, lParam, false);
                 }
                 break;
@@ -118,9 +122,87 @@ internal sealed class InfoPanelWindow : Window
     /// </summary>
     public void OnForeground(IntPtr foreground)
     {
-        if (_hwnd == IntPtr.Zero || Panel.Topmost) return;
+        if (_hwnd == IntPtr.Zero) return;
+        if (Panel.Topmost)
+        {
+            KeepPlace();
+            return;
+        }
         _over = UiNative.IsDesktop(foreground);
+        // HWND_BOTTOM: the hook takes it to its place (over the taskbar it is on, if any).
         SetWindowPos(_hwnd, _over ? HWND_TOP : HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+
+    private const uint GW_HWNDNEXT = 2, GW_HWNDPREV = 3;
+    private const int GWL_EXSTYLE = -20, WS_EX_TRANSPARENT = 0x20;
+
+    [DllImport("user32.dll")] private static extern IntPtr GetWindow(IntPtr hwnd, uint cmd);
+    [DllImport("user32.dll")] private static extern IntPtr GetTopWindow(IntPtr hwnd);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll")] private static extern int GetWindowLong(IntPtr hwnd, int index);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hwnd, char[] name, int max);
+
+    private static string ClassOf(IntPtr hwnd)
+    {
+        var name = new char[32];
+        var length = GetClassName(hwnd, name, name.Length);
+        return length > 0 ? new string(name, 0, length) : string.Empty;
+    }
+
+    private static bool IsTaskbar(IntPtr hwnd) => ClassOf(hwnd) is "Shell_TrayWnd" or "Shell_SecondaryTrayWnd";
+
+    [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out int value, int size);
+
+    /// <summary>
+    /// A window that can cover it: shown (not one Windows keeps cloaked, as the closed Settings), takes the mouse (not a
+    /// see-through overlay) and over part of it.
+    /// </summary>
+    private static bool Covers(IntPtr hwnd, UiNative.RECT me) =>
+        IsWindowVisible(hwnd) && (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TRANSPARENT) == 0 &&
+        !(DwmGetWindowAttribute(hwnd, 14 /* DWMWA_CLOAKED */, out var cloaked, sizeof(int)) == 0 && cloaked != 0) &&
+        UiNative.GetWindowRect(hwnd, out var r) && r.Left < me.Right && r.Right > me.Left && r.Top < me.Bottom && r.Bottom > me.Top;
+
+    /// <summary>
+    /// Where it goes under the other windows (the window to put it after): just over the taskbar it is on, so the taskbar
+    /// never covers it; elsewhere, at the bottom (over the desktop). Null: it is there already.
+    /// </summary>
+    private IntPtr? Anchor()
+    {
+        if (!UiNative.GetWindowRect(_hwnd, out var me)) return HWND_BOTTOM;
+        // From the top down, the first taskbar under it: it goes right above that one.
+        for (var w = GetTopWindow(IntPtr.Zero); w != IntPtr.Zero; w = GetWindow(w, GW_HWNDNEXT))
+        {
+            if (w == _hwnd || !IsTaskbar(w) || !Covers(w, me)) continue;
+            var above = GetWindow(w, GW_HWNDPREV);
+            return above == _hwnd ? null : above == IntPtr.Zero ? HWND_TOP : above;
+        }
+        return HWND_BOTTOM;
+    }
+
+    /// <summary>
+    /// Checked at each refresh, as the other windows move about: «Siempre encima», nothing over it (a window that went
+    /// topmost later); else, no taskbar over it (clicking it brings it up) and no window under it (it never stays above them).
+    /// </summary>
+    private void KeepPlace()
+    {
+        if (_hwnd == IntPtr.Zero || _over || !IsVisible || !UiNative.GetWindowRect(_hwnd, out var me)) return;
+        if (Panel.Topmost)
+        {
+            for (var w = GetWindow(_hwnd, GW_HWNDPREV); w != IntPtr.Zero; w = GetWindow(w, GW_HWNDPREV))
+                if (Covers(w, me))
+                {
+                    SetWindowPos(_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    return;
+                }
+            return;
+        }
+        var wrong = false;
+        for (var w = GetWindow(_hwnd, GW_HWNDPREV); w != IntPtr.Zero && !wrong; w = GetWindow(w, GW_HWNDPREV))
+            wrong = IsTaskbar(w) && Covers(w, me);
+        // Under it, down to the taskbar it is on (what is under that one is under the panel anyway).
+        for (var w = GetWindow(_hwnd, GW_HWNDNEXT); w != IntPtr.Zero && !wrong && !(IsTaskbar(w) && Covers(w, me)); w = GetWindow(w, GW_HWNDNEXT))
+            wrong = !UiNative.IsDesktop(w) && Covers(w, me);
+        if (wrong) SetWindowPos(_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
     /// <summary>A «Siempre encima» one hides while something fills its monitor (a game, a film); checked at each refresh.</summary>
@@ -405,6 +487,7 @@ internal sealed class InfoPanelWindow : Window
             cell.Gauge.Show(cell.Item.Look == PanelItemLook.Bar ? value is { } v ? [v] : [] : history, top);
         }
         CheckCovered();
+        KeepPlace();
     }
 
     protected override void OnClosed(EventArgs e)

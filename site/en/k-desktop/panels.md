@@ -1,12 +1,12 @@
 # Panels
 
 A panel is a small window on your desktop with figures of your PC: the network, the processor, the memory and the graphics
-card, always in sight. It stays **over the desktop and under your windows**, never takes the focus and does not show in
+card, always in sight. It stays **over the desktop and under your windows** (put on the taskbar, in front of it), never takes the focus and does not show in
 Alt + Tab or on the taskbar. You can have several, each one with its own figures and look.
 
 1. *Panels → New panel*: it already shows the usual figures in two rows (↑ ↓, CPU, GPU, RAM, VRAM and the temperature of
    the graphics card) and appears at the top right of the main monitor.
-2. Drag it with the mouse wherever you like. It remembers where, also on the other monitor and with another resolution.
+2. Drag it with the mouse, from anywhere on it, wherever you like. It remembers where, also on the other monitor and with another resolution.
 3. The switch **On the desktop** (in the list or on the header) shows it or hides it.
 
 ## Figures
@@ -44,7 +44,7 @@ Every change shows on the panel at once.
 - **Lock the position**: dragging it doesn't move it.
 - **Let the clicks through** (locked): the clicks go to what is under it, as if it were not there. Its menu no longer opens,
   so you change it from here.
-- **Always on top**: over every window and the taskbar. It hides by itself while a game or a video fills its screen.
+- **Always on top**: over every window and the taskbar, even the ones that come up later. It hides by itself while a game or a video fills its screen.
 - **Move it to the corner**: back to the top right of the main monitor, in case it got lost.
 
 ## Its menu

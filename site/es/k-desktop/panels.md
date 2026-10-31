@@ -1,12 +1,12 @@
 # Paneles
 
 Un panel es una ventanita en el escritorio con datos de tu PC: la red, el procesador, la memoria y la tarjeta gráfica,
-siempre a la vista. Queda **encima del escritorio y debajo de tus ventanas**, nunca se lleva el foco y no sale en Alt + Tab
+siempre a la vista. Queda **encima del escritorio y debajo de tus ventanas** (puesto sobre la barra de tareas, delante de ella), nunca se lleva el foco y no sale en Alt + Tab
 ni en la barra de tareas. Puedes tener varios, cada uno con sus datos y su aspecto.
 
 1. *Paneles → Nuevo panel*: ya muestra los datos de siempre en dos filas (↑ ↓, CPU, GPU, RAM, VRAM y la temperatura de la
    gráfica) y sale arriba a la derecha del monitor principal.
-2. Arrástralo con el ratón adonde quieras. Recuerda dónde, también en el otro monitor y con otra resolución.
+2. Arrástralo con el ratón, desde cualquier punto, adonde quieras. Recuerda dónde, también en el otro monitor y con otra resolución.
 3. El interruptor **En el escritorio** (en la lista o en la cabecera) lo muestra o lo oculta.
 
 ## Datos
@@ -44,7 +44,7 @@ Cada cambio se ve en el panel al momento.
 - **Bloquear la posición**: no se mueve al arrastrarlo.
 - **Dejar pasar los clics** (bloqueado): los clics van a lo que hay debajo, como si no estuviera. Su menú ya no se abre, así
   que se cambia desde aquí.
-- **Siempre encima**: encima de todas las ventanas y de la barra de tareas. Se esconde solo si un juego o un vídeo ocupa su
+- **Siempre encima**: encima de todas las ventanas y de la barra de tareas, también de las que suban después. Se esconde solo si un juego o un vídeo ocupa su
   pantalla.
 - **Llevarlo a la esquina**: vuelve arriba a la derecha del monitor principal, por si se ha perdido.
 
