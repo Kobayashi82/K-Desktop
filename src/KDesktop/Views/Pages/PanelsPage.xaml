@@ -180,10 +180,13 @@
                                                 <Border Background="Transparent" Cursor="SizeNS" ToolTip="{l:Tr macro.dragHint}" v:DragReorder.IsHandle="True">
                                                     <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                                                 </Border>
-                                                <ui:SymbolIcon Grid.Column="1" Symbol="{Binding Kind, Converter={x:Static v:PanelItemSymbol.Instance}}" FontSize="18"
+                                                <ui:SymbolIcon Grid.Column="1" Symbol="{Binding Kind, Converter={x:Static v:PanelItemSymbol.Instance}}" FontSize="18" v:DragReorder.IsHandle="True"
                                                                Foreground="{DynamicResource Kd.AccentText}" HorizontalAlignment="Left" />
-                                                <TextBlock Grid.Column="2" Text="{Binding Kind, Converter={x:Static v:PanelItemName.Instance}}" VerticalAlignment="Center"
-                                                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                <!-- The name drags the row too (not only the dots): the boxes on its right still take the mouse -->
+                                                <Border Grid.Column="2" Background="Transparent" v:DragReorder.IsHandle="True">
+                                                    <TextBlock Text="{Binding Kind, Converter={x:Static v:PanelItemName.Instance}}" VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                </Border>
                                                 <ui:TextBox Grid.Column="3" Width="110" Visibility="{Binding IsFigure, Converter={StaticResource BoolToVis}}" Margin="10,0,0,0" VerticalAlignment="Center" ClearButtonEnabled="False"
                                                             Text="{Binding Label, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
                                                             PlaceholderText="{Binding Kind, Converter={x:Static v:PanelItemLabel.Instance}}"
