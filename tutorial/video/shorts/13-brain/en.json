@@ -1,0 +1,115 @@
+{
+  "lang": "en",
+  "number": 13,
+  "title": "The assistant's brain",
+  "next": "The assistant's tools",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Add model",
+      "To think harder",
+      "Other servers",
+      "Assistant: brain",
+      "Hugging Face",
+      "LM Studio"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "The assistant's brain",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Your assistants understand you with an {ai}AI model, running {pc}on your own PC. What you say {stays}doesn't have to leave it."
+        },
+        {
+          "id": "plan",
+          "text": "Let's {choose}choose a model, add {servers}other servers, and {gpu}share the graphics card.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "model",
+      "title": "Choose a model",
+      "label": "Model",
+      "beats": [
+        {
+          "id": "where",
+          "text": "It's all in {settings}Settings, Brain. The model {loads}loads by itself when you talk to an assistant. And on {auto}Automatic, it uses the {biggest}biggest one that fits in your graphics card."
+        },
+        {
+          "id": "add",
+          "text": "Want another one? {add}Add model, paste a {hf}Hugging Face link or name, and the {fits}biggest that fits is already chosen. Keep {vision}vision ticked, so it can see images, and {download}download."
+        },
+        {
+          "id": "think",
+          "text": "In {think}To think harder, pick the model it uses when you say {over}think it over, when the question is hard, or when it {wrong}gets something wrong."
+        }
+      ]
+    },
+    {
+      "id": "servers",
+      "title": "Other servers",
+      "label": "Servers",
+      "beats": [
+        {
+          "id": "other",
+          "text": "Already running {ollama}Ollama, {swap}llama-swap or {lmstudio}LM Studio, on this PC or another? Add them in {other}Other servers, and {list}their models join the list."
+        },
+        {
+          "id": "where",
+          "text": "And it tells you {where}where your words go: {thispc}this PC, {network}your network, or the {internet}internet."
+        }
+      ]
+    },
+    {
+      "id": "gpu",
+      "title": "Share the graphics card",
+      "label": "Graphics",
+      "beats": [
+        {
+          "id": "idle",
+          "text": "When nobody talks to it, the model {unload}leaves memory after the time you choose. Next time, it {again}loads again in a few seconds."
+        },
+        {
+          "id": "games",
+          "text": "And start a {game}game on the whole screen, and it {frees}frees the graphics card by itself. A {film}film doesn't count."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: before a render, free it {action}from a command, with the Assistant: brain action. Or simply tell your assistant: {say}free the brain."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}the assistant's tools."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
