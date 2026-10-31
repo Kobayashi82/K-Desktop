@@ -1,0 +1,119 @@
+{
+  "lang": "en",
+  "number": 11,
+  "title": "Telegram",
+  "next": "The assistant's brain",
+  "nextNumber": 13,
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Send via Telegram",
+      "A Telegram message arrives",
+      "Chat only",
+      "Like you",
+      "BotFather"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Telegram",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Your PC, {anywhere}from anywhere. Write to it on {telegram}Telegram, to run a {command}command, or to {talk}talk to your assistant."
+        },
+        {
+          "id": "plan",
+          "text": "Let's {connect}connect it, decide {who}who can write to it, and see {use}what it can do.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "A bot or an account",
+      "label": "Connect",
+      "beats": [
+        {
+          "id": "bot",
+          "text": "The easiest way is a {bot}bot of your own. A {guide}guide walks you through it: {botfather}BotFather creates it, you {paste}paste its token into K-Desktop, and {link}link yourself with a code. From then on, the bot {only}only listens to you."
+        },
+        {
+          "id": "account",
+          "text": "Or use a {account}Telegram account with its own number, best on a phone just for K-Desktop. Unlike the bot, it can {first}write first to its contacts. It needs a free {app}app from Telegram, and its guide explains that too."
+        }
+      ]
+    },
+    {
+      "id": "people",
+      "title": "Who can write to it",
+      "label": "People",
+      "beats": [
+        {
+          "id": "new",
+          "text": "Others can write to it too. When {someone}someone new does, you decide: {allow}allow, ignore or block."
+        },
+        {
+          "id": "levels",
+          "text": "Each contact gets a {level}level: {chat}chat only, {commands}chosen commands, {read}tools that only read, {chosen}chosen tools, or {like}like you. And anything that needs confirmation is {asked}always asked to you."
+        },
+        {
+          "id": "limits",
+          "text": "There are {limits}limits, too: messages a minute, and {gaming}only you while you're gaming. In {groups}groups, it answers only when mentioned."
+        }
+      ]
+    },
+    {
+      "id": "use",
+      "title": "What it can do",
+      "label": "Use",
+      "beats": [
+        {
+          "id": "commands",
+          "text": "Send {slash}slash commands, and it lists {menu}yours. Tap one, and it {runs}runs on the PC."
+        },
+        {
+          "id": "assistant",
+          "text": "Anything else goes to the {assistant}assistant, with its tools. Send a {voice}voice note, and it understands it, and can {answer}answer in its own voice. Send a {photo}photo, and it looks at it."
+        },
+        {
+          "id": "auto",
+          "text": "And the other way round: the {send}Send via Telegram action sends you a text, a {file}file or a {screenshot}screenshot. And the {event}A Telegram message arrives event runs commands from what you send."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: turn on {notices}important emails in Telegram notices, and the mail that matters {reach}reaches you even away from the PC."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}the assistant's brain."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
