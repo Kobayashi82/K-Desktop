@@ -11,6 +11,7 @@ import { CALENDAR_MAIL } from '../shorts/10-calendar-mail/scenes';
 import { TELEGRAM } from '../shorts/11-telegram/scenes';
 import { BRAIN } from '../shorts/13-brain/scenes';
 import { TOOLS } from '../shorts/14-tools/scenes';
+import { MEMORY_KNOWLEDGE } from '../shorts/15-memory-knowledge/scenes';
 
 /** A short video (shorts/<id>): the picture of each chapter of its script, and the background colours of its chapters. */
 export type Short = { scenes: Record<string, React.FC>; moods?: Record<string, readonly [string, string, string]> };
@@ -29,4 +30,5 @@ export const SHORTS: Record<string, Short> = {
   '11-telegram': TELEGRAM,
   '13-brain': BRAIN,
   '14-tools': TOOLS,
+  '15-memory-knowledge': MEMORY_KNOWLEDGE,
 };

@@ -1,0 +1,102 @@
+{
+  "lang": "en",
+  "number": 15,
+  "title": "Memory, notes and what it knows",
+  "next": "Voice and personality",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Learn from what you talk about",
+      "What it knows",
+      "Try a search",
+      "Read pictures and scanned PDFs"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Memory, notes and what it knows",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Tell your assistant something {once}once, and it {remembers}remembers. Give it your {documents}documents, and it {answers}answers from them."
+        },
+        {
+          "id": "plan",
+          "text": "Today: {memory}memory and notes, {knows}what it knows, and {drop}dropping files on it.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "memory",
+      "title": "Memory and notes",
+      "label": "Memory",
+      "beats": [
+        {
+          "id": "learn",
+          "text": "In {settings}Settings, Memory, is what the assistants {know}know about you, shared by all of them. With {learn}Learn from what you talk about, after each chat they note what's worth remembering: your name, what you like, important dates."
+        },
+        {
+          "id": "say",
+          "text": "Or tell them: {remember}remember that I'm allergic to seafood. Ask {what}what do you remember about me, or say {forget}forget that. And here you can {edit}edit or delete anything."
+        },
+        {
+          "id": "notes",
+          "text": "{notes}Notes are different: they're what you ask them to note down. Say {say}note that, call the landlord, and it's there for later."
+        }
+      ]
+    },
+    {
+      "id": "knows",
+      "title": "What it knows",
+      "label": "Documents",
+      "beats": [
+        {
+          "id": "add",
+          "text": "In {knows}What it knows, {add}add folders or files: notes, manuals, contracts, invoices. They're {read}read once, on this PC, and it keeps an eye on them. {nothing}Nothing leaves it."
+        },
+        {
+          "id": "scanned",
+          "text": "Turn on {pictures}Read pictures and scanned PDFs, and it reads those too, with Windows' text recognition."
+        },
+        {
+          "id": "ask",
+          "text": "Then ask: {ask}how much was the electricity bill in October? It answers with {answers}what your documents say, and tells you {where}where it comes from. {try}Try a search shows what it would find."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: {drag}drag a file onto an assistant. It asks {what}what to do with it: {inside}what's inside, {summarize}summarize, or {read}read it to you. With a picture, {describe}what is it. Or just {tell}tell it."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}the assistant's voice and personality."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
