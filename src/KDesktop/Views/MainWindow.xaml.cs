@@ -264,6 +264,12 @@ public partial class MainWindow : FluentWindow
         if (arrangementId is not null && _pages.GetValueOrDefault("arrangements") is Pages.ArrangementsPage page) page.Select(arrangementId);
     }
 
+    public void OpenPanel(string? panelId)
+    {
+        Navigate("panels");
+        if (panelId is not null && _pages.GetValueOrDefault("panels") is Pages.PanelsPage page) page.Select(panelId);
+    }
+
     public void OpenSnippet(string? snippetId)
     {
         Navigate("snippets");
@@ -319,6 +325,7 @@ public partial class MainWindow : FluentWindow
                 "macros" => new Pages.MacrosPage(),
                 "snippets" => new Pages.SnippetsPage(),
                 "arrangements" => new Pages.ArrangementsPage(),
+                "panels" => new Pages.PanelsPage(),
                 "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),
                 "history" => new Pages.HistoryPage(),

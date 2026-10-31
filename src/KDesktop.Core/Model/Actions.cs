@@ -17,7 +17,7 @@ public enum ActionKind
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
     ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat, Arrangement, ColorPicker, Ruler,
-    VideoRecord, AssistantTool, CalendarAdd, CalendarJoin, MailSend, TelegramSend,
+    VideoRecord, AssistantTool, CalendarAdd, CalendarJoin, MailSend, TelegramSend, Panel,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -95,6 +95,7 @@ public enum ScriptShell { Cmd, PowerShell, VBScript }
 [JsonDerivedType(typeof(AssistantChatAction), "assistantChat")]
 [JsonDerivedType(typeof(AssistantToolAction), "assistantTool")]
 [JsonDerivedType(typeof(ArrangementAction), "arrangement")]
+[JsonDerivedType(typeof(PanelAction), "panel")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;

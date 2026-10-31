@@ -1,0 +1,64 @@
+<UserControl x:Class="KDesktop.Views.ColorField"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization"
+                          x:Name="Root">
+    <!-- As «Color del borde» of the lupa (Opciones): the colour, its «#RRGGBB» and the palette; empty is «Automático» -->
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <ToggleButton x:Name="Swatch" Width="34" Height="34" Margin="0,0,8,0" Cursor="Hand"
+                      ToolTip="{Binding Label, ElementName=Root}" AutomationProperties.Name="{Binding Label, ElementName=Root}">
+            <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Edge" CornerRadius="8" BorderThickness="1" Padding="3"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource Kd.Subtle}">
+                        <Border x:Name="Fill" CornerRadius="5" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Edge" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Edge" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </ToggleButton.Template>
+        </ToggleButton>
+        <ui:TextBox x:Name="HexBox" Width="130" VerticalAlignment="Center" MaxLength="7" FontFamily="Consolas" ClearButtonEnabled="False" PlaceholderText="{l:Tr icons.automatic}"
+                 TextChanged="OnTyped" LostKeyboardFocus="OnHexLostFocus" AutomationProperties.Name="{Binding Label, ElementName=Root}" />
+        <Popup IsOpen="{Binding IsChecked, ElementName=Swatch}" PlacementTarget="{Binding ElementName=Swatch}"
+               Placement="Bottom" VerticalOffset="6" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+            <Border Padding="10" CornerRadius="8" BorderThickness="1" Width="236"
+                    Background="{DynamicResource Kd.MenuTintOpaque}" BorderBrush="{DynamicResource Kd.MenuBorder}">
+                <StackPanel>
+                    <Button x:Name="AutoButton" Margin="2,0,2,8" HorizontalAlignment="Stretch" Content="{l:Tr icons.automatic}" Click="OnAutomatic"
+                            AutomationProperties.Name="{l:Tr icons.automatic}" />
+                    <ItemsControl x:Name="Colors" Focusable="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Width="24" Height="24" Margin="2" Cursor="Hand" Tag="{Binding}" Click="OnPick"
+                                        ToolTip="{Binding}" AutomationProperties.Name="{Binding}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="Dot" CornerRadius="5" Background="{Binding}" BorderThickness="1"
+                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" />
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Dot" Property="BorderBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </StackPanel>
+</UserControl>

@@ -748,6 +748,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             case ArrangementAction a when e.PropertyName == nameof(ArrangementAction.ArrangementId):
                 a.ArrangementName = Config.FindArrangement(a.ArrangementId)?.Name;
                 break;
+            case PanelAction p when e.PropertyName == nameof(PanelAction.PanelId):
+                p.PanelName = Config.Panels.FirstOrDefault(x => x.Id == p.PanelId)?.Name;
+                break;
             case KBoardAction k when e.PropertyName == nameof(KBoardAction.ProfileId):
                 k.ProfileName = Config.FindKBoard(k.ProfileId)?.Name;
                 break;
@@ -944,6 +947,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     private void OnEditArrangement(object sender, ExecutedRoutedEventArgs e) =>
         (Window.GetWindow(this) as MainWindow)?.OpenArrangement(e.Parameter as string);
+
+    private void OnEditPanel(object sender, ExecutedRoutedEventArgs e) =>
+        (Window.GetWindow(this) as MainWindow)?.OpenPanel(e.Parameter is string { Length: > 0 } id ? id : null);
 
     private void OnEditKBoard(object sender, ExecutedRoutedEventArgs e) =>
         (Window.GetWindow(this) as MainWindow)?.OpenKBoard(e.Parameter as string);

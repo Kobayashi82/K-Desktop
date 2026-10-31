@@ -27,6 +27,9 @@ public sealed class AppConfig
     /// <summary>The window layouts («Disposiciones», E1).</summary>
     public ObservableCollection<WindowArrangement> Arrangements { get; set; } = [];
 
+    /// <summary>The panels of figures on the desktop («Paneles»).</summary>
+    public ObservableCollection<InfoPanel> Panels { get; set; } = [];
+
     /// <summary>Brings a configuration saved by an older version up to date. Returns true when something changed.</summary>
     public bool Upgrade()
     {
@@ -168,6 +171,7 @@ public sealed class AppConfig
         foreach (var arrangement in Arrangements) changed |= arrangement.ConvertWindows();
         // 5.0.378: «Guardar cómo están ahora» of 5.0.376 could leave a zone over another, or gaps; now they are cut again.
         foreach (var arrangement in Arrangements) changed |= arrangement.MendZones();
+        foreach (var panel in Panels) changed |= panel.Mend();
         if (SchemaVersion < CurrentSchema)
         {
             SchemaVersion = CurrentSchema;
@@ -289,6 +293,7 @@ public sealed class AppConfig
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
                 case ArrangementAction a: a.ArrangementName = FindArrangement(a.ArrangementId)?.Name; break;
                 case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
+                case PanelAction p: p.PanelName = Panels.FirstOrDefault(x => x.Id == p.PanelId)?.Name; break;
                 case AssistantExtraAction x: x.ExtraName = ExtraName(x.Assistant, x.Extra); break;
                 case DisplayAction { Operation: DisplayOperation.Mode } d when d.Monitor.Length > 0:
                     d.MonitorName = (monitors ??= Platform.DisplayTools.Monitors()).FirstOrDefault(m => m.DeviceName == d.Monitor)?.Name;
@@ -670,6 +675,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _arrangementZonesFolded;
     [ObservableProperty] private bool _arrangementOptionsOpen;
     [ObservableProperty] private bool _arrangementNotesFolded;
+
+    /// <summary>Paneles: «Elementos», «Aspecto» and «Notas» folded away, and «Opciones» unfolded.</summary>
+    [ObservableProperty] private bool _panelItemsFolded;
+    [ObservableProperty] private bool _panelLookFolded;
+    [ObservableProperty] private bool _panelOptionsOpen;
+    [ObservableProperty] private bool _panelNotesFolded;
 
     // Macros
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>

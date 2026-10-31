@@ -34,19 +34,28 @@ public static class NetworkInfo
     /// </summary>
     public static (long Down, long Up) Traffic()
     {
+        try { return Sum(CountedAdapters()); }
+        catch (NetworkInformationException) { return (0, 0); }
+    }
+
+    /// <summary>The adapters <see cref="Traffic"/> counts: up, with an address, no loopback (finding them costs ~30 ms).</summary>
+    public static NetworkInterface[] CountedAdapters() =>
+    [
+        .. NetworkInterface.GetAllNetworkInterfaces().Where(a =>
+            a.OperationalStatus == OperationalStatus.Up && a.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+            a.GetIPProperties().UnicastAddresses.Count > 0),
+    ];
+
+    /// <summary>Bytes received and sent by <paramref name="adapters"/> (only their counters: almost nothing).</summary>
+    public static (long Down, long Up) Sum(IEnumerable<NetworkInterface> adapters)
+    {
         long down = 0, up = 0;
-        try
+        foreach (var adapter in adapters)
         {
-            foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (adapter.OperationalStatus != OperationalStatus.Up || adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-                if (adapter.GetIPProperties().UnicastAddresses.Count == 0) continue;
-                var statistics = adapter.GetIPStatistics();
-                down += statistics.BytesReceived;
-                up += statistics.BytesSent;
-            }
+            var statistics = adapter.GetIPStatistics();
+            down += statistics.BytesReceived;
+            up += statistics.BytesSent;
         }
-        catch (NetworkInformationException) { /* no figures */ }
         return (down, up);
     }
 

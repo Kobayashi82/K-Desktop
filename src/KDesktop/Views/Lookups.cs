@@ -56,6 +56,8 @@ public static class Lookups
     public static IReadOnlyList<Option<WindowTarget>> WindowTargets { get; } = Enum<WindowTarget>("enum.windowTarget");
     public static IReadOnlyList<Option<WindowOperation>> WindowOperations { get; } = Enum<WindowOperation>("enum.windowOp");
     public static IReadOnlyList<Option<WindowSnap>> WindowSnaps { get; } = Enum<WindowSnap>("enum.windowSnap");
+    public static IReadOnlyList<Option<PanelItemKind>> PanelItemKinds { get; } = Enum<PanelItemKind>("enum.panelItem");
+    public static IReadOnlyList<Option<PanelItemLook>> PanelItemLooks { get; } = Enum<PanelItemLook>("enum.panelLook");
     public static IReadOnlyList<Option<MonitorChoice>> MonitorChoices { get; } = Enum<MonitorChoice>("enum.monitorChoice");
     public static IReadOnlyList<Option<ClipboardMode>> ClipboardModes { get; } = Enum<ClipboardMode>("enum.clipboard");
     public static IReadOnlyList<Option<DisplayOperation>> DisplayOperations { get; } = Enum<DisplayOperation>("enum.displayOp");
@@ -139,6 +141,7 @@ public static class Lookups
     public static IReadOnlyList<Option<PowerMode>> PowerModes { get; } = Enum<PowerMode>("power");
     public static IReadOnlyList<Option<CommandControlMode>> CommandControlModes { get; } = Enum<CommandControlMode>("enum.commandControl");
     public static IReadOnlyList<Option<KBoardActionMode>> KBoardActionModes { get; } = Enum<KBoardActionMode>("enum.kboardMode");
+    public static IReadOnlyList<Option<PanelActionMode>> PanelActionModes { get; } = Enum<PanelActionMode>("enum.panelMode");
     public static IReadOnlyList<Option<RemapKind>> RemapKinds { get; } = Enum<RemapKind>("enum.remapKind");
     public static IReadOnlyList<Option<ScriptShell>> ScriptShells { get; } = Enum<ScriptShell>("enum.shell");
     public static IReadOnlyList<Option<HttpVerb>> HttpVerbs { get; } =
@@ -225,6 +228,10 @@ public static class Lookups
 
     public static IEnumerable<KBoardProfile> KBoardList => App.Current.Config.KBoards;
 
+    /// <summary>«Panel»: «Todos los paneles» (empty id) and then each one.</summary>
+    public static IEnumerable<NamedChoice<string>> PanelList =>
+        [new(string.Empty, Loc.T("panels.all")), .. App.Current.Config.Panels.Select(p => new NamedChoice<string>(p.Id, p.Name))];
+
     public static IReadOnlyList<Option<double>> MacroSpeeds { get; } =
         [.. new[] { 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5, 10 }.Select(s => new Option<double>(s, s == 1 ? "editor.speedNormal" : $"×{s:0.##}"))];
 
@@ -298,6 +305,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand RemoveVoicePhrase = new("RemoveVoicePhrase", nameof(RemoveVoicePhrase), typeof(EditorCommands));
     public static readonly RoutedUICommand EditMacro = new("EditMacro", nameof(EditMacro), typeof(EditorCommands));
     public static readonly RoutedUICommand EditArrangement = new("EditArrangement", nameof(EditArrangement), typeof(EditorCommands));
+    public static readonly RoutedUICommand EditPanel = new("EditPanel", nameof(EditPanel), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepKey = new("CaptureStepKey", nameof(CaptureStepKey), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepPosition = new("CaptureStepPosition", nameof(CaptureStepPosition), typeof(EditorCommands));
     public static readonly RoutedUICommand AddAudioDevice = new("AddAudioDevice", nameof(AddAudioDevice), typeof(EditorCommands));

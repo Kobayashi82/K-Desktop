@@ -79,6 +79,9 @@ public partial class App : Application
 
     /// <summary>The clipboard history (Settings › Portapapeles).</summary>
     public ClipboardController ClipboardUi { get; private set; } = null!;
+
+    /// <summary>The panels of figures on the desktop («Paneles»).</summary>
+    public Panels.PanelManager InfoPanels { get; private set; } = null!;
     public AchievementService Achievements { get; } = new();
     public AchievementNotifier Notifier { get; private set; } = null!;
     public Core.Voice.VoiceService Voice { get; private set; } = null!;
@@ -212,6 +215,7 @@ public partial class App : Application
         TextVariables.HistoryText = n => Config.Settings.ClipboardHistory ? ClipboardUi.History.Text(n) : null;
         ClipboardUi.Start();
         ClipboardUi.Prewarm();
+        InfoPanels = new Panels.PanelManager(() => Config, panel => ShowMainWindow(w => w.OpenPanel(panel.Id)));
         Engine.Executed += Achievements.CommandExecuted;
         Engine.ActionStarting += (action, _) => Achievements.ActionExecuted(action);
         Engine.ActionStarting += AdornAction;
@@ -522,6 +526,7 @@ public partial class App : Application
         Events.Rebuild();
         ApplySettings();
         Voice.WakeWords.Reload();
+        InfoPanels.Reload();
         _main?.RebuildPages();
     }
 
@@ -571,6 +576,7 @@ public partial class App : Application
         foreach (var menu in Config.QuickMenus) menu.RefreshTexts();
         foreach (var snippet in Config.Snippets) snippet.RefreshTexts();
         foreach (var arrangement in Config.Arrangements) arrangement.RefreshTexts();
+        foreach (var panel in Config.Panels) panel.RefreshTexts();
         // The tray menu is built in code: rebuild it in the new language.
         _tray?.Dispose();
         _tray = null;
@@ -670,6 +676,8 @@ public partial class App : Application
         menu.Items.Add(events);
         var kboard = new MenuItem { Header = Loc.T("nav.kboard") };
         menu.Items.Add(kboard);
+        var panels = new MenuItem { Header = Loc.T("nav.panels") };
+        menu.Items.Add(panels);
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
@@ -685,6 +693,7 @@ public partial class App : Application
             FillAssistantTrayMenu(assistant);
             FillToggleTrayMenu(events, Config.Events.Select(e => (e.Name, e.Enabled, (Action<bool>)(on => e.Enabled = on))));
             FillToggleTrayMenu(kboard, Config.KBoards.Select(k => (k.Name, k.Active, (Action<bool>)(on => k.Active = on))));
+            FillToggleTrayMenu(panels, Config.Panels.Select(p => (p.Name, p.Enabled, (Action<bool>)(on => p.Enabled = on))));
         };
 
         _tray = new TaskbarIcon
@@ -843,6 +852,7 @@ public partial class App : Application
         Telegram?.Dispose();
         TelegramAccount?.Dispose();
         ClipboardUi?.Dispose();
+        InfoPanels?.Dispose();
         Router.Dispose();
         _zoneSnapper?.Dispose();
         Udp?.Dispose();

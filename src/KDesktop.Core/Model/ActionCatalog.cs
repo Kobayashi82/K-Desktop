@@ -48,6 +48,7 @@ public static class ActionCatalog
         new(ActionKind.Ruler, "screen", "Ruler24", () => new RulerAction()),
         new(ActionKind.Magnifier, "screen", "ZoomIn24", () => new MagnifierAction()),
         new(ActionKind.Display, "screen", "Desktop24", () => new DisplayAction()),
+        new(ActionKind.Panel, "screen", "DesktopPulse24", () => new PanelAction()),
         new(ActionKind.WindowsTheme, "screen", "DarkTheme24", () => new WindowsThemeAction()),
 
         new(ActionKind.HttpRequest, "network", "ArrowSwap24", () => new HttpRequestAction()),

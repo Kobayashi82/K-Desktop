@@ -5,7 +5,7 @@ using KDesktop.Core.Platform;
 namespace KDesktop.Core.Storage;
 
 /// <summary>What can be exported on its own (E6): also layouts (which travel too with the commands that put them) and texts.</summary>
-public enum TransferKind { Command, Macro, KBoard, Event, QuickMenu, Arrangement, Snippet }
+public enum TransferKind { Command, Macro, KBoard, Event, QuickMenu, Arrangement, Snippet, Panel }
 
 /// <summary>
 /// One item and everything it needs, as it travels in a .kdx: the commands an event runs, the macros, menus, K-Board
@@ -29,6 +29,7 @@ public sealed class TransferBundle
     public List<QuickMenu> QuickMenus { get; set; } = [];
     public List<WindowArrangement> Arrangements { get; set; } = [];
     public List<TextSnippet> Snippets { get; set; } = [];
+    public List<InfoPanel> Panels { get; set; } = [];
 
     /// <summary>The gestures drawn by the user that the commands use as hotkeys.</summary>
     public List<CustomGesture> Gestures { get; set; } = [];
@@ -101,6 +102,7 @@ public static class ItemTransfer
                 case QuickMenu menu: bundle.QuickMenus.Add(menu); break;
                 case WindowArrangement arrangement: bundle.Arrangements.Add(arrangement); break;
                 case TextSnippet snippet: bundle.Snippets.Add(snippet); break;
+                case InfoPanel panel: bundle.Panels.Add(panel); break;
             }
             foreach (var reference in References(copy)) pending.Enqueue(reference);
         }
@@ -223,6 +225,7 @@ public static class ItemTransfer
                 case QuickMenu menu: config.QuickMenus.Add(menu); break;
                 case WindowArrangement arrangement: config.Arrangements.Add(arrangement); break;
                 case TextSnippet snippet: config.Snippets.Add(snippet); break;
+                case InfoPanel panel: config.Panels.Add(panel); break;
             }
         }
         foreach (var gesture in bundle.Gestures)
@@ -246,6 +249,7 @@ public static class ItemTransfer
         TransferKind.QuickMenu => bundle.QuickMenus.FirstOrDefault(q => q.Id == bundle.RootId),
         TransferKind.Arrangement => bundle.Arrangements.FirstOrDefault(a => a.Id == bundle.RootId),
         TransferKind.Snippet => bundle.Snippets.FirstOrDefault(s => s.Id == bundle.RootId),
+        TransferKind.Panel => bundle.Panels.FirstOrDefault(p => p.Id == bundle.RootId),
         _ => null,
     };
 
@@ -257,7 +261,8 @@ public static class ItemTransfer
             .Concat(bundle.Events.Select(e => (TransferKind.Event, (object)e)))
             .Concat(bundle.QuickMenus.Select(q => (TransferKind.QuickMenu, (object)q)))
             .Concat(bundle.Arrangements.Select(a => (TransferKind.Arrangement, (object)a)))
-            .Concat(bundle.Snippets.Select(s => (TransferKind.Snippet, (object)s)));
+            .Concat(bundle.Snippets.Select(s => (TransferKind.Snippet, (object)s)))
+            .Concat(bundle.Panels.Select(p => (TransferKind.Panel, (object)p)));
 
     private static object? Existing(AppConfig config, TransferKind kind, string itemId) => (kind, itemId) switch
     {
@@ -268,6 +273,7 @@ public static class ItemTransfer
         (TransferKind.QuickMenu, var id) => config.QuickMenus.FirstOrDefault(q => q.Id == id),
         (TransferKind.Arrangement, var id) => config.Arrangements.FirstOrDefault(a => a.Id == id),
         (TransferKind.Snippet, var id) => config.Snippets.FirstOrDefault(s => s.Id == id),
+        (TransferKind.Panel, var id) => config.Panels.FirstOrDefault(p => p.Id == id),
         _ => null,
     };
 
@@ -279,6 +285,7 @@ public static class ItemTransfer
         TransferKind.Event => config.Events.Select(e => e.Name),
         TransferKind.QuickMenu => config.QuickMenus.Select(q => q.Name),
         TransferKind.Snippet => config.Snippets.Select(s => s.Abbreviation),
+        TransferKind.Panel => config.Panels.Select(p => p.Name),
         _ => config.Arrangements.Select(a => a.Name),
     };
 
@@ -310,6 +317,7 @@ public static class ItemTransfer
         QuickMenu q => q.Id,
         WindowArrangement a => a.Id,
         TextSnippet s => s.Id,
+        InfoPanel p => p.Id,
         _ => string.Empty,
     };
 
@@ -324,6 +332,7 @@ public static class ItemTransfer
             case QuickMenu q: q.Id = id; break;
             case WindowArrangement a: a.Id = id; break;
             case TextSnippet s: s.Id = id; break;
+            case InfoPanel p: p.Id = id; break;
         }
     }
 
@@ -336,6 +345,7 @@ public static class ItemTransfer
         QuickMenu q => q.Name,
         WindowArrangement a => a.Name,
         TextSnippet s => s.Abbreviation,
+        InfoPanel p => p.Name,
         _ => string.Empty,
     };
 
@@ -350,6 +360,7 @@ public static class ItemTransfer
             case QuickMenu q: q.Name = name; break;
             case WindowArrangement a: a.Name = name; break;
             case TextSnippet s: s.Abbreviation = name; break;
+            case InfoPanel p: p.Name = name; break;
         }
     }
 
@@ -371,6 +382,7 @@ public static class ItemTransfer
                             case PlayMacroAction p: yield return (TransferKind.Macro, p.MacroId); break;
                             case KBoardAction k: yield return (TransferKind.KBoard, k.ProfileId); break;
                             case ArrangementAction a: yield return (TransferKind.Arrangement, a.ArrangementId); break;
+                            case PanelAction { PanelId.Length: > 0 } p: yield return (TransferKind.Panel, p.PanelId); break;
                         }
                     break;
                 case KBoardProfile profile:
@@ -411,6 +423,7 @@ public static class ItemTransfer
                         case PlayMacroAction p: p.MacroId = map(TransferKind.Macro, p.MacroId); break;
                         case KBoardAction k: k.ProfileId = map(TransferKind.KBoard, k.ProfileId); break;
                         case ArrangementAction a: a.ArrangementId = map(TransferKind.Arrangement, a.ArrangementId); break;
+                        case PanelAction { PanelId.Length: > 0 } p: p.PanelId = map(TransferKind.Panel, p.PanelId); break;
                     }
                 break;
             case KBoardProfile profile:

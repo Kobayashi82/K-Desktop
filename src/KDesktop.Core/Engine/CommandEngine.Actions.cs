@@ -37,6 +37,7 @@ public sealed partial class CommandEngine
         PlayMacroAction a => PlayMacroAsync(a, ctx),
         AudioOutputAction a => AudioOutputAsync(a), // also «Entrada de audio»
         KBoardAction a => Run(() => KBoard(a)),
+        PanelAction a => Run(() => Panel(a)),
         HttpRequestAction a => HttpRequestAsync(a, ctx),
         WindowAction a => Run(() => Window(a, ctx)),
         ClipboardAction a => ClipboardAsync(a, ctx),
@@ -652,6 +653,39 @@ public sealed partial class CommandEngine
         _ui.RunOnUi(() => profile.Active = active);
         if (a.ShowOsd)
             _ui.ShowOsd(Loc.T(active ? "osd.kboardOn" : "osd.kboardOff", profile.Name), active ? OsdKind.Success : OsdKind.Info, look: OsdLook.Of("KeyboardLayoutFloat24"));
+    }
+
+    /// <summary>«Panel»: one panel of «Paneles», or all of them (switching all: hidden if any is shown).</summary>
+    private void Panel(PanelAction a)
+    {
+        var panels = string.IsNullOrEmpty(a.PanelId) ? Config.Panels.ToList() : Config.Panels.Where(p => p.Id == a.PanelId).ToList();
+        if (panels.Count == 0)
+        {
+            if (a.ShowOsd)
+                _ui.ShowOsd(Loc.T(string.IsNullOrEmpty(a.PanelId) ? "panels.listEmpty" : "osd.panelMissing"), OsdKind.Warning, look: OsdLook.Of("DesktopPulse24"));
+            return;
+        }
+        // «osd.panel.Shown» names the panel; «osd.panels.Shown», all of them.
+        var (key, name) = string.IsNullOrEmpty(a.PanelId) ? ("osd.panels.", string.Empty) : ("osd.panel.", panels[0].Name);
+        string osd;
+        if (a.Mode is PanelActionMode.Lock or PanelActionMode.Unlock)
+        {
+            var locked = a.Mode == PanelActionMode.Lock;
+            _ui.RunOnUi(() => panels.ForEach(p => p.Locked = locked));
+            osd = Loc.T(key + (locked ? "Locked" : "Unlocked"), name);
+        }
+        else
+        {
+            var shown = a.Mode switch
+            {
+                PanelActionMode.Show => true,
+                PanelActionMode.Hide => false,
+                _ => !panels.Any(p => p.Enabled),
+            };
+            _ui.RunOnUi(() => panels.ForEach(p => p.Enabled = shown));
+            osd = Loc.T(key + (shown ? "Shown" : "Hidden"), name);
+        }
+        if (a.ShowOsd) _ui.ShowOsd(osd, look: OsdLook.Of("DesktopPulse24"));
     }
 
     private async Task WaitAsync(WaitAction a, ExecutionContext ctx)

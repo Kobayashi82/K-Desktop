@@ -961,6 +961,38 @@
         </DataTemplate.Triggers>
     </DataTemplate>
 
+    <!-- ── Panel: one of «Paneles» (or all of them), as K-Board takes a profile ── -->
+    <DataTemplate DataType="{x:Type m:PanelAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.PanelActionModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.panel}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.PanelList}}" DisplayMemberPath="Name" SelectedValuePath="Value"
+                                  SelectedValue="{Binding PanelId}" AutomationProperties.Name="{l:Tr editor.panel}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
+                                   Command="{x:Static v:EditorCommands.EditPanel}" CommandParameter="{Binding PanelId}" />
+                    </Grid>
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Reproducir macro ────────────────────────────────────────────── -->
     <!-- ── Disposición de ventanas (E1): one of the page «Disposiciones», as «Reproducir macro» takes a macro ── -->
     <DataTemplate DataType="{x:Type m:ArrangementAction}">

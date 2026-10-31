@@ -101,6 +101,7 @@ public static class ActionGestures
         ActionKind.HiddenFiles or ActionKind.Files => Say("folder"),
         ActionKind.ToggleDisabledIn => Say("pause"),
         ActionKind.KBoard => Say("keyboard"),
+        ActionKind.Panel => Say("display"),
         ActionKind.OpenQuickMenu => Say("menu"),
         ActionKind.Launcher => Say("search"),
         ActionKind.CommandControl => Say("command"),

@@ -52,6 +52,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Ruler** | Freezes the screen and measures in pixels: moving the mouse, the distance between the edges around it (up to where the colour changes); dragging, a box. A click copies «width × height»; Esc cancels. |
 | **Magnifier** | A lens (rectangular or round) that follows the mouse and enlarges what is around it, or the whole screen it is on. |
 | **Screen** | Turns the screens off (all or the ones you choose), changes the projection (Win + P), the brightness, or a monitor's resolution and refresh rate. |
+| **Panel** | Shows, hides, locks or unlocks one of your [panels](panels.md), or all of them. |
 | **Windows theme** | Switches Windows and the apps to light or dark mode, or toggles between them. |
 
 ## Network and internet

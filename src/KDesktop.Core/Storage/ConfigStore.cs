@@ -134,6 +134,7 @@ public sealed class ConfigStore : IDisposable
         foreach (var ev in c.Events) ev.Modified += OnItemModified;
         foreach (var snippet in c.Snippets) snippet.Modified += OnItemModified;
         foreach (var arrangement in c.Arrangements) arrangement.Modified += OnItemModified;
+        foreach (var panel in c.Panels) panel.Modified += OnItemModified;
         c.Commands.CollectionChanged += OnCollectionChanged;
         c.QuickMenus.CollectionChanged += OnCollectionChanged;
         c.Macros.CollectionChanged += OnCollectionChanged;
@@ -141,6 +142,7 @@ public sealed class ConfigStore : IDisposable
         c.Events.CollectionChanged += OnCollectionChanged;
         c.Snippets.CollectionChanged += OnCollectionChanged;
         c.Arrangements.CollectionChanged += OnCollectionChanged;
+        c.Panels.CollectionChanged += OnCollectionChanged;
     }
 
     private void OnItemModified(object? sender, EventArgs e) => MarkDirty();
@@ -157,6 +159,7 @@ public sealed class ConfigStore : IDisposable
                 if (item is EventRule ev) ev.Modified += OnItemModified;
                 if (item is TextSnippet snippet) snippet.Modified += OnItemModified;
                 if (item is WindowArrangement arrangement) arrangement.Modified += OnItemModified;
+                if (item is InfoPanel panel) panel.Modified += OnItemModified;
             }
         if (e.OldItems is not null)
             foreach (var item in e.OldItems)
@@ -168,6 +171,7 @@ public sealed class ConfigStore : IDisposable
                 if (item is EventRule ev) ev.Modified -= OnItemModified;
                 if (item is TextSnippet snippet) snippet.Modified -= OnItemModified;
                 if (item is WindowArrangement arrangement) arrangement.Modified -= OnItemModified;
+                if (item is InfoPanel panel) panel.Modified -= OnItemModified;
             }
         MarkDirty();
     }

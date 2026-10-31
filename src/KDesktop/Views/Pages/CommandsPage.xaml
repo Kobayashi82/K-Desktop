@@ -124,6 +124,7 @@
         <CommandBinding Command="{x:Static v:EditorCommands.AddAudioDevice}" Executed="OnAddAudioDevice" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveAudioDevice}" Executed="OnRemoveAudioDevice" />
         <CommandBinding Command="{x:Static v:EditorCommands.EditKBoard}" Executed="OnEditKBoard" />
+        <CommandBinding Command="{x:Static v:EditorCommands.EditPanel}" Executed="OnEditPanel" />
         <CommandBinding Command="{x:Static v:EditorCommands.AddHttpHeader}" Executed="OnAddHttpHeader" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveHttpHeader}" Executed="OnRemoveHttpHeader" />
         <CommandBinding Command="{x:Static v:EditorCommands.TestHttpRequest}" Executed="OnTestHttpRequest" />

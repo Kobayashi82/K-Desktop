@@ -67,6 +67,14 @@ internal static class UiNative
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style));
     }
 
+    /// <summary>Lets the clicks go through a layered window to what is under it, or stops it.</summary>
+    public static void SetClickThrough(IntPtr hwnd, bool on)
+    {
+        var style = GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();
+        style = on ? style | WS_EX_TRANSPARENT : style & ~WS_EX_TRANSPARENT;
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style));
+    }
+
     // ── Positioning (physical pixels) ────────────────────────────────────
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT { public int X, Y; }
@@ -158,6 +166,30 @@ internal static class UiNative
         GetMonitorInfo(mon, ref info);
         return (info.rcMonitor, info.rcWork);
     }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct MONITORINFOEX
+    {
+        public int cbSize;
+        public RECT rcMonitor, rcWork;
+        public uint dwFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string szDevice;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetMonitorInfoW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetMonitorInfoEx(IntPtr hMonitor, ref MONITORINFOEX info);
+
+    /// <summary>The monitor a window is on (the nearest one): its GDI name («\\.\DISPLAY1»), its whole area and its work area.</summary>
+    public static (string Device, RECT Monitor, RECT Work) MonitorOf(IntPtr hwnd)
+    {
+        var info = new MONITORINFOEX { cbSize = Marshal.SizeOf<MONITORINFOEX>(), szDevice = string.Empty };
+        GetMonitorInfoEx(MonitorFromWindow(hwnd, 2 /* MONITOR_DEFAULTTONEAREST */), ref info);
+        return (info.szDevice ?? string.Empty, info.rcMonitor, info.rcWork);
+    }
+
+    /// <summary>Whether <paramref name="hwnd"/> is the desktop (what «Mostrar el escritorio» brings to the front).</summary>
+    public static bool IsDesktop(IntPtr hwnd) => hwnd != IntPtr.Zero && ClassName(hwnd) is "Progman" or "WorkerW";
 
     [DllImport("shell32.dll")]
     private static extern int SHQueryUserNotificationState(out int state);

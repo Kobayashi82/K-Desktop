@@ -53,6 +53,7 @@ orden.
 | **Regla** | Congela la pantalla y mide en píxeles: al mover el ratón, la distancia entre los bordes que tiene alrededor (hasta donde cambia el color); arrastrando, una caja. Un clic copia «ancho × alto»; Esc cancela. |
 | **Lupa** | Una lente (rectangular o redonda) que sigue al ratón y amplía lo que tiene alrededor, o toda la pantalla en la que está. |
 | **Pantalla** | Apaga las pantallas (todas o las que elijas), cambia la proyección (Win + P), el brillo, o la resolución y la frecuencia de un monitor. |
+| **Panel** | Muestra, oculta, bloquea o desbloquea uno de tus [paneles](panels.md), o todos. |
 | **Tema de Windows** | Pasa Windows y las aplicaciones a modo claro u oscuro, o alterna entre los dos. |
 
 ## Red e internet
