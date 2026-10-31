@@ -1,0 +1,112 @@
+{
+  "lang": "en",
+  "number": 14,
+  "title": "The assistant's tools",
+  "next": "Memory, notes and what it knows",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Ask before doing something",
+      "Only what's risky",
+      "Also the first time",
+      "Without asking",
+      "Claude Desktop",
+      "Open WebUI",
+      "VS Code"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "The assistant's tools",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Ask your assistant, and it {does}does it: {files}finds a file, {weather}checks the weather, {music}pauses the music. Those are its {tools}tools."
+        },
+        {
+          "id": "plan",
+          "text": "Let's see {what}what it can do, {ask}when it asks first, and how to {own}add your own.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "builtin",
+      "title": "What it can do",
+      "label": "Built-in",
+      "beats": [
+        {
+          "id": "groups",
+          "text": "In {settings}Settings, Tools, there are {count}more than eighty built-in tools, by subject: the {calendar}calendar, {files}files, the {internet}internet, {mail}mail, {music}music, {notes}notes and memory, {pc}programs and the PC, the {screen}screen and texts, and more."
+        },
+        {
+          "id": "choose",
+          "text": "It doesn't hand all of them to the AI: it {picks}picks the ones that fit what you ask. {off}Switch off the ones you don't want, and it chooses better among the rest. And {test}Test tries any of them right away."
+        }
+      ]
+    },
+    {
+      "id": "ask",
+      "title": "When it asks first",
+      "label": "Asking",
+      "beats": [
+        {
+          "id": "before",
+          "text": "In the assistant's options, {before}Ask before doing something: {never}never, {risky}only what's risky, like shutting down, scripts or keys, or {first}also the first time."
+        },
+        {
+          "id": "each",
+          "text": "And {each}each tool can have its own: {safe}without asking, {once}the first time, or {always}always."
+        }
+      ]
+    },
+    {
+      "id": "own",
+      "title": "Your own tools",
+      "label": "Your own",
+      "beats": [
+        {
+          "id": "json",
+          "text": "Make your own in {custom}Custom: {file}one file per tool, to query a {web}website or an API, run one of your {commands}commands, do {steps}several steps in a row, or run a {script}script. They {load}load by themselves when you save the file."
+        },
+        {
+          "id": "mcp",
+          "text": "Or plug in {mcp}MCP servers, with all their tools. They {start}start when an assistant needs them, and {stop}stop on their own. And their keys go in {secrets}Secrets."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: it works the other way, too. In {share}Share, {programs}Claude Desktop, VS Code or Open WebUI can use your assistants' tools and your K-Desktop commands. {copy}Copy the configuration, paste it into the program, and that's it."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}memory, notes, and what it knows."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
