@@ -44,7 +44,7 @@
       "beats": [
         {
           "id": "groups",
-          "text": "In {settings}Settings, Tools, there are {count}more than eighty built-in tools, by subject: the {calendar}calendar, {files}files, the {internet}internet, {mail}mail, {music}music, {notes}notes and memory, {pc}programs and the PC, the {screen}screen and texts, and more."
+          "text": "In {settings}Settings, Tools, there are {count}more than eighty built-in tools, by subject: the {calendar}calendar, {files}files, the {internet}internet and your phone, {mail}mail, {music}music, {notes}notes and memory, {pc}programs and the PC, the {screen}screen and texts, and more."
         },
         {
           "id": "choose",
@@ -64,6 +64,10 @@
         {
           "id": "each",
           "text": "And {each}each tool can have its own: {safe}without asking, {once}the first time, or {always}always."
+        },
+        {
+          "id": "answer",
+          "text": "When it asks, answer by click or by voice: {yes}yes, {no}no, or {always}yes, and don't ask again. And if something wasn't what you wanted, say {undo}undo that."
         }
       ]
     },

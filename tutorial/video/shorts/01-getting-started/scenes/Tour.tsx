@@ -67,7 +67,11 @@ export const Tour: React.FC = () => {
       <Camera shots={shots} width={1920} height={1080} float={0.5} clamp>
         <div style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, overflow: 'hidden', borderRadius: 14, boxShadow: '0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1)', opacity: glide(f, 0, 20) }}>
           {PAGES.map((p, i) => <Layer key={p.capture} name={p.capture} k={shown[i]} />)}
-          <FocusLayer width={1920} height={1080} focus={[{ from: search - 8, to: search + 44, rect: [260, 124, 282, 36], label: 'Ctrl + F', at: 'right' }]} />
+          <FocusLayer width={1920} height={1080} focus={[
+            { from: search - 8, to: search + 44, rect: [260, 124, 282, 36], label: 'Ctrl + F', at: 'right' },
+            // The phone in the status bar at the bottom of the menu: the web app and the Android app.
+            { from: more.cue('phone') - 6, to: more.to + 10, rect: [104, 1024, 32, 32], label: t('Your phone as a remote'), at: 'right' },
+          ]} />
         </div>
         <Cursor path={cursor} clicks={at.map(a => ({ at: a - 1 }))} />
       </Camera>

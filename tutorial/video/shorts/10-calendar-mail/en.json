@@ -56,6 +56,10 @@
         {
           "id": "remind",
           "text": "When it's time, K-Desktop {reminds}reminds you, the way you choose: an {osd}on-screen message, a {notification}notification with Join, or one of your {assistant}assistants says it."
+        },
+        {
+          "id": "phone",
+          "text": "And the Agenda goes with you: it's on your {phone}phone too, in the web app and the Android app."
         }
       ]
     },

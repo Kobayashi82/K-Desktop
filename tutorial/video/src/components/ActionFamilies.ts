@@ -80,7 +80,7 @@ export const FAMILIES: Family[] = [
 
 /**
  * The actions as K-Desktop 5.0.451 lists them in «Add action» (ActionCatalog.cs: ten families; names from en.json), for
- * the short videos. «Send to phone» is left out: the phone is not shown in them yet.
+ * the short videos.
  */
 const a = (name: string, icon: string, color: string): ActionInfo => ({ name: t(name), desc: '', icon, color });
 export const FAMILIES_NOW: Family[] = [
@@ -109,7 +109,8 @@ export const FAMILIES_NOW: Family[] = [
   ] },
   { id: 'network', name: t('Network and internet'), icon: 'globe_24_filled', color: 'pink', actions: [
     a('Web request', 'arrow_swap_24_filled', 'teal'), a('Wake a computer', 'desktop_pulse_24_filled', 'green'),
-    a('Wi-Fi and Bluetooth', 'wifi_1_24_filled', 'sky'), a('Send mail', 'mail_24_filled', 'blue'), a('Send via Telegram', 'send_24_filled', 'sky'),
+    a('Wi-Fi and Bluetooth', 'wifi_1_24_filled', 'sky'), a('Send to phone', 'phone_24_filled', 'sky'), a('Send mail', 'mail_24_filled', 'blue'),
+    a('Send via Telegram', 'send_24_filled', 'sky'),
   ] },
   { id: 'calendar', name: t('Calendar'), icon: 'calendar_ltr_24_filled', color: 'orange', actions: [
     a('Create event', 'calendar_add_24_filled', 'orange'), a('Join the meeting', 'video_person_24_filled', 'purple'),

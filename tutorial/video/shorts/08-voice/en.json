@@ -7,7 +7,7 @@
   "tts": {
     "voice": "af_heart",
     "kokoroLang": "en-us",
-    "speed": 1.0
+    "speed": 1
   },
   "subtitles": {
     "width": 42,
@@ -128,6 +128,10 @@
         {
           "id": "wake",
           "text": "Or use a {wake}wake word. {kd}K-Desktop, open the browser. {nokey}No key at all."
+        },
+        {
+          "id": "phone",
+          "text": "And from the couch, use your {phone}phone as the microphone: in the web app, or with the {android}Android app's own microphone."
         },
         {
           "id": "own",

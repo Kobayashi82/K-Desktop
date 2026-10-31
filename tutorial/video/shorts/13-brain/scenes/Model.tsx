@@ -77,6 +77,24 @@ const Think: React.FC = () => {
   );
 };
 
+/** Each assistant's own model (lander-settings.png): «Thinks with» and «To think harder». */
+const Each: React.FC = () => {
+  const B = useBeats();
+  const e = B('each');
+  const focus: Focus[] = [
+    { from: e.cue('own') - 4, to: e.cue('thinks') - 4, rect: [564, 772, 976, 190] },
+    { from: e.cue('thinks') - 4, to: e.cue('harder') - 4, rect: [580, 790, 942, 40], label: t('Thinks with'), at: 'top' },
+    { from: e.cue('harder') - 4, to: e.to + 30, rect: [580, 842, 942, 112], label: t('To think harder'), at: 'top' },
+  ];
+  return (
+    <>
+      <CaptureShot name="lander-settings" focus={focus}
+        shots={[{ at: e.from - 6, x: 960, y: 540, s: 1.0 }, { at: e.from, dur: 30, x: 1050, y: 760, s: 1.5 }]} />
+      {blips(focus)}
+    </>
+  );
+};
+
 /** Chapter «Choose a model». */
 export const Model: React.FC = () => {
   const B = useBeats();
@@ -87,7 +105,8 @@ export const Model: React.FC = () => {
     <AbsoluteFill>
       <Part from={0} to={a.from - 4} first><Brain /></Part>
       <Part from={a.from - 4} to={th.from - 4}><Add /></Part>
-      <Part from={th.from - 4} to={durationInFrames} last><Think /></Part>
+      <Part from={th.from - 4} to={B('each').from - 4}><Think /></Part>
+      <Part from={B('each').from - 4} to={durationInFrames} last><Each /></Part>
     </AbsoluteFill>
   );
 };

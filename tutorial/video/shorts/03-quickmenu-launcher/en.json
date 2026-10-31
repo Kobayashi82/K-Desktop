@@ -96,6 +96,10 @@
         {
           "id": "clip",
           "text": "It even searches your {clipboard}clipboard history: pick something you copied, and Enter {pastes}pastes it. Each of these can be {switch}switched on or off, in Settings, Launcher."
+        },
+        {
+          "id": "phone",
+          "text": "And your {menus}QuickMenus go with you: on your {phone}phone, the web app and the Android app show them, ready to tap."
         }
       ]
     },

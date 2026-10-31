@@ -3,11 +3,47 @@ import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { CaptureShot, Focus } from '../../../src/components/Capture';
 import { Part } from '../../../src/components/Chapter';
 import { Sfx } from '../../../src/components/Sfx';
-import { glide, inOut } from '../../../src/lib/anim';
+import { glide, inOut, pop } from '../../../src/lib/anim';
 import { t } from '../../../src/lib/i18n';
 import { useBeats, useChapter } from '../../../src/lib/timeline';
+import { Bubble } from '../../../src/scenes/assistants/Inside';
 import { C, SANS } from '../../../src/theme';
 import { blips } from './Builtin';
+
+/** The question it asks (its real buttons), the answer, and «undo that» with its real reply. */
+const Answer: React.FC = () => {
+  const f = useCurrentFrame();
+  const B = useBeats();
+  const a = B('answer');
+  const card = glide(f, a.from - 4, 20);
+  const buttons = [{ cue: 'yes', t: t('Yes') }, { cue: 'no', t: t('No') }, { cue: 'always', t: t('Yes, and don\'t ask again') }];
+  const hot = buttons.reduce((s, b, i) => (f >= a.cue(b.cue) - 4 ? i : s), -1);
+  const undo = a.cue('undo');
+  return (
+    <AbsoluteFill style={{ fontFamily: SANS }}>
+      <div style={{
+        position: 'absolute', left: 960, top: 330, width: 1000, padding: '28px 34px', borderRadius: 24, boxSizing: 'border-box', transform: `translate(-50%, -50%) translateY(${(1 - card) * 50}px)`, opacity: card,
+        background: 'linear-gradient(180deg, rgba(44,44,52,0.98), rgba(30,30,36,0.98))', border: `1.5px solid ${C.line2}`, boxShadow: '0 30px 80px rgba(0,0,0,0.55)',
+      }}>
+        <div style={{ fontSize: 30, fontWeight: 700, color: C.text }}>{t('May I move report.pdf to Documents?')}</div>
+        <div style={{ fontSize: 20, color: C.dim, marginTop: 6 }}>{t('I\'m listening: say “yes” or “no”')}</div>
+        <div style={{ display: 'flex', gap: 14, marginTop: 22 }}>
+          {buttons.map((b, i) => (
+            <div key={b.cue} style={{
+              padding: '14px 26px', borderRadius: 10, fontSize: 24, fontWeight: 600, color: i === hot ? '#1a1306' : C.text,
+              background: i === hot ? 'linear-gradient(180deg, #FFD970, #F2B807)' : 'rgba(255,255,255,0.08)', transform: `scale(${i === hot ? 1.04 : 1})`,
+            }}>{b.t}</div>
+          ))}
+        </div>
+      </div>
+      <Bubble user text={t('Undo that')} show={pop(f, undo - 6, { damping: 14 })} x={1640} y={640} size={36} />
+      <Bubble text={t('Undone: Moved report.pdf to Documents.')} show={pop(f, undo + 12, { damping: 14 })} x={280} y={800} size={32} />
+      {buttons.map(b => <Sfx key={b.cue} at={a.cue(b.cue) - 4} name="blip" volume={0.14} />)}
+      <Sfx at={undo - 6} name="pop" volume={0.2} />
+      <Sfx at={undo + 12} name="pop-high" volume={0.2} />
+    </AbsoluteFill>
+  );
+};
 
 /** «Ask before doing something», drawn with its real choices and hint. */
 const Before: React.FC = () => {
@@ -84,7 +120,8 @@ export const Ask: React.FC = () => {
   return (
     <AbsoluteFill>
       <Part from={0} to={e.from - 4} first><Before /></Part>
-      <Part from={e.from - 4} to={durationInFrames} last><Each /></Part>
+      <Part from={e.from - 4} to={B('answer').from - 4}><Each /></Part>
+      <Part from={B('answer').from - 4} to={durationInFrames} last><Answer /></Part>
     </AbsoluteFill>
   );
 };

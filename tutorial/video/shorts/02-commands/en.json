@@ -6,7 +6,7 @@
   "tts": {
     "voice": "af_heart",
     "kokoroLang": "en-us",
-    "speed": 1.0
+    "speed": 1
   },
   "subtitles": {
     "width": 42,
@@ -87,7 +87,7 @@
         },
         {
           "id": "fam2",
-          "text": "{sound}Sound: volume, devices, music and recording. {screen}Screen: screenshots, video, copying text, a magnifier, a ruler and a colour picker. {network}Network: web requests, Wake on LAN, mail and Telegram."
+          "text": "{sound}Sound: volume, devices, music and recording. {screen}Screen: screenshots, video, copying text, a magnifier, a ruler and a colour picker. {network}Network: web requests, Wake on LAN, sending to your phone, mail and Telegram."
         },
         {
           "id": "fam3",
@@ -107,6 +107,10 @@
         {
           "id": "gesture",
           "text": "Or a {gesture}mouse gesture. Hold the right button, draw a {letter}letter or a line, and let go. You can even {own}draw your own."
+        },
+        {
+          "id": "anywhere",
+          "text": "And without a key at all: from the {menu}QuickMenu or the {launcher}launcher, by {voice}voice, from your {phone}phone, from {network}another computer, a script or Home Assistant, from an {event}event, or by asking an {assistant}assistant."
         },
         {
           "id": "options",

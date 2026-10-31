@@ -3,6 +3,7 @@ import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { CaptureShot, Focus } from '../../../src/components/Capture';
 import { Part } from '../../../src/components/Chapter';
 import { Osd } from '../../../src/components/Osd';
+import { Phone } from '../../../src/components/Phone';
 import { Sfx } from '../../../src/components/Sfx';
 import { glide, inOut, pop } from '../../../src/lib/anim';
 import { t } from '../../../src/lib/i18n';
@@ -146,6 +147,49 @@ const Ways: React.FC = () => {
   );
 };
 
+const DAYS: Array<[string, Array<[string, string, string]>]> = [
+  [t('Today'), [['8:00 AM', t('Buy a birthday present'), '#5AA9FF'], ['9:00 PM', t('Dentist'), '#5AA9FF']]],
+  [t('Tomorrow'), [['9:30 AM', t('Team stand-up'), '#F2B807'], ['12:00 PM', t('Client call: Atlas project'), '#F2B807'], ['7:00 PM', t('Gym'), '#5AA9FF']]],
+];
+
+/** The Agenda on the phone: a drawn phone with the same appointments as the real page. */
+const OnPhone: React.FC = () => {
+  const f = useCurrentFrame();
+  const B = useBeats();
+  const p = B('phone');
+  const k = pop(f, p.cue('phone') - 10, { damping: 15 });
+  let row = 0;
+  return (
+    <AbsoluteFill>
+      <div style={{ position: 'absolute', left: 960, top: 540, transform: `translate(-50%, -50%) scale(${0.8 + 0.2 * k})`, opacity: Math.min(1, k * 1.4) }}>
+        <Phone width={420}>
+          <div style={{ position: 'absolute', inset: 0, background: '#121216', padding: '70px 22px 0', fontFamily: SANS, boxSizing: 'border-box' }}>
+            <div style={{ fontSize: 34, fontWeight: 800, color: C.text, marginBottom: 18 }}>{t('Agenda')}</div>
+            {DAYS.map(([day, items]) => (
+              <div key={day} style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: C.accentText, marginBottom: 8 }}>{day}</div>
+                {items.map(([time, title, color]) => {
+                  const c = pop(f, p.cue('phone') + 2 * row++, { damping: 15 });
+                  return (
+                    <div key={title} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 14px', marginBottom: 8, borderRadius: 12, background: 'rgba(255,255,255,0.06)', opacity: Math.min(1, c * 1.4) }}>
+                      <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: color }} />
+                      <div>
+                        <div style={{ fontSize: 19, fontWeight: 600, color: C.text }}>{title}</div>
+                        <div style={{ fontSize: 15, color: C.dim }}>{time}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </Phone>
+      </div>
+      <Sfx at={p.cue('phone') - 10} name="whoosh-short" volume={0.22} />
+    </AbsoluteFill>
+  );
+};
+
 /** Chapter «The Agenda». */
 export const Agenda: React.FC = () => {
   const B = useBeats();
@@ -160,7 +204,8 @@ export const Agenda: React.FC = () => {
       <Part from={month.from - 4} to={n.from - 4}><Month /></Part>
       <Part from={n.from - 4} to={r.from - 4}><NewEvent /></Part>
       <Part from={r.from - 4} to={ways}><Remind /></Part>
-      <Part from={ways} to={durationInFrames} last><Ways /></Part>
+      <Part from={ways} to={B('phone').from - 4}><Ways /></Part>
+      <Part from={B('phone').from - 4} to={durationInFrames} last><OnPhone /></Part>
     </AbsoluteFill>
   );
 };

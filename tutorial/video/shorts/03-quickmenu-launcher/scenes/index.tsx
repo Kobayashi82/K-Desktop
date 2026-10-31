@@ -3,9 +3,12 @@ import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { CaptureShot } from '../../../src/components/Capture';
 import { Part } from '../../../src/components/Chapter';
 import { Keycap } from '../../../src/components/Keys';
+import { Phone } from '../../../src/components/Phone';
+import { MAIN_MENU, QuickMenuPanel } from '../../../src/components/QuickMenu';
+import { Callout } from '../../../src/components/Ui';
 import { ShortAgenda, ShortEnd, ShortTitle } from '../../../src/components/Short';
 import { Sfx } from '../../../src/components/Sfx';
-import { ease, IN, keys, pop, rand } from '../../../src/lib/anim';
+import { ease, IN, inOut, keys, pop, rand } from '../../../src/lib/anim';
 import { t } from '../../../src/lib/i18n';
 import { useBeats, useChapter } from '../../../src/lib/timeline';
 import { Launcher } from '../../../src/scenes/Launcher';
@@ -61,8 +64,8 @@ const Hook: React.FC = () => {
 // The real Settings › Launcher page: its rows (tutorial/captures/en/settings-launcher.png).
 const ROW = (y: number): [number, number, number, number] => [572, y - 22, 960, 44];
 
-/** Chapter «More than programs»: files and folders, the clipboard history, and the switches of each. */
-const More: React.FC = () => {
+/** Files and folders, the clipboard history, and the switches of each (the real Settings › Launcher). */
+const Search: React.FC = () => {
   const B = useBeats();
   const files = B('files');
   const clip = B('clip');
@@ -76,6 +79,43 @@ const More: React.FC = () => {
         { from: clip.cue('clipboard') - 4, to: clip.cue('switch') - 6, rect: ROW(464), label: t('Enter pastes it'), at: 'top' },
         { from: clip.cue('switch') - 6, to: clip.to + 30, rect: [1470, 232, 64, 356], label: t('On or off'), at: 'left' },
       ]} />
+  );
+};
+
+/** The QuickMenus on the phone: a drawn phone with the menu, ready to tap. */
+const OnPhone: React.FC = () => {
+  const f = useCurrentFrame();
+  const B = useBeats();
+  const ph = B('phone');
+  const k = pop(f, ph.cue('phone') - 10, { damping: 15 });
+  const tap = ph.cue('phone') + 30;
+  return (
+    <AbsoluteFill>
+      <div style={{ position: 'absolute', left: 960, top: 540, transform: `translate(-50%, -50%) scale(${0.8 + 0.2 * k}) rotate(${(1 - k) * -6}deg)`, opacity: Math.min(1, k * 1.4) }}>
+        <Phone width={430}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #1a1a20, #101014)', display: 'flex', justifyContent: 'center', paddingTop: 70 }}>
+            <QuickMenuPanel items={MAIN_MENU} scale={1.55} width={250} hot={f > tap ? 1 : -1} flash={inOut(f, tap, tap + 14, 4)} />
+          </div>
+        </Phone>
+      </div>
+      <Callout show={inOut(f, ph.cue('menus') - 4, ph.to + 40, 8)} x={1420} y={300} size={30}>{t('Your QuickMenus')}</Callout>
+      <Callout show={inOut(f, ph.cue('phone'), ph.to + 40, 8)} x={1420} y={380} size={26} gold={false}>{t('Web app · Android app')}</Callout>
+      <Sfx at={ph.cue('phone') - 10} name="whoosh-short" volume={0.22} />
+      <Sfx at={tap} name="click" volume={0.25} />
+    </AbsoluteFill>
+  );
+};
+
+/** Chapter «More than programs»: files, the clipboard history, and the QuickMenus on your phone. */
+const More: React.FC = () => {
+  const B = useBeats();
+  const { durationInFrames } = useChapter();
+  const ph = B('phone');
+  return (
+    <AbsoluteFill>
+      <Part from={0} to={ph.from - 4} first><Search /></Part>
+      <Part from={ph.from - 4} to={durationInFrames} last><OnPhone /></Part>
+    </AbsoluteFill>
   );
 };
 

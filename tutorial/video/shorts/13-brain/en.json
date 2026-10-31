@@ -52,6 +52,10 @@
         {
           "id": "think",
           "text": "In {think}To think harder, pick the model it uses when you say {over}think it over, when the question is hard, or when it {wrong}gets something wrong."
+        },
+        {
+          "id": "each",
+          "text": "And each assistant can have {own}its own: in its settings, {thinks}Thinks with, and {harder}To think harder. Left on Global, it uses these."
         }
       ]
     },

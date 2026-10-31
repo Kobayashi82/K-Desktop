@@ -13,6 +13,7 @@ import { ease, inOut, pop } from '../../../src/lib/anim';
 import { t } from '../../../src/lib/i18n';
 import { BeatTimes, useBeats, useChapter } from '../../../src/lib/timeline';
 import { AdminPart, OptionsPart } from '../../../src/scenes/commands/Extras';
+import { AnywherePart } from './Anywhere';
 
 /** A hot corner: the pointer rests in the top-left corner, the corner fills up, and the command runs. */
 const CornerPart: React.FC<{ b: BeatTimes; from: number }> = ({ b, from }) => {
@@ -96,18 +97,20 @@ const GesturePart: React.FC<{ b: BeatTimes; from: number }> = ({ b, from }) => {
   );
 };
 
-/** Chapter «Hotkeys and the mouse»: hot corners, gestures, the options and administrator rights. */
+/** Chapter «Hotkeys and the mouse»: hot corners, gestures, every other way to run it, the options and administrator rights. */
 export const Launch: React.FC = () => {
   const B = useBeats();
   const { durationInFrames } = useChapter();
   const corner = B('corner');
   const gesture = B('gesture');
+  const anywhere = B('anywhere');
   const options = B('options');
   const admin = B('admin');
   return (
     <AbsoluteFill>
       <Part from={0} to={gesture.from - 6} first><CornerPart b={corner} from={0} /></Part>
-      <Part from={gesture.from - 6} to={options.from - 6}><GesturePart b={gesture} from={gesture.from - 6} /></Part>
+      <Part from={gesture.from - 6} to={anywhere.from - 6}><GesturePart b={gesture} from={gesture.from - 6} /></Part>
+      <Part from={anywhere.from - 6} to={options.from - 6}><AnywherePart b={anywhere} /></Part>
       <Part from={options.from - 6} to={admin.from - 6}><OptionsPart b={options} /></Part>
       <Part from={admin.from - 6} to={durationInFrames} last><AdminPart b={admin} /></Part>
     </AbsoluteFill>
