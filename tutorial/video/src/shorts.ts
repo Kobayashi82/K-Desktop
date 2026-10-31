@@ -7,6 +7,7 @@ import { KBOARD } from '../shorts/05-kboard/scenes';
 import { EVENTS } from '../shorts/06-events/scenes';
 import { WINDOWS_CLIPBOARD_SCREEN } from '../shorts/07-windows-clipboard-screen/scenes';
 import { VOICE } from '../shorts/08-voice/scenes';
+import { CALENDAR_MAIL } from '../shorts/10-calendar-mail/scenes';
 
 /** A short video (shorts/<id>): the picture of each chapter of its script, and the background colours of its chapters. */
 export type Short = { scenes: Record<string, React.FC>; moods?: Record<string, readonly [string, string, string]> };
@@ -21,4 +22,5 @@ export const SHORTS: Record<string, Short> = {
   '06-events': EVENTS,
   '07-windows-clipboard-screen': WINDOWS_CLIPBOARD_SCREEN,
   '08-voice': VOICE,
+  '10-calendar-mail': CALENDAR_MAIL,
 };

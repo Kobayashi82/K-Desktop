@@ -1,0 +1,131 @@
+{
+  "lang": "en",
+  "number": 10,
+  "title": "Calendar and mail",
+  "next": "Telegram",
+  "tts": {
+    "voice": "af_heart",
+    "kokoroLang": "en-us",
+    "speed": 1
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "New event",
+      "New calendar",
+      "Add account",
+      "Client ID",
+      "Only important ones",
+      "Every new mail"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "title": "Calendar and mail",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "Your {appointments}appointments and your {mail}mail, right on your desktop. K-Desktop {reminds}reminds you, and can act on them."
+        },
+        {
+          "id": "plan",
+          "text": "Let's see {agenda}the Agenda, {connect}connecting your calendars, and {inbox}your mail.",
+          "pause": 0.5
+        }
+      ]
+    },
+    {
+      "id": "agenda",
+      "title": "The Agenda",
+      "label": "Agenda",
+      "beats": [
+        {
+          "id": "list",
+          "text": "The {agenda}Agenda shows the appointments of {all}all your calendars, day by day, with {today}today always on top. The one {now}happening now is marked, and online meetings get a {join}Join button."
+        },
+        {
+          "id": "month",
+          "text": "Or switch to the {month}month view. Each {colours}calendar has its own colour, and a click {hide}hides it or shows it again."
+        },
+        {
+          "id": "new",
+          "text": "{new}New event: a {title}title, the {calendar}calendar, when it {starts}starts and ends, and whether it {repeats}repeats: daily, every weekday, monthly. Then a {reminder}reminder, a {place}place, or a {link}meeting link."
+        },
+        {
+          "id": "remind",
+          "text": "When it's time, K-Desktop {reminds}reminds you, the way you choose: an {osd}on-screen message, a {notification}notification with Join, or one of your {assistant}assistants says it."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "Your calendars",
+      "label": "Calendars",
+      "beats": [
+        {
+          "id": "own",
+          "text": "In {settings}Settings, Calendar, you keep your {own}own calendars. {newcal}New calendar adds another, each with its {reminder}reminder for new events."
+        },
+        {
+          "id": "ics",
+          "text": "To see one you already have, {subscribe}subscribe to its .ics address: Google, Outlook, {holidays}holidays or sports. It's read-only, and the address is kept {encrypted}encrypted."
+        },
+        {
+          "id": "google",
+          "text": "To see and edit your Google Calendar, {connect}connect your Google account. Google asks for your own {app}app, a free Client ID, and a {guide}step-by-step guide gets you one, {once}just once."
+        }
+      ]
+    },
+    {
+      "id": "mail",
+      "title": "Your mail",
+      "label": "Mail",
+      "beats": [
+        {
+          "id": "what",
+          "text": "In {settings}Settings, Mail, K-Desktop {matters}tells you what matters, fires {events}events, and lets the assistant {searches}search, sum up and draft. It's {client}not a mail client."
+        },
+        {
+          "id": "add",
+          "text": "{add}Add account: type your {address}address, and the {servers}servers fill in by themselves. Gmail, iCloud and Yahoo need an {password}app password, and the {guide}guide says where to make it. Then {test}Test."
+        },
+        {
+          "id": "important",
+          "text": "Each account can notify you about {every}every new mail, or {only}only important ones: from the {senders}senders, or with the {words}words in the subject that you list here."
+        },
+        {
+          "id": "notice",
+          "text": "And just like reminders, you pick {how}how you hear about it."
+        }
+      ]
+    },
+    {
+      "id": "tip",
+      "title": "One more thing",
+      "label": "Tip",
+      "beats": [
+        {
+          "id": "tip",
+          "text": "One last tip: both are {events}events too. {before}Ten minutes before an online meeting, {dnd}pause the music and {teams}open Teams. Or when the {bill}electricity bill arrives, {save}save its PDF in a folder, and let you know."
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "K-Desktop",
+      "label": "Next",
+      "beats": [
+        {
+          "id": "next",
+          "text": "Next up: {next}Telegram."
+        },
+        {
+          "id": "thanks",
+          "text": "Thanks for watching."
+        }
+      ]
+    }
+  ]
+}
